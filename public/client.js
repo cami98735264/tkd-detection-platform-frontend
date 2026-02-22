@@ -24271,7 +24271,8 @@ var import_jsx_runtime = __toESM(require_jsx_runtime());
 function Home() {
   return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { style: { padding: "1rem" }, children: [
     /* @__PURE__ */ (0, import_jsx_runtime.jsx)("h1", { children: "Home ASDASDASDADSAD" }),
-    /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { children: "Welcome to your Cloudflare Workers + React app!" })
+    /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { children: "Welcome to your Cloudflare Workers + React app!" }),
+    /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { children: "Django and Reack.js Medipipe" })
   ] });
 }
 
@@ -24280,7 +24281,11 @@ var import_jsx_runtime2 = __toESM(require_jsx_runtime());
 function About() {
   return /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("div", { style: { padding: "1rem" }, children: [
     /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("h1", { children: "About Page" }),
-    /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("p", { children: "This is a React app running on Cloudflare Workers." })
+    /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("p", { children: "This is a React app running on Cloudflare Workers." }),
+    /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("div", { style: { padding: "1rem" }, children: [
+      /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("h1", { children: "Sobre TKD" }),
+      /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("p", { children: "Esto es un cambio para el deporte" })
+    ] })
   ] });
 }
 
@@ -24290,6 +24295,8 @@ function NotFound() {
   return /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { style: { padding: "1rem" }, children: [
     /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("h1", { children: "404 - Page Not Found" }),
     /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("p", { children: "The page you're looking for doesn't exist." }),
+    /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("a", { href: "/", children: "Go back home" }),
+    /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("p", { children: "Ac\xE1 no vas a encontrar nada.... " }),
     /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("a", { href: "/", children: "Go back home" })
   ] });
 }
@@ -24299,7 +24306,9 @@ var import_jsx_runtime4 = __toESM(require_jsx_runtime());
 var Test = () => {
   return /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)("div", { style: { padding: "1rem" }, children: [
     /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("h1", { children: "Test Page" }),
-    /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("p", { children: "This is a test page for the Cloudflare Workers + React app." })
+    /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("p", { children: "This is a test page for the Cloudflare Workers + React app. THIS IS A CF BUILD TEST" }),
+    /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("h1", { children: "Videos" }),
+    /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("p", { children: "Video de publicidad del club" })
   ] });
 };
 var Test_default = Test;

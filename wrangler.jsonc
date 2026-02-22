@@ -4,7 +4,7 @@
  */
 {
 	"$schema": "node_modules/wrangler/config-schema.json",
-	"name": "tkd-frontend",
+	"name": "tkd-detection-platform-frontend",
 	"main": "dist/index.js",
 	"compatibility_date": "2026-02-19",
 	"compatibility_flags": [
