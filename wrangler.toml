@@ -1,3 +1,7 @@
 name = "tkd-detection-platform-frontend"
+main = "src/worker.js"
 compatibility_date = "2026-02-22"
-pages_build_output_dir = "dist"
+
+# Workers Sites configuration for serving static assets
+[site]
+bucket = "./dist"
