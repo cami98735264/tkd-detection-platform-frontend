@@ -3,6 +3,11 @@ import { getAssetFromKV } from '@cloudflare/kv-asset-handler';
 export default {
   async fetch(request, env, ctx) {
     try {
+      // Check if static content is available
+      if (!env.__STATIC_CONTENT) {
+        return new Response('Static content not configured', { status: 500 });
+      }
+
       // Try to serve static assets from the dist folder
       return await getAssetFromKV(
         {
@@ -13,7 +18,7 @@ export default {
         },
         {
           ASSET_NAMESPACE: env.__STATIC_CONTENT,
-          ASSET_MANIFEST: env.__STATIC_CONTENT_MANIFEST,
+          ASSET_MANIFEST: env.__STATIC_CONTENT_MANIFEST || '{}',
         }
       );
     } catch (e) {
@@ -32,7 +37,7 @@ export default {
             },
             {
               ASSET_NAMESPACE: env.__STATIC_CONTENT,
-              ASSET_MANIFEST: env.__STATIC_CONTENT_MANIFEST,
+              ASSET_MANIFEST: env.__STATIC_CONTENT_MANIFEST || '{}',
             }
           );
         } catch (e) {
