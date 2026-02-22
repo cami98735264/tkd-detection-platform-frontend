@@ -7,32 +7,39 @@ export default {
       return await getAssetFromKV(
         {
           request,
-          waitUntil: ctx.waitUntil.bind(ctx),
+          waitUntil(promise) {
+            return ctx.waitUntil(promise);
+          },
         },
         {
           ASSET_NAMESPACE: env.__STATIC_CONTENT,
-          ASSET_MANIFEST: JSON.parse(env.__STATIC_CONTENT_MANIFEST),
+          ASSET_MANIFEST: env.__STATIC_CONTENT_MANIFEST,
         }
       );
     } catch (e) {
       // If asset not found, serve index.html for SPA routing
-      if (e.status === 404) {
+      if (e.status === 404 || e.status === 405) {
         try {
+          const url = new URL(request.url);
+          const indexRequest = new Request(`${url.origin}/index.html`, request);
+          
           return await getAssetFromKV(
             {
-              request: new Request(`${new URL(request.url).origin}/index.html`, request),
-              waitUntil: ctx.waitUntil.bind(ctx),
+              request: indexRequest,
+              waitUntil(promise) {
+                return ctx.waitUntil(promise);
+              },
             },
             {
               ASSET_NAMESPACE: env.__STATIC_CONTENT,
-              ASSET_MANIFEST: JSON.parse(env.__STATIC_CONTENT_MANIFEST),
+              ASSET_MANIFEST: env.__STATIC_CONTENT_MANIFEST,
             }
           );
         } catch (e) {
           return new Response('Not found', { status: 404 });
         }
       }
-      return new Response('Internal Error', { status: 500 });
+      return new Response(`Internal Error: ${e.message}`, { status: 500 });
     }
   },
 };
