@@ -24299,7 +24299,7 @@ var import_jsx_runtime4 = __toESM(require_jsx_runtime());
 var Test = () => {
   return /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)("div", { style: { padding: "1rem" }, children: [
     /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("h1", { children: "Test Page" }),
-    /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("p", { children: "This is a test page for the Cloudflare Workers + React app." })
+    /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("p", { children: "This is a test page for the Cloudflare Workers + React app. THIS IS A CF BUILD TEST, THE LAST TIME!!!!!" })
   ] });
 };
 var Test_default = Test;
