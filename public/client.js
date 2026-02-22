@@ -24270,7 +24270,7 @@ function useViewTransitionState(to, { relative } = {}) {
 var import_jsx_runtime = __toESM(require_jsx_runtime());
 function Home() {
   return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { style: { padding: "1rem" }, children: [
-    /* @__PURE__ */ (0, import_jsx_runtime.jsx)("h1", { children: "Home ASDASDASDADSAD" }),
+    /* @__PURE__ */ (0, import_jsx_runtime.jsx)("h1", { children: " ASDASlnnlnlknklnlknDSAD" }),
     /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { children: "Welcome to your Cloudflare Workers + React app!" })
   ] });
 }
@@ -24279,8 +24279,9 @@ function Home() {
 var import_jsx_runtime2 = __toESM(require_jsx_runtime());
 function About() {
   return /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("div", { style: { padding: "1rem" }, children: [
-    /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("h1", { children: "About Page" }),
-    /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("p", { children: "This is a React app running on Cloudflare Workers." })
+    /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("h1", { children: "pagina numero 1" }),
+    /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("p", { children: "This is a React app running on Cloudflare Workers." }),
+    /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("h2", { children: "hiioiu" })
   ] });
 }
 
@@ -24299,7 +24300,7 @@ var import_jsx_runtime4 = __toESM(require_jsx_runtime());
 var Test = () => {
   return /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)("div", { style: { padding: "1rem" }, children: [
     /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("h1", { children: "Test Page" }),
-    /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("p", { children: "This is a test page for the Cloudflare Workers + React app." })
+    /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("p", { children: "This is444354356253535635 a test page for the Cloudflare Workers + React app. THIS IS A CF BUILD TEST" })
   ] });
 };
 var Test_default = Test;
