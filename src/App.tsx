@@ -1,26 +1,50 @@
-import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
-import Home from './pages/Home';
-import About from './pages/About';
-import NotFound from './pages/NotFound';
-import Test from './pages/Test';
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { ReactNode } from "react";
+
+import Login from "./pages/Login";
+import Dashboard from "./pages/Dashboard";
+import NotFound from "./pages/NotFound";
+import ForgotPassword from "./pages/ForgotPassword";
+import Register from "./pages/Register";
+
+function ProtectedRoute({ children }: { children: ReactNode }) {
+  const isAuth = localStorage.getItem("auth") === "true";
+
+  if (!isAuth) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return <>{children}</>;
+}
 
 export default function App() {
-	return (
-		<BrowserRouter>
-			<div>
-				<nav style={{ padding: '1rem', background: '#f0f0f0', marginBottom: '1rem' }}>
-					<Link to="/" style={{ marginRight: '1rem' }}>Home</Link>
-					<Link to="/about" style={{ marginRight: '1rem' }}>About</Link>
-					<Link to="/test" style={{ marginRight: '1rem' }}>Test</Link>
-				</nav>
+  return (
+    <BrowserRouter>
+      <Routes>
 
-				<Routes>
-					<Route path="/" element={<Home />} />
-					<Route path="/about" element={<About />} />
-					<Route path="/test" element={<Test />} />
-					<Route path="*" element={<NotFound />} />
-				</Routes>
-			</div>
-		</BrowserRouter>
-	);
+        {/* Login */}
+        <Route path="/login" element={<Login />} />
+
+        {/* Dashboard protegido con subrutas */}
+        <Route
+          path="/dashboard/*"
+          element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Redirección inicial */}
+        <Route path="/" element={<Navigate to="/login" />} />
+
+        {/* 404 global */}
+        <Route path="*" element={<NotFound />} />
+
+		<Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/register" element={<Register />} />
+
+      </Routes>
+    </BrowserRouter>
+  );
 }
