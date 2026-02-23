@@ -166,5 +166,8 @@ dist
 !.env.example
 .wrangler/
 
-# Build output
-./public/
+# Build output (esbuild + postcss generated files)
+./dist/
+./public/client.js
+./public/client.js.map
+./public/styles.css

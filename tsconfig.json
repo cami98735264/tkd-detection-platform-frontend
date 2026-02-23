@@ -34,6 +34,12 @@
     /* Enable all strict type-checking options. */
 		"strict": true,
 
+    /* Base URL for module resolution. */
+		"baseUrl": ".",
+		"paths": {
+			"@/*": ["./src/*"]
+		},
+
     /* Skip type checking all .d.ts files. */
 		"skipLibCheck": true,
 		"types": [

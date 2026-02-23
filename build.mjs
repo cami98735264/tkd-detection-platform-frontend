@@ -11,6 +11,7 @@ await esbuild.build({
 	minify: true,
 	sourcemap: true,
 	platform: 'browser',
+	alias: { '@': './src' },
 });
 
 console.log('✓ Client bundle built successfully');
@@ -28,6 +29,7 @@ await esbuild.build({
 	platform: 'neutral',
 	conditions: ['worker', 'browser'],
 	external: ['__STATIC_CONTENT_MANIFEST'],
+	alias: { '@': './src' },
 });
 
 console.log('✓ Server bundle built successfully');

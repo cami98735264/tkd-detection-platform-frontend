@@ -3,28 +3,39 @@
 	"version": "0.0.0",
 	"private": true,
 	"scripts": {
-		"build": "node build.mjs",
+		"build:css": "postcss ./src/index.css -o ./public/styles.css --env production",
+		"tailwind:watch": "postcss ./src/index.css -o ./public/styles.css --watch",
+		"build": "npm run build:css && node build.mjs",
 		"build:watch": "node watch.mjs",
 		"deploy": "npm run build && wrangler deploy",
-		"dev": "concurrently \"npm run build:watch\" \"wrangler dev --port 8787\"",
+		"dev": "concurrently \"npm run build:watch\" \"npm run tailwind:watch\" \"wrangler dev --port 8787\"",
 		"start": "wrangler dev",
 		"test": "vitest",
 		"cf-typegen": "wrangler types"
 	},
 	"devDependencies": {
 		"@cloudflare/vitest-pool-workers": "^0.12.4",
+		"@tailwindcss/postcss": "^4.2.0",
 		"@types/node": "^25.3.0",
 		"@types/react": "^19.2.14",
 		"@types/react-dom": "^19.2.3",
+		"autoprefixer": "^10.4.24",
 		"concurrently": "^9.2.1",
 		"esbuild": "^0.27.3",
+		"postcss": "^8.5.6",
+		"postcss-cli": "^11.0.1",
+		"tailwindcss": "^4.2.0",
 		"typescript": "^5.5.2",
 		"vitest": "~3.2.0",
 		"wrangler": "^4.67.0"
 	},
 	"dependencies": {
+		"class-variance-authority": "^0.7.1",
+		"clsx": "^2.1.1",
+		"lucide-react": "^0.575.0",
 		"react": "^19.2.4",
 		"react-dom": "^19.2.4",
-		"react-router-dom": "^7.13.0"
+		"react-router-dom": "^7.13.0",
+		"tailwind-merge": "^3.5.0"
 	}
 }

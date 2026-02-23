@@ -11,6 +11,7 @@ const clientContext = await esbuild.context({
 	minify: false,
 	sourcemap: true,
 	platform: 'browser',
+	alias: { '@': './src' },
 });
 
 // Build server bundle for Cloudflare Worker with watch mode
@@ -26,6 +27,7 @@ const serverContext = await esbuild.context({
 	platform: 'neutral',
 	conditions: ['worker', 'browser'],
 	external: ['__STATIC_CONTENT_MANIFEST'],
+	alias: { '@': './src' },
 });
 
 await clientContext.watch();
