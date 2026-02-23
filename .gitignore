@@ -167,4 +167,4 @@ dist
 .wrangler/
 
 # Build output
-public/
+./public/
