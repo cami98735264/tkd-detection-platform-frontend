@@ -22535,6 +22535,13 @@ function useNavigateUnstable() {
   return navigate;
 }
 var OutletContext = React2.createContext(null);
+function useOutlet(context) {
+  let outlet = React2.useContext(RouteContext).outlet;
+  return React2.useMemo(
+    () => outlet && /* @__PURE__ */ React2.createElement(OutletContext.Provider, { value: context }, outlet),
+    [outlet, context]
+  );
+}
 function useResolvedPath(to, { relative } = {}) {
   let { matches } = React2.useContext(RouteContext);
   let { pathname: locationPathname } = useLocation();
@@ -23045,6 +23052,9 @@ function Navigate({
     navigate(JSON.parse(jsonPath), { replace: replace2, state, relative });
   }, [navigate, jsonPath, relative, replace2, state]);
   return null;
+}
+function Outlet(props) {
+  return useOutlet(props.context);
 }
 function Route(props) {
   invariant(
@@ -24399,8 +24409,71 @@ var createLucideIcon = (iconName, iconNode) => {
   return Component4;
 };
 
-// node_modules/lucide-react/dist/esm/icons/shield.js
+// node_modules/lucide-react/dist/esm/icons/bell.js
 var __iconNode = [
+  ["path", { d: "M10.268 21a2 2 0 0 0 3.464 0", key: "vwvbt9" }],
+  [
+    "path",
+    {
+      d: "M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326",
+      key: "11g9vi"
+    }
+  ]
+];
+var Bell = createLucideIcon("bell", __iconNode);
+
+// node_modules/lucide-react/dist/esm/icons/chart-column.js
+var __iconNode2 = [
+  ["path", { d: "M3 3v16a2 2 0 0 0 2 2h16", key: "c24i48" }],
+  ["path", { d: "M18 17V9", key: "2bz60n" }],
+  ["path", { d: "M13 17V5", key: "1frdt8" }],
+  ["path", { d: "M8 17v-3", key: "17ska0" }]
+];
+var ChartColumn = createLucideIcon("chart-column", __iconNode2);
+
+// node_modules/lucide-react/dist/esm/icons/circle-check-big.js
+var __iconNode3 = [
+  ["path", { d: "M21.801 10A10 10 0 1 1 17 3.335", key: "yps3ct" }],
+  ["path", { d: "m9 11 3 3L22 4", key: "1pflzl" }]
+];
+var CircleCheckBig = createLucideIcon("circle-check-big", __iconNode3);
+
+// node_modules/lucide-react/dist/esm/icons/clipboard-list.js
+var __iconNode4 = [
+  ["rect", { width: "8", height: "4", x: "8", y: "2", rx: "1", ry: "1", key: "tgr4d6" }],
+  [
+    "path",
+    {
+      d: "M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2",
+      key: "116196"
+    }
+  ],
+  ["path", { d: "M12 11h4", key: "1jrz19" }],
+  ["path", { d: "M12 16h4", key: "n85exb" }],
+  ["path", { d: "M8 11h.01", key: "1dfujw" }],
+  ["path", { d: "M8 16h.01", key: "18s6g9" }]
+];
+var ClipboardList = createLucideIcon("clipboard-list", __iconNode4);
+
+// node_modules/lucide-react/dist/esm/icons/layout-dashboard.js
+var __iconNode5 = [
+  ["rect", { width: "7", height: "9", x: "3", y: "3", rx: "1", key: "10lvy0" }],
+  ["rect", { width: "7", height: "5", x: "14", y: "3", rx: "1", key: "16une8" }],
+  ["rect", { width: "7", height: "9", x: "14", y: "12", rx: "1", key: "1hutg5" }],
+  ["rect", { width: "7", height: "5", x: "3", y: "16", rx: "1", key: "ldoo1y" }]
+];
+var LayoutDashboard = createLucideIcon("layout-dashboard", __iconNode5);
+
+// node_modules/lucide-react/dist/esm/icons/menu.js
+var __iconNode6 = [
+  ["path", { d: "M4 5h16", key: "1tepv9" }],
+  ["path", { d: "M4 12h16", key: "1lakjw" }],
+  ["path", { d: "M4 19h16", key: "1djgab" }]
+];
+var Menu = createLucideIcon("menu", __iconNode6);
+
+// node_modules/lucide-react/dist/esm/icons/shield.js
+var __iconNode7 = [
   [
     "path",
     {
@@ -24409,7 +24482,30 @@ var __iconNode = [
     }
   ]
 ];
-var Shield = createLucideIcon("shield", __iconNode);
+var Shield = createLucideIcon("shield", __iconNode7);
+
+// node_modules/lucide-react/dist/esm/icons/user.js
+var __iconNode8 = [
+  ["path", { d: "M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2", key: "975kel" }],
+  ["circle", { cx: "12", cy: "7", r: "4", key: "17ys0d" }]
+];
+var User = createLucideIcon("user", __iconNode8);
+
+// node_modules/lucide-react/dist/esm/icons/users.js
+var __iconNode9 = [
+  ["path", { d: "M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2", key: "1yyitq" }],
+  ["path", { d: "M16 3.128a4 4 0 0 1 0 7.744", key: "16gr8j" }],
+  ["path", { d: "M22 21v-2a4 4 0 0 0-3-3.87", key: "kshegd" }],
+  ["circle", { cx: "9", cy: "7", r: "4", key: "nufk8" }]
+];
+var Users = createLucideIcon("users", __iconNode9);
+
+// node_modules/lucide-react/dist/esm/icons/x.js
+var __iconNode10 = [
+  ["path", { d: "M18 6 6 18", key: "1bl5f8" }],
+  ["path", { d: "m6 6 12 12", key: "d8bk6v" }]
+];
+var X = createLucideIcon("x", __iconNode10);
 
 // src/components/ui/button.tsx
 var React14 = __toESM(require_react());
@@ -28072,117 +28168,170 @@ function Login() {
   ] }) });
 }
 
-// src/pages/Home.tsx
+// src/pages/Dashboard.tsx
+var import_react4 = __toESM(require_react());
 var import_jsx_runtime9 = __toESM(require_jsx_runtime());
+function Dashboard() {
+  const navigate = useNavigate();
+  const [open, setOpen] = (0, import_react4.useState)(false);
+  const handleLogout = () => {
+    localStorage.removeItem("auth");
+    navigate("/login");
+  };
+  return /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "flex min-h-screen bg-gray-100 relative", children: [
+    open && /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
+      "div",
+      {
+        className: "fixed inset-0 bg-black/40 z-40 lg:hidden",
+        onClick: () => setOpen(false)
+      }
+    ),
+    /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)(
+      "aside",
+      {
+        className: `
+          bg-green-900 text-white w-64 flex flex-col flex-shrink-0
+          fixed inset-y-0 left-0 z-50 transform transition-transform duration-300
+          ${open ? "translate-x-0" : "-translate-x-full"}
+          lg:static lg:translate-x-0
+        `,
+        children: [
+          /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "flex items-center justify-between px-4 py-4 border-b border-green-800", children: [
+            /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "flex items-center gap-2", children: [
+              /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(Shield, { className: "text-yellow-400" }),
+              /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { children: [
+                /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("p", { className: "font-semibold", children: "Warriors TKD" }),
+                /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("span", { className: "text-xs text-green-200", children: "Espinal" })
+              ] })
+            ] }),
+            /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("button", { className: "lg:hidden", onClick: () => setOpen(false), children: /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(X, {}) })
+          ] }),
+          /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("nav", { className: "p-4 space-y-2", children: [
+            /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(SidebarItem, { to: "/dashboard", icon: LayoutDashboard, label: "Panel" }),
+            /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(SidebarItem, { to: "/dashboard/deportistas", icon: Users, label: "Deportistas" }),
+            /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(SidebarItem, { to: "/dashboard/inscripcion", icon: ClipboardList, label: "Inscripci\xF3n" }),
+            /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(SidebarItem, { to: "/dashboard/evaluacion", icon: CircleCheckBig, label: "Evaluaci\xF3n" }),
+            /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(SidebarItem, { to: "/dashboard/reportes", icon: ChartColumn, label: "Reportes" }),
+            /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(SidebarItem, { to: "/dashboard/perfil", icon: User, label: "Perfil" })
+          ] }),
+          /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "mt-auto p-4 space-y-4", children: [
+            /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
+              Button,
+              {
+                variant: "destructive",
+                className: "w-full",
+                onClick: handleLogout,
+                children: "Cerrar sesi\xF3n"
+              }
+            ),
+            /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { className: "pt-4 border-t border-green-800", children: /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "flex items-center gap-3", children: [
+              /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { className: "h-9 w-9 rounded-full bg-green-700 flex items-center justify-center text-sm font-bold", children: "AD" }),
+              /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "text-sm", children: [
+                /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("p", { className: "font-medium", children: "Usuario Admin" }),
+                /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("p", { className: "text-green-200 text-xs", children: "admin@warriors.com" })
+              ] })
+            ] }) })
+          ] })
+        ]
+      }
+    ),
+    /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "flex flex-col flex-1", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("header", { className: "h-16 bg-white border-b flex items-center justify-between px-4", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "flex items-center gap-3", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("button", { className: "lg:hidden", onClick: () => setOpen(true), children: /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(Menu, {}) }),
+          /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "flex items-center gap-2", children: [
+            /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { className: "h-8 w-8 bg-green-600 rounded-full flex items-center justify-center text-white font-bold", children: "W" }),
+            /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("span", { className: "font-semibold", children: "Warriors TKD" })
+          ] })
+        ] }),
+        /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "flex items-center gap-4", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(Bell, { className: "text-gray-600" }),
+          /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "flex items-center gap-2", children: [
+            /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { className: "h-8 w-8 bg-green-600 rounded-full flex items-center justify-center text-white text-sm", children: "AD" }),
+            /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("span", { className: "hidden sm:block", children: "Admin" })
+          ] })
+        ] })
+      ] }),
+      /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("main", { className: "flex-1 p-6 overflow-y-auto", children: /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(Outlet, {}) })
+    ] })
+  ] });
+}
+function SidebarItem({
+  to,
+  icon: Icon2,
+  label
+}) {
+  return /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)(
+    Link,
+    {
+      to,
+      className: "flex items-center gap-3 px-3 py-2 rounded-md hover:bg-green-800 transition",
+      children: [
+        /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(Icon2, { size: 18 }),
+        /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("span", { children: label })
+      ]
+    }
+  );
+}
+
+// src/pages/NotFound.tsx
+var import_jsx_runtime10 = __toESM(require_jsx_runtime());
+function NotFound() {
+  return /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("div", { style: { padding: "1rem" }, children: [
+    /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("h1", { children: "404 - Page Not Found" }),
+    /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("p", { children: "The page you're looking for doesn't exist." }),
+    /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("a", { href: "/", children: "Go back home" }),
+    /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("p", { children: "Ac\xE1 no vas a encontrar nada.... " }),
+    /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("a", { href: "/", children: "Go back home" })
+  ] });
+}
+
+// src/pages/ForgotPassword.tsx
+var import_jsx_runtime11 = __toESM(require_jsx_runtime());
+function ForgotPassword() {
+  return /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("div", { className: "min-h-screen flex items-center justify-center", children: /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("h1", { className: "text-2xl font-bold", children: "Recuperar contrase\xF1a" }) });
+}
+
+// src/pages/Register.tsx
+var import_jsx_runtime12 = __toESM(require_jsx_runtime());
+function Register() {
+  return /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("div", { className: "min-h-screen flex items-center justify-center", children: /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("h1", { className: "text-2xl font-bold", children: "Crear cuenta" }) });
+}
+
+// src/pages/Home.tsx
+var import_jsx_runtime13 = __toESM(require_jsx_runtime());
 function Home() {
-  return /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { style: { padding: "1rem" }, children: [
-    /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("h1", { children: "Home ASDASDASDADSAD" }),
-    /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("p", { children: "Welcome to your Cloudflare Workers + React app!" }),
-    /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("p", { children: "Django and Reack.js Medipipe" })
+  return /* @__PURE__ */ (0, import_jsx_runtime13.jsxs)("div", { style: { padding: "1rem" }, children: [
+    /* @__PURE__ */ (0, import_jsx_runtime13.jsx)("h1", { children: "Home ASDASDASDADSAD" }),
+    /* @__PURE__ */ (0, import_jsx_runtime13.jsx)("p", { children: "Welcome to your Cloudflare Workers + React app!" }),
+    /* @__PURE__ */ (0, import_jsx_runtime13.jsx)("p", { children: "Django and Reack.js Medipipe" })
   ] });
 }
 
 // src/pages/About.tsx
-var import_jsx_runtime10 = __toESM(require_jsx_runtime());
+var import_jsx_runtime14 = __toESM(require_jsx_runtime());
 function About() {
-  return /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("div", { style: { padding: "1rem" }, children: [
-    /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("h1", { children: "About Page" }),
-    /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("p", { children: "This is a React app running on Cloudflare Workers." }),
-    /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("div", { style: { padding: "1rem" }, children: [
-      /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("h1", { children: "Sobre TKD" }),
-      /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("p", { children: "Esto es un cambio para el deporte" })
+  return /* @__PURE__ */ (0, import_jsx_runtime14.jsxs)("div", { style: { padding: "1rem" }, children: [
+    /* @__PURE__ */ (0, import_jsx_runtime14.jsx)("h1", { children: "About Page" }),
+    /* @__PURE__ */ (0, import_jsx_runtime14.jsx)("p", { children: "This is a React app running on Cloudflare Workers." }),
+    /* @__PURE__ */ (0, import_jsx_runtime14.jsxs)("div", { style: { padding: "1rem" }, children: [
+      /* @__PURE__ */ (0, import_jsx_runtime14.jsx)("h1", { children: "Sobre TKD" }),
+      /* @__PURE__ */ (0, import_jsx_runtime14.jsx)("p", { children: "Esto es un cambio para el deporte" })
     ] })
   ] });
 }
 
 // src/pages/Test.tsx
-var import_jsx_runtime11 = __toESM(require_jsx_runtime());
+var import_jsx_runtime15 = __toESM(require_jsx_runtime());
 var Test = () => {
-  return /* @__PURE__ */ (0, import_jsx_runtime11.jsxs)("div", { style: { padding: "1rem" }, children: [
-    /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("h1", { children: "Test Page" }),
-    /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("p", { className: "bg-black text-white p-4", children: "This is a test page for the Cloudflare Workers + React app. THIS IS A CF BUILD TEST" }),
-    /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("h1", { children: "Videos" }),
-    /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("p", { children: "Video de publicidad del club" })
+  return /* @__PURE__ */ (0, import_jsx_runtime15.jsxs)("div", { style: { padding: "1rem" }, children: [
+    /* @__PURE__ */ (0, import_jsx_runtime15.jsx)("h1", { children: "Test Page" }),
+    /* @__PURE__ */ (0, import_jsx_runtime15.jsx)("p", { className: "bg-black text-white p-4", children: "This is a test page for the Cloudflare Workers + React app. THIS IS A CF BUILD TEST" }),
+    /* @__PURE__ */ (0, import_jsx_runtime15.jsx)("h1", { children: "Videos" }),
+    /* @__PURE__ */ (0, import_jsx_runtime15.jsx)("p", { children: "Video de publicidad del club" })
   ] });
 };
 var Test_default = Test;
-
-// src/pages/NotFound.tsx
-var import_jsx_runtime12 = __toESM(require_jsx_runtime());
-function NotFound() {
-  return /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)("div", { style: { padding: "1rem" }, children: [
-    /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("h1", { children: "404 - Page Not Found" }),
-    /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("p", { children: "The page you're looking for doesn't exist." }),
-    /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("a", { href: "/", children: "Go back home" }),
-    /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("p", { children: "Ac\xE1 no vas a encontrar nada.... " }),
-    /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("a", { href: "/", children: "Go back home" })
-  ] });
-}
-
-// src/pages/Dashboard.tsx
-var import_jsx_runtime13 = __toESM(require_jsx_runtime());
-function Dashboard() {
-  const navigate = useNavigate();
-  const handleLogout = () => {
-    localStorage.removeItem("auth");
-    navigate("/login");
-  };
-  return /* @__PURE__ */ (0, import_jsx_runtime13.jsxs)("div", { className: "min-h-screen bg-gray-100", children: [
-    /* @__PURE__ */ (0, import_jsx_runtime13.jsxs)("nav", { className: "flex items-center gap-6 p-4 bg-green-700 text-white shadow-md", children: [
-      /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(
-        Link,
-        {
-          to: "/dashboard",
-          className: "hover:underline",
-          children: "Home"
-        }
-      ),
-      /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(
-        Link,
-        {
-          to: "/dashboard/about",
-          className: "hover:underline",
-          children: "About"
-        }
-      ),
-      /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(
-        Link,
-        {
-          to: "/dashboard/test",
-          className: "hover:underline",
-          children: "Test"
-        }
-      ),
-      /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(
-        Button,
-        {
-          onClick: handleLogout,
-          variant: "destructive",
-          className: "ml-auto",
-          children: "Cerrar sesi\xF3n"
-        }
-      )
-    ] }),
-    /* @__PURE__ */ (0, import_jsx_runtime13.jsx)("div", { className: "p-6", children: /* @__PURE__ */ (0, import_jsx_runtime13.jsxs)(Routes, { children: [
-      /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(Route, { path: "/", element: /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(Home, {}) }),
-      /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(Route, { path: "/about", element: /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(About, {}) }),
-      /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(Route, { path: "/test", element: /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(Test_default, {}) }),
-      /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(Route, { path: "*", element: /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(NotFound, {}) })
-    ] }) })
-  ] });
-}
-
-// src/pages/ForgotPassword.tsx
-var import_jsx_runtime14 = __toESM(require_jsx_runtime());
-function ForgotPassword() {
-  return /* @__PURE__ */ (0, import_jsx_runtime14.jsx)("div", { className: "min-h-screen flex items-center justify-center", children: /* @__PURE__ */ (0, import_jsx_runtime14.jsx)("h1", { className: "text-2xl font-bold", children: "Recuperar contrase\xF1a" }) });
-}
-
-// src/pages/Register.tsx
-var import_jsx_runtime15 = __toESM(require_jsx_runtime());
-function Register() {
-  return /* @__PURE__ */ (0, import_jsx_runtime15.jsx)("div", { className: "min-h-screen flex items-center justify-center", children: /* @__PURE__ */ (0, import_jsx_runtime15.jsx)("h1", { className: "text-2xl font-bold", children: "Crear cuenta" }) });
-}
 
 // src/App.tsx
 var import_jsx_runtime16 = __toESM(require_jsx_runtime());
@@ -28196,17 +28345,23 @@ function ProtectedRoute({ children }) {
 function App() {
   return /* @__PURE__ */ (0, import_jsx_runtime16.jsx)(BrowserRouter, { children: /* @__PURE__ */ (0, import_jsx_runtime16.jsxs)(Routes, { children: [
     /* @__PURE__ */ (0, import_jsx_runtime16.jsx)(Route, { path: "/login", element: /* @__PURE__ */ (0, import_jsx_runtime16.jsx)(Login, {}) }),
-    /* @__PURE__ */ (0, import_jsx_runtime16.jsx)(
+    /* @__PURE__ */ (0, import_jsx_runtime16.jsxs)(
       Route,
       {
-        path: "/dashboard/*",
-        element: /* @__PURE__ */ (0, import_jsx_runtime16.jsx)(ProtectedRoute, { children: /* @__PURE__ */ (0, import_jsx_runtime16.jsx)(Dashboard, {}) })
+        path: "/dashboard",
+        element: /* @__PURE__ */ (0, import_jsx_runtime16.jsx)(ProtectedRoute, { children: /* @__PURE__ */ (0, import_jsx_runtime16.jsx)(Dashboard, {}) }),
+        children: [
+          /* @__PURE__ */ (0, import_jsx_runtime16.jsx)(Route, { index: true, element: /* @__PURE__ */ (0, import_jsx_runtime16.jsx)(Home, {}) }),
+          /* @__PURE__ */ (0, import_jsx_runtime16.jsx)(Route, { path: "about", element: /* @__PURE__ */ (0, import_jsx_runtime16.jsx)(About, {}) }),
+          /* @__PURE__ */ (0, import_jsx_runtime16.jsx)(Route, { path: "test", element: /* @__PURE__ */ (0, import_jsx_runtime16.jsx)(Test_default, {}) }),
+          /* @__PURE__ */ (0, import_jsx_runtime16.jsx)(Route, { path: "*", element: /* @__PURE__ */ (0, import_jsx_runtime16.jsx)(NotFound, {}) })
+        ]
       }
     ),
     /* @__PURE__ */ (0, import_jsx_runtime16.jsx)(Route, { path: "/", element: /* @__PURE__ */ (0, import_jsx_runtime16.jsx)(Navigate, { to: "/login" }) }),
-    /* @__PURE__ */ (0, import_jsx_runtime16.jsx)(Route, { path: "*", element: /* @__PURE__ */ (0, import_jsx_runtime16.jsx)(NotFound, {}) }),
     /* @__PURE__ */ (0, import_jsx_runtime16.jsx)(Route, { path: "/forgot-password", element: /* @__PURE__ */ (0, import_jsx_runtime16.jsx)(ForgotPassword, {}) }),
-    /* @__PURE__ */ (0, import_jsx_runtime16.jsx)(Route, { path: "/register", element: /* @__PURE__ */ (0, import_jsx_runtime16.jsx)(Register, {}) })
+    /* @__PURE__ */ (0, import_jsx_runtime16.jsx)(Route, { path: "/register", element: /* @__PURE__ */ (0, import_jsx_runtime16.jsx)(Register, {}) }),
+    /* @__PURE__ */ (0, import_jsx_runtime16.jsx)(Route, { path: "*", element: /* @__PURE__ */ (0, import_jsx_runtime16.jsx)(NotFound, {}) })
   ] }) });
 }
 
@@ -28294,7 +28449,16 @@ lucide-react/dist/esm/defaultAttributes.js:
 lucide-react/dist/esm/shared/src/utils/hasA11yProp.js:
 lucide-react/dist/esm/Icon.js:
 lucide-react/dist/esm/createLucideIcon.js:
+lucide-react/dist/esm/icons/bell.js:
+lucide-react/dist/esm/icons/chart-column.js:
+lucide-react/dist/esm/icons/circle-check-big.js:
+lucide-react/dist/esm/icons/clipboard-list.js:
+lucide-react/dist/esm/icons/layout-dashboard.js:
+lucide-react/dist/esm/icons/menu.js:
 lucide-react/dist/esm/icons/shield.js:
+lucide-react/dist/esm/icons/user.js:
+lucide-react/dist/esm/icons/users.js:
+lucide-react/dist/esm/icons/x.js:
 lucide-react/dist/esm/lucide-react.js:
   (**
    * @license lucide-react v0.575.0 - ISC
