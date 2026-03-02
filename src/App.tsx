@@ -11,6 +11,10 @@ import Home from "./pages/Home";
 import About from "./pages/About";
 import Test from "./pages/Test";
 
+/* 🔥 NUEVO */
+import { FeedbackProvider } from "@/feedback/FeedbackProvider";
+import FeedbackLab from "@/feedback/FeedbackLab";
+
 function ProtectedRoute({ children }: { children: ReactNode }) {
   const isAuth = localStorage.getItem("auth") === "true";
 
@@ -24,37 +28,44 @@ function ProtectedRoute({ children }: { children: ReactNode }) {
 export default function App() {
   return (
     <BrowserRouter>
-      <Routes>
+      {/* 🔥 ENVOLVEMOS TODO CON EL PROVIDER */}
+      <FeedbackProvider>
+        <Routes>
 
-        {/* Login */}
-        <Route path="/login" element={<Login />} />
+          {/* Login */}
+          <Route path="/login" element={<Login />} />
 
-        {/* Dashboard con layout y subrutas */}
-        <Route
-          path="/dashboard"
-          element={
-            <ProtectedRoute>
-              <Dashboard />
-            </ProtectedRoute>
-          }
-        >
-          <Route index element={<Home />} />
-          <Route path="about" element={<About />} />
-          <Route path="test" element={<Test />} />
+          {/* Dashboard con layout y subrutas */}
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            }
+          >
+            <Route index element={<Home />} />
+            <Route path="about" element={<About />} />
+            <Route path="test" element={<Test />} />
+
+            {/* 🔥 Ruta laboratorio de feedback */}
+            <Route path="feedback-lab" element={<FeedbackLab />} />
+
+            <Route path="*" element={<NotFound />} />
+          </Route>
+
+          {/* Redirección inicial */}
+          <Route path="/" element={<Navigate to="/login" />} />
+
+          {/* Recuperación / registro */}
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/register" element={<Register />} />
+
+          {/* 404 global */}
           <Route path="*" element={<NotFound />} />
-        </Route>
 
-        {/* Redirección inicial */}
-        <Route path="/" element={<Navigate to="/login" />} />
-
-        {/* Recuperación / registro */}
-        <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/register" element={<Register />} />
-
-        {/* 404 global */}
-        <Route path="*" element={<NotFound />} />
-
-      </Routes>
+        </Routes>
+      </FeedbackProvider>
     </BrowserRouter>
   );
 }
