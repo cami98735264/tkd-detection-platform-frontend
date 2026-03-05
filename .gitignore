@@ -167,8 +167,8 @@ dist
 .wrangler/
 
 # Build output (esbuild + postcss generated files)
-./dist/
-./public/client.js
-./public/client.js.map
-./public/styles.css
+dist/
+public/client.js
+public/client.js.map
+public/styles.css
 
