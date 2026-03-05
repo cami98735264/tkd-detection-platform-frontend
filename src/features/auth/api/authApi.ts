@@ -1,6 +1,9 @@
 import { http } from "@/lib/http";
 import { useAuthStore } from "@/features/auth/store/authStore";
 import { config } from "@/config/env";
+import { ApiError } from "@/types/api";
+
+const MOCK_CREDENTIALS = { email: "admin@warriors.com", password: "123456" };
 
 // ---------------------------------------------------------------------------
 // Payload & response types
@@ -49,6 +52,14 @@ export const authApi = {
    */
   login: async (payload: LoginPayload): Promise<void> => {
     if (config.mockAuth) {
+      if (
+        payload.email !== MOCK_CREDENTIALS.email ||
+        payload.password !== MOCK_CREDENTIALS.password
+      ) {
+        throw new ApiError(401, {
+          detail: "No active account found with the given credentials.",
+        });
+      }
       sessionStorage.removeItem(MOCK_LOGGED_OUT_KEY);
       useAuthStore.getState().setAuthenticated();
       return;
