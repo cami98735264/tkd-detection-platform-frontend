@@ -57,7 +57,7 @@ export const authApi = {
         payload.password !== MOCK_CREDENTIALS.password
       ) {
         throw new ApiError(401, {
-          detail: "No active account found with the given credentials.",
+          detail: "No se encontró una cuenta activa con esas credenciales.",
         });
       }
       sessionStorage.removeItem(MOCK_LOGGED_OUT_KEY);
