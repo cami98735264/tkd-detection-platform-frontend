@@ -6,13 +6,16 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { authApi } from "@/features/auth/api/authApi";
+import { useApiErrorHandler } from "@/feedback/useApiErrorHandler";
 
 export default function Login() {
   const navigate = useNavigate();
+  const { handleError } = useApiErrorHandler();
 
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
-  const [error, setError] = useState<string>("");
+  const [loading, setLoading] = useState(false);
 
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setEmail(e.target.value);
@@ -22,14 +25,16 @@ export default function Login() {
     setPassword(e.target.value);
   };
 
-  const handleLogin = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-
-    if (email === "admin@warriors.com" && password === "123456") {
-      localStorage.setItem("auth", "true");
+    setLoading(true);
+    try {
+      await authApi.login({ email, password });
       navigate("/dashboard");
-    } else {
-      setError("Credenciales incorrectas");
+    } catch (err) {
+      handleError(err);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -80,18 +85,16 @@ export default function Login() {
               />
             </div>
 
-            {error && (
-              <p className="text-sm text-destructive">{error}</p>
-            )}
+            {/* Removed inline error — errors are now shown via toast */}
 
             <Button
               type="submit"
+              disabled={loading}
               className="w-full bg-green-600 hover:bg-green-700"
             >
-              Iniciar Sesión
+              {loading ? "Ingresando..." : "Iniciar Sesión"}
             </Button>
 
-            {/* ENLACES NUEVOS */}
             <div className="flex justify-between text-sm mt-2">
 
               <Link

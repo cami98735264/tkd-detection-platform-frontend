@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { Link, Outlet, useNavigate } from "react-router-dom";
+import { authApi } from "@/features/auth/api/authApi";
+import { useApiErrorHandler } from "@/feedback/useApiErrorHandler";
 import {
   Menu,
   X,
@@ -14,13 +16,19 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-export default function Dashboard() {
+export default function DashboardLayout() {
   const navigate = useNavigate();
+  const { handleError } = useApiErrorHandler();
   const [open, setOpen] = useState(false);
 
-  const handleLogout = () => {
-    localStorage.removeItem("auth");
-    navigate("/login");
+  const handleLogout = async () => {
+    try {
+      await authApi.logout();
+    } catch (err) {
+      handleError(err);
+    } finally {
+      navigate("/login");
+    }
   };
 
   return (
@@ -66,32 +74,29 @@ export default function Dashboard() {
           <SidebarItem to="/dashboard/reportes" icon={BarChart3} label="Reportes" />
           <SidebarItem to="/dashboard/perfil" icon={User} label="Perfil" />
         </nav>
-        
-          
-    
-    {/* USER FOOTER */}
-      <div className="mt-auto p-4 space-y-4">      
-         <Button
-           variant="destructive"
+
+        {/* USER FOOTER */}
+        <div className="mt-auto p-4 space-y-4">
+          <Button
+            variant="destructive"
             className="w-full"
             onClick={handleLogout}
-           >
-           Cerrar sesión
-        </Button>
-     <div className="pt-4 border-t border-green-800">
-    <div className="flex items-center gap-3">
-      <div className="h-9 w-9 rounded-full bg-green-700 flex items-center justify-center text-sm font-bold">
-        AD
-      </div>
+          >
+            Cerrar sesión
+          </Button>
+          <div className="pt-4 border-t border-green-800">
+            <div className="flex items-center gap-3">
+              <div className="h-9 w-9 rounded-full bg-green-700 flex items-center justify-center text-sm font-bold">
+                AD
+              </div>
 
-      <div className="text-sm">
-        <p className="font-medium">Usuario Admin</p>
-        <p className="text-green-200 text-xs">admin@warriors.com</p>
-      </div>
-    </div>
-    </div>
-
-    </div>
+              <div className="text-sm">
+                <p className="font-medium">Usuario Admin</p>
+                <p className="text-green-200 text-xs">admin@warriors.com</p>
+              </div>
+            </div>
+          </div>
+        </div>
       </aside>
 
       {/* RIGHT CONTAINER */}
