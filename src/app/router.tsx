@@ -10,6 +10,7 @@ import DashboardLayout from "@/features/dashboard/layout/DashboardLayout";
 import Home from "@/features/dashboard/pages/Home";
 import About from "@/features/dashboard/pages/About";
 import Test from "@/features/dashboard/pages/Test";
+import Profile  from "@/features/auth/pages/Profile"; //ruta de perfil
 
 import FeedbackLab from "@/feedback/FeedbackLab";
 import NotFound from "@/components/common/NotFound";
@@ -34,7 +35,7 @@ export default function AppRouter() {
         <Route index element={<Home />} />
         <Route path="about" element={<About />} />
         <Route path="test" element={<Test />} />
-        <Route path="feedback-lab" element={<FeedbackLab />} />
+<Route path="profile" element={<Profile />} /> {/* ruta de perfil */}        <Route path="feedback-lab" element={<FeedbackLab />} />
         <Route path="*" element={<NotFound />} />
       </Route>
 

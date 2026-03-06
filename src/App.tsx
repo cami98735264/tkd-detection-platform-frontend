@@ -2,16 +2,14 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ReactNode } from "react";
 import { Toaster } from "sonner";
 
-import Login from "./pages/Login";
-import Dashboard from "./pages/Dashboard";
-import NotFound from "./pages/NotFound";
-import ForgotPassword from "./pages/ForgotPassword";
-import Register from "./pages/Register";
-import Profile from "./pages/Profile";
-
-import Home from "./pages/Home";
-import About from "./pages/About";
-import Test from "./pages/Test";
+import Login from "./features/auth/pages/Login";
+//import Home from "./features/dashboard/pages/Home";
+import About from "./features/dashboard/pages/About";
+import Test from "./features/dashboard/pages/Test";
+import NotFound from "./components/common/NotFound";
+import ForgotPassword from "./features/auth/pages/ForgotPassword";
+import Register from "./features/auth/pages/Register";
+import Profile from "./features/auth/pages/Profile";
 
 function ProtectedRoute({ children }: { children: ReactNode }) {
   const isAuth = localStorage.getItem("auth") === "true";
@@ -37,12 +35,10 @@ export default function App() {
           path="/dashboard"
           element={
             <ProtectedRoute>
-              <Dashboard />
-            </ProtectedRoute>
+//            </ProtectedRoute>
           }
         >
-          <Route index element={<Home />} />
-                    <Route path="perfil" element={<Profile />} /> {/*  AQUÍ */}
+//                    <Route path="perfil" element={<Profile />} /> {/*  AQUÍ */}
 
           <Route path="about" element={<About />} />
           <Route path="test" element={<Test />} />
