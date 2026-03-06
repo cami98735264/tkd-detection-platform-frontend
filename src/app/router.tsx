@@ -14,9 +14,12 @@ import Test from "@/features/dashboard/pages/Test";
 import FeedbackLab from "@/feedback/FeedbackLab";
 import NotFound from "@/components/common/NotFound";
 
+import HttpPlayground from "@/sandbox/HttpPlayground"; // 👈 NUEVO
+
 export default function AppRouter() {
   return (
     <Routes>
+
       {/* Auth */}
       <Route path="/login" element={<GuestRoute><Login /></GuestRoute>} />
       <Route path="/forgot-password" element={<GuestRoute><ForgotPassword /></GuestRoute>} />
@@ -35,6 +38,9 @@ export default function AppRouter() {
         <Route path="about" element={<About />} />
         <Route path="test" element={<Test />} />
         <Route path="feedback-lab" element={<FeedbackLab />} />
+
+        <Route path="sandbox" element={<HttpPlayground />} /> {/* 👈 NUEVA RUTA */}
+
         <Route path="*" element={<NotFound />} />
       </Route>
 
@@ -43,6 +49,7 @@ export default function AppRouter() {
 
       {/* 404 global */}
       <Route path="*" element={<NotFound />} />
+
     </Routes>
   );
 }

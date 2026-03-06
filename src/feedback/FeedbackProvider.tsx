@@ -1,4 +1,4 @@
-import { createContext, useState } from "react";
+import { createContext, useState, useEffect } from "react";
 import { Toaster, toast } from "sonner";
 
 import {
@@ -12,6 +12,8 @@ import {
 import AppModal from "./components/AppModal";
 import AppAlert from "./components/AppAlert";
 import AppBanner from "./components/AppBanner";
+
+import { useFeedbackStore } from "@/store/feedbackStore";
 
 interface FeedbackContextType {
   openModal: (options: ModalOptions) => void;
@@ -32,6 +34,10 @@ export function FeedbackProvider({
   const [modal, setModal] = useState<ModalOptions | null>(null);
   const [alert, setAlert] = useState<AlertOptions | null>(null);
   const [banner, setBanner] = useState<BannerOptions | null>(null);
+
+  // 🔥 Zustand feedback events
+  const event = useFeedbackStore((s) => s.event);
+  const clearEvent = useFeedbackStore((s) => s.clearEvent);
 
   // 🔥 CONFIRM QUEUE
   const [confirmQueue, setConfirmQueue] = useState<
@@ -80,6 +86,40 @@ export function FeedbackProvider({
     setConfirmQueue((prev) => prev.slice(1));
   };
 
+  // ------------------------------------------------------------------
+  // 🔥 Escuchar eventos globales provenientes del interceptor
+  // ------------------------------------------------------------------
+
+  useEffect(() => {
+    if (!event) return;
+
+    if (event.type === "success") {
+      showToast({
+        title: "Operación exitosa",
+        description: event.message,
+        variant: "success",
+      });
+    }
+
+    if (event.type === "warning") {
+      showToast({
+        title: "Advertencia",
+        description: event.message,
+        variant: "warning",
+      });
+    }
+
+    if (event.type === "error") {
+      showToast({
+        title: "Error",
+        description: event.message,
+        variant: "error",
+      });
+    }
+
+    clearEvent();
+  }, [event]);
+
   return (
     <FeedbackContext.Provider
       value={{
@@ -91,10 +131,7 @@ export function FeedbackProvider({
       }}
     >
       {banner && (
-        <AppBanner
-          {...banner}
-          onClose={() => setBanner(null)}
-        />
+        <AppBanner {...banner} onClose={() => setBanner(null)} />
       )}
 
       {children}
