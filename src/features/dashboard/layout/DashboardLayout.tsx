@@ -72,8 +72,7 @@ export default function DashboardLayout() {
           <SidebarItem to="/dashboard/inscripcion" icon={ClipboardList} label="Inscripción" />
           <SidebarItem to="/dashboard/evaluacion" icon={CheckCircle} label="Evaluación" />
           <SidebarItem to="/dashboard/reportes" icon={BarChart3} label="Reportes" />
-          <SidebarItem to="/dashboard/perfil" icon={User} label="Perfil" />
-        </nav>
+<SidebarItem to="/dashboard/profile" icon={User} label="Perfil" />        </nav>
 
         {/* USER FOOTER */}
         <div className="mt-auto p-4 space-y-4">
