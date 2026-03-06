@@ -1,11 +1,13 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ReactNode } from "react";
+import { Toaster } from "sonner";
 
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import NotFound from "./pages/NotFound";
 import ForgotPassword from "./pages/ForgotPassword";
 import Register from "./pages/Register";
+import Profile from "./pages/Profile";
 
 import Home from "./pages/Home";
 import About from "./pages/About";
@@ -28,6 +30,7 @@ export default function App() {
 
         {/* Login */}
         <Route path="/login" element={<Login />} />
+          <Route path="perfil" element={<Profile />} />
 
         {/* Dashboard con layout y subrutas */}
         <Route
@@ -39,6 +42,8 @@ export default function App() {
           }
         >
           <Route index element={<Home />} />
+                    <Route path="perfil" element={<Profile />} /> {/*  AQUÍ */}
+
           <Route path="about" element={<About />} />
           <Route path="test" element={<Test />} />
           <Route path="*" element={<NotFound />} />
