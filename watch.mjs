@@ -1,4 +1,19 @@
 import * as esbuild from 'esbuild';
+import { readFileSync } from 'fs';
+
+// Read build-time defaults from wrangler.jsonc.
+// CI env vars take priority — set API_URL and MOCK_AUTH there for production.
+const wrangler = JSON.parse(
+	readFileSync('./wrangler.jsonc', 'utf8')
+		.replace(/\/\*[\s\S]*?\*\//g, '')    // strip /* block comments */
+		.replace(/(?<![:/])\/\/.*/g, '')      // strip // line comments, preserve ://
+);
+const vars = wrangler.vars ?? {};
+
+const defines = {
+	__API_URL__: JSON.stringify(process.env.API_URL ?? vars.API_URL ?? 'http://localhost:8000'),
+	__MOCK_AUTH__: JSON.stringify(process.env.MOCK_AUTH ?? vars.MOCK_AUTH ?? 'true'),
+};
 
 // Build client bundle for browser with watch mode
 const clientContext = await esbuild.context({
@@ -12,6 +27,7 @@ const clientContext = await esbuild.context({
 	sourcemap: true,
 	platform: 'browser',
 	alias: { '@': './src' },
+	define: defines,
 });
 
 // Build server bundle for Cloudflare Worker with watch mode
@@ -28,6 +44,7 @@ const serverContext = await esbuild.context({
 	conditions: ['worker', 'browser'],
 	external: ['__STATIC_CONTENT_MANIFEST'],
 	alias: { '@': './src' },
+	define: defines,
 });
 
 await clientContext.watch();
