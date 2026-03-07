@@ -1,4 +1,15 @@
 // ---------------------------------------------------------------------------
+// Standard API response shape (Cristian requirement)
+// Backend responses are assumed to include `.message`
+// ---------------------------------------------------------------------------
+
+export interface ApiResponse<T = unknown> {
+  message: string;
+  data?: T;
+  code?: string;
+}
+
+// ---------------------------------------------------------------------------
 // Generic DRF response shapes
 // ---------------------------------------------------------------------------
 
@@ -13,6 +24,7 @@ export interface PaginatedResponse<T> {
 /** DRF error body — `detail` for single message, field keys for validation */
 export interface ApiErrorBody {
   detail?: string;
+  code?: string;
   [field: string]: string | string[] | undefined;
 }
 
@@ -23,6 +35,7 @@ export interface ApiErrorBody {
 export class ApiError extends Error {
   /** HTTP status code (400, 401, 403, 404, 500, …) */
   readonly status: number;
+
   /** Parsed JSON body from Django */
   readonly body: ApiErrorBody;
 
@@ -55,8 +68,6 @@ export class ApiError extends Error {
 
   /**
    * Returns a human-readable message extracted from the DRF error body.
-   * Joins field-level validation errors into a single string when `detail`
-   * is absent.
    */
   get userMessage(): string {
     if (this.body.detail) return this.body.detail;
@@ -68,4 +79,29 @@ export class ApiError extends Error {
       })
       .join(" · ");
   }
+}
+
+// ---------------------------------------------------------------------------
+// Dynamic message key support (Cristian requirement)
+// Allows choosing which property contains the user message
+// ---------------------------------------------------------------------------
+
+import { AxiosRequestConfig } from "axios";
+
+/**
+ * Allows specifying which property of the API response
+ * contains the descriptive message to display in the UI.
+ */
+export interface ApiRequestConfig<
+  TResponse = unknown,
+  K extends keyof TResponse = keyof TResponse
+> extends AxiosRequestConfig {
+  /**
+   * Property name inside the API response that contains the message
+   * Example:
+   *  message
+   *  response
+   *  detail
+   */
+  messageKey?: K;
 }

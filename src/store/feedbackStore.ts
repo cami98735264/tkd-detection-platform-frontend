@@ -18,14 +18,6 @@ interface FeedbackState {
 
 export const useFeedbackStore = create<FeedbackState>((set) => ({
   event: null,
-
-  setEvent: (event) =>
-    set({
-      event,
-    }),
-
-  clearEvent: () =>
-    set({
-      event: null,
-    }),
+  setEvent: (event) => set({ event }),
+  clearEvent: () => set({ event: null }),
 }));

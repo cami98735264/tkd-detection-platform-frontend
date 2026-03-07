@@ -1,113 +1,37 @@
-function delay(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
+import { http } from "@/lib/http";
 
+// Simula respuestas de una API real
 export const mockApi = {
-  success: async () => {
-    await delay(500);
+  success: () =>
+    http.post("/mock/success", {
+      message: "Operación realizada correctamente",
+    }),
 
-    return {
-      status: 200,
-      data: {
-        message: "Operación exitosa",
-      },
-    };
-  },
+  created: () =>
+    http.post("/mock/created", {
+      message: "Recurso creado correctamente",
+    }),
 
-  created: async () => {
-    await delay(500);
+  badRequest: () =>
+    http.post("/mock/bad-request"),
 
-    return {
-      status: 201,
-      data: {
-        message: "Recurso creado correctamente",
-      },
-    };
-  },
+  unauthorized: () =>
+    http.post("/mock/unauthorized"),
 
-  badRequest: async () => {
-    await delay(500);
+  forbidden: () =>
+    http.post("/mock/forbidden"),
 
-    throw {
-      response: {
-        status: 400,
-        data: {
-          detail: "Solicitud inválida",
-        },
-      },
-    };
-  },
+  notFound: () =>
+    http.post("/mock/not-found"),
 
-  unauthorized: async () => {
-    await delay(500);
+  serverError: () =>
+    http.post("/mock/server-error"),
 
-    throw {
-      response: {
-        status: 401,
-        data: {
-          detail: "Sesión expirada",
-        },
-      },
-    };
-  },
+  serviceUnavailable: () =>
+    http.post("/mock/service-unavailable"),
 
-  forbidden: async () => {
-    await delay(500);
-
-    throw {
-      response: {
-        status: 403,
-        data: {
-          detail: "Acceso denegado",
-        },
-      },
-    };
-  },
-
-  notFound: async () => {
-    await delay(500);
-
-    throw {
-      response: {
-        status: 404,
-        data: {
-          detail: "Recurso no encontrado",
-        },
-      },
-    };
-  },
-
-  serverError: async () => {
-    await delay(500);
-
-    throw {
-      response: {
-        status: 500,
-        data: {
-          detail: "Error interno del servidor",
-        },
-      },
-    };
-  },
-
-  serviceUnavailable: async () => {
-    await delay(500);
-
-    throw {
-      response: {
-        status: 503,
-        data: {
-          detail: "Servicio no disponible",
-        },
-      },
-    };
-  },
-
-  timeout: async () => {
-    await delay(2000);
-
-    throw {
-      message: "Network timeout",
-    };
-  },
+  timeout: () =>
+    new Promise((_, reject) =>
+      setTimeout(() => reject(new Error("Timeout")), 3000)
+    ),
 };

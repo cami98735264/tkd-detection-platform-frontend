@@ -1,14 +1,55 @@
-import axios from "axios";
-import { config } from "@/config/env";
-import { ApiError, ApiErrorBody } from "@/types/api";
-import { useAuthStore } from "@/features/auth/store/authStore";
-import { emitHttpEvent } from "@/lib/httpEventBus";
+// src/lib/http.ts
 
-// ---------------------------------------------------------------------------
-// Axios instance
-// JWT is stored in an httpOnly cookie — the browser attaches it automatically.
-// withCredentials: true is the only requirement on the client side.
-// ---------------------------------------------------------------------------
+import axios, { AxiosResponse } from "axios"
+import { config } from "@/config/env"
+import { ApiError, ApiErrorBody } from "@/types/api"
+import { useAuthStore } from "@/features/auth/store/authStore"
+import { useFeedbackStore } from "@/store/feedbackStore"
+
+// -----------------------------------------------------
+// EVENTO DE FEEDBACK GLOBAL
+// -----------------------------------------------------
+
+interface HttpEvent {
+  type: "success" | "warning" | "error"
+  message: string
+  status?: number
+  code?: string
+  metadata?: unknown
+}
+
+export const emitHttpEvent = (event: HttpEvent) => {
+  useFeedbackStore.getState().setEvent(event)
+}
+
+// -----------------------------------------------------
+// FUNCIÓN PARA EXTRAER EL MENSAJE DINÁMICAMENTE
+// (REQUERIMIENTO DE CRISTIAN)
+// -----------------------------------------------------
+
+function extractMessage(data: any): string {
+  if (!data) return "Operación completada"
+
+  const possibleKeys = [
+    "message",
+    "response",
+    "detail",
+    "msg",
+    "description",
+  ]
+
+  for (const key of possibleKeys) {
+    if (typeof data[key] === "string") {
+      return data[key]
+    }
+  }
+
+  return "Operación completada"
+}
+
+// -----------------------------------------------------
+// AXIOS INSTANCE
+// -----------------------------------------------------
 
 export const axiosInstance = axios.create({
   baseURL: config.apiUrl,
@@ -17,107 +58,98 @@ export const axiosInstance = axios.create({
     "Content-Type": "application/json",
     Accept: "application/json",
   },
-});
+})
 
-// ---------------------------------------------------------------------------
-// Response interceptor — normalise errors into ApiError
-// + Emit centralized HTTP events for UI feedback system
-// ---------------------------------------------------------------------------
+// -----------------------------------------------------
+// RESPONSE INTERCEPTOR
+// -----------------------------------------------------
 
 axiosInstance.interceptors.response.use(
-  (response) => {
-    // ------------------------------------------------
-    // Emit success event
-    // ------------------------------------------------
+  (response: AxiosResponse) => {
+    const message = extractMessage(response.data)
 
     emitHttpEvent({
       type: "success",
       status: response.status,
-      message: response.data?.message || "Operación exitosa",
-      code: response.data?.code,
+      message,
       metadata: response.config.url,
-    });
+    })
 
-    return response;
+    return response
   },
 
   (error: unknown) => {
     if (!axios.isAxiosError(error)) {
-      return Promise.reject(error);
+      emitHttpEvent({
+        type: "error",
+        message: "Error inesperado",
+      })
+
+      return Promise.reject(error)
     }
 
-    const status = error.response?.status ?? 0;
+    const status = error.response?.status ?? 0
 
-    const errorBody: ApiErrorBody =
-      (error.response?.data as ApiErrorBody) ?? { detail: error.message };
+    const body: ApiErrorBody =
+      (error.response?.data as ApiErrorBody) ?? {
+        detail: error.message,
+      }
 
-    // ------------------------------------------------
-    // Emit centralized HTTP event
-    // ------------------------------------------------
+    const message = extractMessage(body)
 
     emitHttpEvent({
-      type:
-        status >= 500
-          ? "error"
-          : status === 401
-          ? "error"
-          : status >= 400
-          ? "warning"
-          : "error",
+      type: status >= 500 ? "error" : status >= 400 ? "warning" : "error",
       status,
-      message: errorBody.detail || "Error inesperado",
-      code: errorBody.code,
+      message,
       metadata: error.config?.url,
-    });
+    })
 
-    // ------------------------------------------------
-    // Existing authentication handling (UNCHANGED)
-    // ------------------------------------------------
+    // -------------------------------------
+    // Manejo automático de sesión
+    // -------------------------------------
 
     if (status === 401) {
-      // Session expired or cookie was cleared
-      useAuthStore.getState().clearSession();
-
-      window.location.replace("/login");
+      useAuthStore.getState().clearSession()
+      window.location.replace("/login")
 
       return Promise.reject(
         new ApiError(401, {
-          detail: "Sesión expirada. Por favor ingresá de nuevo.",
+          detail: "Sesión expirada. Inicia sesión nuevamente.",
         }),
-      );
+      )
     }
 
-    return Promise.reject(new ApiError(status, errorBody));
+    return Promise.reject(new ApiError(status, body))
   },
-);
+)
 
-// ---------------------------------------------------------------------------
-// Public HTTP client
-// Thin wrappers that unwrap `response.data` so callsites stay identical.
-// ---------------------------------------------------------------------------
+// -----------------------------------------------------
+// CLIENTE HTTP TIPADO
+// -----------------------------------------------------
 
 export const http = {
-  get: <T>(endpoint: string, cfg?: Parameters<typeof axiosInstance.get>[1]) =>
-    axiosInstance.get<T>(endpoint, cfg).then((r) => r.data),
+  get: async <T = unknown>(endpoint: string) => {
+    const res = await axiosInstance.get<T>(endpoint)
+    return res.data
+  },
 
-  post: <T>(
-    endpoint: string,
-    body?: unknown,
-    cfg?: Parameters<typeof axiosInstance.post>[2],
-  ) => axiosInstance.post<T>(endpoint, body, cfg).then((r) => r.data),
+  post: async <T = unknown>(endpoint: string, body?: unknown) => {
+    const res = await axiosInstance.post<T>(endpoint, body)
+    return res.data
+  },
 
-  put: <T>(
-    endpoint: string,
-    body?: unknown,
-    cfg?: Parameters<typeof axiosInstance.put>[2],
-  ) => axiosInstance.put<T>(endpoint, body, cfg).then((r) => r.data),
+  put: async <T = unknown>(endpoint: string, body?: unknown) => {
+    const res = await axiosInstance.put<T>(endpoint, body)
+    return res.data
+  },
 
-  patch: <T>(
-    endpoint: string,
-    body?: unknown,
-    cfg?: Parameters<typeof axiosInstance.patch>[2],
-  ) => axiosInstance.patch<T>(endpoint, body, cfg).then((r) => r.data),
+  patch: async <T = unknown>(endpoint: string, body?: unknown) => {
+    const res = await axiosInstance.patch<T>(endpoint, body)
+    return res.data
+  },
 
-  delete: <T>(endpoint: string, cfg?: Parameters<typeof axiosInstance.delete>[1]) =>
-    axiosInstance.delete<T>(endpoint, cfg).then((r) => r.data),
-};
+  delete: async <T = unknown>(endpoint: string) => {
+    const res = await axiosInstance.delete<T>(endpoint)
+    return res.data
+  },
+}

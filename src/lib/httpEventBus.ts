@@ -1,7 +1,23 @@
 import { useFeedbackStore } from "@/store/feedbackStore";
-import { FeedbackEvent } from "@/store/feedbackStore";
 
-export function emitHttpEvent(event: FeedbackEvent) {
-  const setEvent = useFeedbackStore.getState().setEvent;
-  setEvent(event);
+export type HttpEventType = "success" | "warning" | "error";
+
+export interface HttpEvent {
+  type: HttpEventType;
+  status: number;
+  message: string;
+  code?: string;
+  metadata?: unknown;
+}
+
+export function emitHttpEvent(event: HttpEvent) {
+  const { setEvent } = useFeedbackStore.getState();
+
+  setEvent({
+    type: event.type,
+    message: event.message,
+    code: event.code,
+    status: event.status,
+    metadata: event.metadata,
+  });
 }
