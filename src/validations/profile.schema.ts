@@ -16,4 +16,8 @@ export const profileValidationSchema = Yup.object({
   documento: Yup.string()
     .min(6, "Documento inválido")
     .required("El documento es obligatorio"),
+
+  date_of_birth: Yup.string().nullable().defined(),
+
+  address: Yup.string().defined(),
 });

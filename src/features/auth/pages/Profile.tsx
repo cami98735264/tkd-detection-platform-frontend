@@ -1,6 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
-import { Outlet } from "react-router-dom";
 import {
   Card,
   CardContent,
@@ -11,12 +10,68 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 
 import { profileValidationSchema } from "@/validations/profile.schema";
+import { profileApi } from "@/features/auth/api/profileApi";
+import { useAuthStore } from "@/features/auth/store/authStore";
+import { useApiErrorHandler } from "@/feedback/useApiErrorHandler";
+import { useFeedback } from "@/feedback/useFeedback";
+import type { Profile as ProfileType } from "@/types/entities";
+
+const ROLE_LABELS: Record<string, string> = {
+  administrator: "Admin",
+  sportsman: "Deportista",
+  parent: "Acudiente",
+};
+
+function getInitials(name: string): string {
+  return name
+    .split(" ")
+    .map((w) => w[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
+}
 
 export default function Profile() {
+  const user = useAuthStore((s) => s.user);
+  const { handleError } = useApiErrorHandler();
+  const { showToast } = useFeedback();
+
   const [isEditing, setIsEditing] = useState(false);
-  const [successMessage, setSuccessMessage] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [profile, setProfile] = useState<ProfileType | null>(null);
+
+  useEffect(() => {
+    profileApi
+      .get()
+      .then(setProfile)
+      .catch(handleError)
+      .finally(() => setLoading(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <Skeleton className="h-8 w-48" />
+        <div className="grid gap-6 lg:grid-cols-3">
+          <Skeleton className="h-64" />
+          <Skeleton className="h-64 lg:col-span-2" />
+        </div>
+      </div>
+    );
+  }
+
+  const initialValues = {
+    nombres: profile?.nombres ?? "",
+    apellidos: profile?.apellidos ?? "",
+    telefono: profile?.telefono ?? "",
+    documento: profile?.documento ?? "",
+    date_of_birth: profile?.date_of_birth ?? "",
+    address: profile?.address ?? "",
+  };
 
   return (
     <div className="space-y-6">
@@ -33,27 +88,38 @@ export default function Profile() {
         <Card>
           <CardContent className="pt-6 text-center space-y-4">
             <div className="mx-auto h-24 w-24 rounded-full bg-green-600 flex items-center justify-center text-white text-3xl font-bold">
-              AD
+              {user ? getInitials(user.full_name) : "??"}
             </div>
 
             <div>
-              <h2 className="text-xl font-semibold">Usuario Admin</h2>
-              <p className="text-sm text-muted-foreground">
-                Administrador del Sistema
-              </p>
+              <h2 className="text-xl font-semibold">
+                {user?.full_name ?? "—"}
+              </h2>
+              <p className="text-sm text-muted-foreground">{user?.email}</p>
             </div>
 
             <Badge className="bg-green-600 mx-auto w-fit">
-              Admin
+              {ROLE_LABELS[user?.role ?? ""] ?? user?.role}
             </Badge>
 
-            <div className="border-t pt-4 mt-4 text-sm space-y-2 text-left">
-              <p className="font-semibold">Empresa</p>
-              <p>Warriors Gym SAS</p>
-              <p>NIT: 900123456-7</p>
-              <p>Espinal, Tolima</p>
-              <p>Contacto: contacto@warriorsgym.com</p>
-            </div>
+            {profile && (
+              <div className="border-t pt-4 mt-4 text-sm space-y-2 text-left">
+                <p>
+                  <span className="font-semibold">Documento:</span>{" "}
+                  {profile.documento || "—"}
+                </p>
+                <p>
+                  <span className="font-semibold">Teléfono:</span>{" "}
+                  {profile.telefono || "—"}
+                </p>
+                {profile.address && (
+                  <p>
+                    <span className="font-semibold">Dirección:</span>{" "}
+                    {profile.address}
+                  </p>
+                )}
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -66,135 +132,159 @@ export default function Profile() {
 
             <CardContent>
               <Formik
-                initialValues={{
-                  nombres: "Admin",
-                  apellidos: "Usuario",
-                  telefono: "+57 300 123 4567",
-                  documento: "1234567890",
-                }}
+                initialValues={initialValues}
+                enableReinitialize
                 validationSchema={profileValidationSchema}
-                onSubmit={(values, { setSubmitting, resetForm }) => {
-                  setTimeout(() => {
-                    console.log(values);
-
-                    setSuccessMessage(
-                      "Los cambios se actualizaron correctamente"
-                    );
-
+                onSubmit={async (values, { setSubmitting, resetForm }) => {
+                  try {
+                    const updated = await profileApi.update({
+                      nombres: values.nombres,
+                      apellidos: values.apellidos,
+                      telefono: values.telefono,
+                      documento: values.documento,
+                      date_of_birth: values.date_of_birth || null,
+                      address: values.address,
+                    });
+                    setProfile(updated);
+                    showToast({
+                      title: "Perfil actualizado",
+                      description:
+                        "Los cambios se guardaron correctamente.",
+                      variant: "success",
+                    });
                     setIsEditing(false);
-                    setSubmitting(false);
                     resetForm({ values });
-                  }, 1000);
+                  } catch (err) {
+                    handleError(err);
+                  } finally {
+                    setSubmitting(false);
+                  }
                 }}
               >
                 {({ isSubmitting, isValid, dirty }) => (
-                  <>
-                    {/* MENSAJE DE ÉXITO */}
-                    {successMessage && (
-                      <div className="mb-4 p-3 bg-green-100 text-green-700 rounded-md text-sm">
-                        {successMessage}
-                      </div>
-                    )}
-
-                    <Form className="space-y-4">
-                      <div className="grid gap-4 md:grid-cols-2">
-                        <div className="space-y-1">
-                          <Label>Nombres</Label>
-                          <Field
-                            as={Input}
-                            name="nombres"
-                            disabled={!isEditing}
-                          />
-                          <ErrorMessage
-                            name="nombres"
-                            component="p"
-                            className="text-sm text-red-500"
-                          />
-                        </div>
-
-                        <div className="space-y-1">
-                          <Label>Apellidos</Label>
-                          <Field
-                            as={Input}
-                            name="apellidos"
-                            disabled={!isEditing}
-                          />
-                          <ErrorMessage
-                            name="apellidos"
-                            component="p"
-                            className="text-sm text-red-500"
-                          />
-                        </div>
-
-                        <div className="space-y-1">
-                          <Label>Teléfono</Label>
-                          <Field
-                            as={Input}
-                            name="telefono"
-                            disabled={!isEditing}
-                          />
-                          <ErrorMessage
-                            name="telefono"
-                            component="p"
-                            className="text-sm text-red-500"
-                          />
-                        </div>
-
-                        <div className="space-y-1">
-                          <Label>Documento</Label>
-                          <Field
-                            as={Input}
-                            name="documento"
-                            disabled={!isEditing}
-                          />
-                          <ErrorMessage
-                            name="documento"
-                            component="p"
-                            className="text-sm text-red-500"
-                          />
-                        </div>
+                  <Form className="space-y-4">
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <div className="space-y-1">
+                        <Label>Nombres</Label>
+                        <Field
+                          as={Input}
+                          name="nombres"
+                          disabled={!isEditing}
+                        />
+                        <ErrorMessage
+                          name="nombres"
+                          component="p"
+                          className="text-sm text-red-500"
+                        />
                       </div>
 
-                      {/* BOTONES */}
-                      <div className="flex justify-end gap-3 pt-4 border-t">
-                        {!isEditing ? (
+                      <div className="space-y-1">
+                        <Label>Apellidos</Label>
+                        <Field
+                          as={Input}
+                          name="apellidos"
+                          disabled={!isEditing}
+                        />
+                        <ErrorMessage
+                          name="apellidos"
+                          component="p"
+                          className="text-sm text-red-500"
+                        />
+                      </div>
+
+                      <div className="space-y-1">
+                        <Label>Teléfono</Label>
+                        <Field
+                          as={Input}
+                          name="telefono"
+                          disabled={!isEditing}
+                        />
+                        <ErrorMessage
+                          name="telefono"
+                          component="p"
+                          className="text-sm text-red-500"
+                        />
+                      </div>
+
+                      <div className="space-y-1">
+                        <Label>Documento</Label>
+                        <Field
+                          as={Input}
+                          name="documento"
+                          disabled={!isEditing}
+                        />
+                        <ErrorMessage
+                          name="documento"
+                          component="p"
+                          className="text-sm text-red-500"
+                        />
+                      </div>
+
+                      <div className="space-y-1">
+                        <Label>Fecha de nacimiento</Label>
+                        <Field
+                          as={Input}
+                          type="date"
+                          name="date_of_birth"
+                          disabled={!isEditing}
+                        />
+                        <ErrorMessage
+                          name="date_of_birth"
+                          component="p"
+                          className="text-sm text-red-500"
+                        />
+                      </div>
+
+                      <div className="space-y-1">
+                        <Label>Dirección</Label>
+                        <Field
+                          as={Input}
+                          name="address"
+                          disabled={!isEditing}
+                        />
+                        <ErrorMessage
+                          name="address"
+                          component="p"
+                          className="text-sm text-red-500"
+                        />
+                      </div>
+                    </div>
+
+                    {/* BOTONES */}
+                    <div className="flex justify-end gap-3 pt-4 border-t">
+                      {!isEditing ? (
+                        <Button
+                          type="button"
+                          className="bg-green-600 hover:bg-green-700"
+                          onClick={() => setIsEditing(true)}
+                        >
+                          Editar
+                        </Button>
+                      ) : (
+                        <>
                           <Button
                             type="button"
-                            className="bg-green-600 hover:bg-green-700"
-                            onClick={() => {
-                              setSuccessMessage("");
-                              setIsEditing(true);
-                            }}
+                            variant="outline"
+                            onClick={() => setIsEditing(false)}
                           >
-                            Editar
+                            Cancelar
                           </Button>
-                        ) : (
-                          <>
-                            <Button
-                              type="button"
-                              variant="outline"
-                              disabled={!isValid}
-                              onClick={() => setIsEditing(false)}
-                            >
-                              Cancelar
-                            </Button>
 
-                            <Button
-                              type="submit"
-                              className="bg-green-600 hover:bg-green-700"
-                              disabled={
-                                isSubmitting || !isValid || !dirty
-                              }
-                            >
-                              {isSubmitting
-                                ? "Guardando..."
-                                : "Guardar Cambios"}
-                            </Button>
-                          </>
-                        )}
-                      </div>
-                    </Form>
-                  </>
+                          <Button
+                            type="submit"
+                            className="bg-green-600 hover:bg-green-700"
+                            disabled={
+                              isSubmitting || !isValid || !dirty
+                            }
+                          >
+                            {isSubmitting
+                              ? "Guardando..."
+                              : "Guardar Cambios"}
+                          </Button>
+                        </>
+                      )}
+                    </div>
+                  </Form>
                 )}
               </Formik>
             </CardContent>

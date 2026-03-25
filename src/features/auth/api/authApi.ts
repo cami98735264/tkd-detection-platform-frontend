@@ -2,6 +2,7 @@ import { http } from "@/lib/http";
 import { useAuthStore } from "@/features/auth/store/authStore";
 import { config } from "@/config/env";
 import { ApiError } from "@/types/api";
+import type { AuthUser } from "@/types/entities";
 
 const MOCK_CREDENTIALS = { email: "admin@warriors.com", password: "123456" };
 
@@ -14,25 +15,12 @@ export interface LoginPayload {
   password: string;
 }
 
-export interface RegisterPayload {
-  email: string;
-  password: string;
-  password_confirm: string;
-  full_name: string;
-}
-
-export interface AuthUser {
-  id: number;
-  email: string;
-  full_name: string;
-  is_staff: boolean;
-}
-
 const MOCK_USER: AuthUser = {
   id: 1,
   email: "admin@warriors.com",
   full_name: "Admin Mock",
   is_staff: true,
+  role: "administrator",
 };
 
 // sessionStorage key used to simulate cookie invalidation after mock logout.
@@ -61,11 +49,12 @@ export const authApi = {
         });
       }
       sessionStorage.removeItem(MOCK_LOGGED_OUT_KEY);
-      useAuthStore.getState().setAuthenticated();
+      useAuthStore.getState().setAuthenticated(MOCK_USER);
       return;
     }
     await http.post<void>("/api/auth/login/", payload);
-    useAuthStore.getState().setAuthenticated();
+    const user = await authApi.me();
+    useAuthStore.getState().setAuthenticated(user);
   },
 
   /**

@@ -1,6 +1,6 @@
-import axios from "axios";
+import axios, { type AxiosRequestConfig } from "axios";
 import { config } from "@/config/env";
-import { ApiError, ApiErrorBody } from "@/types/api";
+import { ApiError, type ApiErrorBody } from "@/types/api";
 import { useAuthStore } from "@/features/auth/store/authStore";
 
 // ---------------------------------------------------------------------------
@@ -19,27 +19,84 @@ export const axiosInstance = axios.create({
 });
 
 // ---------------------------------------------------------------------------
-// Response interceptor — normalise errors into ApiError
+// Token refresh queue — when a 401 happens we attempt a single refresh, queue
+// all concurrent 401 requests, then replay or reject them once the refresh
+// resolves.
+// ---------------------------------------------------------------------------
+
+let isRefreshing = false;
+let failedQueue: Array<{
+  resolve: (value?: unknown) => void;
+  reject: (reason?: unknown) => void;
+}> = [];
+
+function processQueue(error: unknown | null) {
+  failedQueue.forEach((p) => {
+    if (error) p.reject(error);
+    else p.resolve();
+  });
+  failedQueue = [];
+}
+
+// ---------------------------------------------------------------------------
+// Response interceptor — normalise errors into ApiError, handle token refresh
 // ---------------------------------------------------------------------------
 
 axiosInstance.interceptors.response.use(
   (response) => response,
-  (error: unknown) => {
-    if (!axios.isAxiosError(error)) {
+  async (error: unknown) => {
+    if (!axios.isAxiosError(error) || !error.config) {
       return Promise.reject(error);
     }
 
     const status = error.response?.status ?? 0;
+    const originalRequest = error.config as AxiosRequestConfig & { _retry?: boolean };
 
-    if (status === 401) {
-      // Session expired or cookie was cleared — clean up client hint and redirect.
-      useAuthStore.getState().clearSession();
-      window.location.replace("/login");
-      return Promise.reject(
-        new ApiError(401, { detail: "Sesión expirada. Por favor ingresá de nuevo." }),
-      );
+    // --- 401 handling with refresh ---
+    // Skip refresh for auth endpoints — these 401s are expected (not logged in, bad creds)
+    const url = originalRequest.url ?? "";
+    const isAuthEndpoint =
+      url.includes("/api/auth/login") ||
+      url.includes("/api/auth/me") ||
+      url.includes("/api/auth/refresh");
+
+    if (status === 401 && !originalRequest._retry && !isAuthEndpoint) {
+      // If we're already refreshing, queue this request
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        }).then(() => axiosInstance(originalRequest));
+      }
+
+      originalRequest._retry = true;
+      isRefreshing = true;
+
+      try {
+        // Attempt to refresh — the refresh endpoint reads the refresh_token cookie
+        await axiosInstance.post("/api/auth/refresh/", null, {
+          // Prevent infinite loop: if refresh itself 401s, don't retry
+          _retry: true,
+        } as AxiosRequestConfig & { _retry: boolean });
+
+        processQueue(null);
+        // Retry the original request with the new cookies
+        return axiosInstance(originalRequest);
+      } catch (refreshError) {
+        processQueue(refreshError);
+        // Refresh failed — session is truly expired.
+        // Only clear session; React route guards handle the redirect.
+        // Do NOT call window.location.replace here — it causes infinite
+        // reload loops when already on /login.
+        useAuthStore.getState().clearSession();
+        return Promise.reject(
+          new ApiError(401, { detail: "Sesión expirada. Por favor ingresá de nuevo." }),
+        );
+      } finally {
+        isRefreshing = false;
+      }
     }
 
+    // --- Non-401 errors or already-retried 401s ---
     const errorBody: ApiErrorBody =
       (error.response?.data as ApiErrorBody) ?? { detail: error.message };
 

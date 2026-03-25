@@ -104,12 +104,6 @@ export default function Login() {
                 ¿Olvidaste tu contraseña?
               </Link>
 
-              <Link
-                to="/register"
-                className="text-green-700 hover:underline"
-              >
-                Crear cuenta
-              </Link>
 
             </div>
 

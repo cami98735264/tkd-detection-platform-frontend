@@ -11,7 +11,7 @@ function AuthInit({ children }: { children: React.ReactNode }) {
     // including the sessionStorage logout simulation.
     authApi
       .me()
-      .then(() => setAuthenticated())
+      .then((user) => setAuthenticated(user))
       .catch(() => clearSession());
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

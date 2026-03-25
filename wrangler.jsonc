@@ -25,7 +25,7 @@
 	 * https://developers.cloudflare.com/workers/wrangler/configuration/#environment-variables
 	 */
 	"vars": {
-		"API_URL": "http://localhost:8000",
-		"MOCK_AUTH": "true"
+		"API_URL": "https://tkd-detection-platform-backend.onrender.com",
+		"MOCK_AUTH": "false"
 	}
 }

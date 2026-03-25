@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, Outlet, useNavigate } from "react-router-dom";
 import { authApi } from "@/features/auth/api/authApi";
+import { useAuthStore } from "@/features/auth/store/authStore";
 import { useApiErrorHandler } from "@/feedback/useApiErrorHandler";
 import {
   Menu,
@@ -13,12 +14,23 @@ import {
   User,
   Bell,
   Shield,
+  BookOpen,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+
+function getInitials(name: string): string {
+  return name
+    .split(" ")
+    .map((w) => w[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
+}
 
 export default function DashboardLayout() {
   const navigate = useNavigate();
   const { handleError } = useApiErrorHandler();
+  const user = useAuthStore((s) => s.user);
   const [open, setOpen] = useState(false);
 
   const handleLogout = async () => {
@@ -30,6 +42,9 @@ export default function DashboardLayout() {
       navigate("/login");
     }
   };
+
+  const initials = user ? getInitials(user.full_name) : "??";
+  const isAdmin = user?.role === "administrator";
 
   return (
     <div className="flex min-h-screen bg-gray-100 relative">
@@ -69,10 +84,14 @@ export default function DashboardLayout() {
         <nav className="p-4 space-y-2">
           <SidebarItem to="/dashboard" icon={LayoutDashboard} label="Panel" />
           <SidebarItem to="/dashboard/deportistas" icon={Users} label="Deportistas" />
+          <SidebarItem to="/dashboard/programas" icon={BookOpen} label="Programas" />
           <SidebarItem to="/dashboard/inscripcion" icon={ClipboardList} label="Inscripción" />
           <SidebarItem to="/dashboard/evaluacion" icon={CheckCircle} label="Evaluación" />
-          <SidebarItem to="/dashboard/reportes" icon={BarChart3} label="Reportes" />
-<SidebarItem to="/dashboard/profile" icon={User} label="Perfil" />        </nav>
+          {isAdmin && (
+            <SidebarItem to="/dashboard/reportes" icon={BarChart3} label="Reportes" />
+          )}
+          <SidebarItem to="/dashboard/profile" icon={User} label="Perfil" />
+        </nav>
 
         {/* USER FOOTER */}
         <div className="mt-auto p-4 space-y-4">
@@ -86,12 +105,12 @@ export default function DashboardLayout() {
           <div className="pt-4 border-t border-green-800">
             <div className="flex items-center gap-3">
               <div className="h-9 w-9 rounded-full bg-green-700 flex items-center justify-center text-sm font-bold">
-                AD
+                {initials}
               </div>
 
               <div className="text-sm">
-                <p className="font-medium">Usuario Admin</p>
-                <p className="text-green-200 text-xs">admin@warriors.com</p>
+                <p className="font-medium">{user?.full_name ?? "—"}</p>
+                <p className="text-green-200 text-xs">{user?.email ?? ""}</p>
               </div>
             </div>
           </div>
@@ -120,9 +139,11 @@ export default function DashboardLayout() {
 
             <div className="flex items-center gap-2">
               <div className="h-8 w-8 bg-green-600 rounded-full flex items-center justify-center text-white text-sm">
-                AD
+                {initials}
               </div>
-              <span className="hidden sm:block">Admin</span>
+              <span className="hidden sm:block">
+                {user?.full_name?.split(" ")[0] ?? ""}
+              </span>
             </div>
           </div>
         </header>
