@@ -39,7 +39,7 @@ export default function AthleteFormModal({
       onOpenChange={onOpenChange}
       title={isEdit ? "Editar Deportista" : "Nuevo Deportista"}
     >
-      <Formik
+      {!open ? null : <Formik
         initialValues={{
           full_name: athlete?.full_name ?? "",
           date_of_birth: athlete?.date_of_birth ?? "",
@@ -110,7 +110,7 @@ export default function AthleteFormModal({
             </div>
           </Form>
         )}
-      </Formik>
+      </Formik>}
     </FormModal>
   );
 }

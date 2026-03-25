@@ -32,7 +32,7 @@ export default function GenerateReportModal({
       title="Generar Reporte"
       description="El reporte se generará de forma asíncrona."
     >
-      <Formik
+      {!open ? null : <Formik
         initialValues={{
           title: "",
           report_type: "",
@@ -108,7 +108,7 @@ export default function GenerateReportModal({
             </div>
           </Form>
         )}
-      </Formik>
+      </Formik>}
     </FormModal>
   );
 }

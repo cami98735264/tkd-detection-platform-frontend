@@ -56,7 +56,7 @@ export default function EnrollmentFormModal({
       onOpenChange={onOpenChange}
       title={isEdit ? "Editar Inscripción" : "Nueva Inscripción"}
     >
-      <Formik
+      {!open ? null : <Formik
         initialValues={{
           athlete: enrollment?.athlete ?? ("" as any),
           program: enrollment?.program ?? ("" as any),
@@ -159,7 +159,7 @@ export default function EnrollmentFormModal({
             </div>
           </Form>
         )}
-      </Formik>
+      </Formik>}
     </FormModal>
   );
 }

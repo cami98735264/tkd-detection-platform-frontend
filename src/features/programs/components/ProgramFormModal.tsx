@@ -42,7 +42,7 @@ export default function ProgramFormModal({
       onOpenChange={onOpenChange}
       title={isEdit ? "Editar Programa" : "Nuevo Programa"}
     >
-      <Formik
+      {!open ? null : <Formik
         initialValues={{
           name: program?.name ?? "",
           description: program?.description ?? "",
@@ -112,7 +112,7 @@ export default function ProgramFormModal({
             </div>
           </Form>
         )}
-      </Formik>
+      </Formik>}
     </FormModal>
   );
 }

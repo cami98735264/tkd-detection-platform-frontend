@@ -66,7 +66,7 @@ export default function EvaluationFormModal({
       onOpenChange={onOpenChange}
       title={isEdit ? "Editar Evaluación" : "Nueva Evaluación"}
     >
-      {isEdit ? (
+      {!open ? null : isEdit ? (
         /* EDIT MODE — only result_summary and notes */
         <Formik
           initialValues={{
@@ -220,7 +220,7 @@ export default function EvaluationFormModal({
                       </Button>
                     </div>
                     <ErrorMessage name="metrics">{(msg) => typeof msg === "string" ? <p className="text-sm text-red-500">{msg}</p> : null}</ErrorMessage>
-                    {values.metrics.map((_, idx) => (
+                    {(values.metrics ?? []).map((_, idx) => (
                       <div
                         key={idx}
                         className="grid gap-2 md:grid-cols-[1fr_80px_1fr_auto] items-start border p-3 rounded-md"
@@ -250,7 +250,7 @@ export default function EvaluationFormModal({
                           <Field as={Input} name={`metrics.${idx}.notes`} />
                           <div className="min-h-[1rem]" />
                         </div>
-                        {values.metrics.length > 1 && (
+                        {(values.metrics?.length ?? 0) > 1 && (
                           <Button
                             type="button"
                             variant="ghost"
