@@ -4,9 +4,9 @@ import type { Program } from "@/types/entities";
 
 export const programsApi = {
   list: (page = 1) =>
-    http.get<PaginatedResponse<Program>>(`/api/programs/?page=${page}`),
+    http.get<PaginatedResponse<Program>>(`/programs/?page=${page}`),
 
-  get: (id: number) => http.get<Program>(`/api/programs/${id}/`),
+  get: (id: number) => http.get<Program>(`/programs/${id}/`),
 
   create: (data: {
     name: string;
@@ -14,7 +14,7 @@ export const programsApi = {
     schedule?: string | null;
     capacity?: number | null;
     active: boolean;
-  }) => http.post<Program>("/api/programs/", data),
+  }) => http.post<Program>("/programs/", data),
 
   update: (
     id: number,
@@ -25,7 +25,7 @@ export const programsApi = {
       capacity?: number | null;
       active: boolean;
     },
-  ) => http.put<Program>(`/api/programs/${id}/`, data),
+  ) => http.put<Program>(`/programs/${id}/`, data),
 
-  delete: (id: number) => http.delete(`/api/programs/${id}/`),
+  delete: (id: number) => http.delete(`/programs/${id}/`),
 };

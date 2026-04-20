@@ -52,7 +52,7 @@ export const authApi = {
       useAuthStore.getState().setAuthenticated(MOCK_USER);
       return;
     }
-    await http.post<void>("/api/auth/login/", payload);
+    await http.post<void>("/auth/login/", payload);
     const user = await authApi.me();
     useAuthStore.getState().setAuthenticated(user);
   },
@@ -67,7 +67,7 @@ export const authApi = {
       useAuthStore.getState().clearSession();
       return;
     }
-    await http.post<void>("/api/auth/logout/");
+    await http.post<void>("/auth/logout/");
     useAuthStore.getState().clearSession();
   },
 
@@ -83,7 +83,7 @@ export const authApi = {
       }
       return Promise.resolve(MOCK_USER);
     }
-    return http.get<AuthUser>("/api/auth/me/");
+    return http.get<AuthUser>("/auth/me/");
   },
 
   /**
@@ -91,6 +91,6 @@ export const authApi = {
    */
   requestPasswordReset: (email: string): Promise<void> => {
     if (config.mockAuth) return Promise.resolve();
-    return http.post<void>("/api/auth/password/reset/", { email });
+    return http.post<void>("/auth/password/reset/", { email });
   },
 };

@@ -4,9 +4,9 @@ import type { Athlete } from "@/types/entities";
 
 export const athletesApi = {
   list: (page = 1) =>
-    http.get<PaginatedResponse<Athlete>>(`/api/athletes/?page=${page}`),
+    http.get<PaginatedResponse<Athlete>>(`/athletes/?page=${page}`),
 
-  get: (id: number) => http.get<Athlete>(`/api/athletes/${id}/`),
+  get: (id: number) => http.get<Athlete>(`/athletes/${id}/`),
 
   create: (data: {
     user?: number | null;
@@ -14,7 +14,7 @@ export const athletesApi = {
     date_of_birth?: string | null;
     category?: string | null;
     status: string;
-  }) => http.post<Athlete>("/api/athletes/", data),
+  }) => http.post<Athlete>("/athletes/", data),
 
   update: (
     id: number,
@@ -25,7 +25,7 @@ export const athletesApi = {
       category?: string | null;
       status: string;
     },
-  ) => http.put<Athlete>(`/api/athletes/${id}/`, data),
+  ) => http.put<Athlete>(`/athletes/${id}/`, data),
 
-  delete: (id: number) => http.delete(`/api/athletes/${id}/`),
+  delete: (id: number) => http.delete(`/athletes/${id}/`),
 };

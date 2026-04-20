@@ -55,12 +55,23 @@ export class ApiError extends Error {
 
   /**
    * Returns a human-readable message extracted from the DRF error body.
+   * Handles both standard DRF error format (detail) and the app's standardized
+   * error format ({ error: { code, message } }).
    * Joins field-level validation errors into a single string when `detail`
    * is absent.
    */
   get userMessage(): string {
+    // Handle standard DRF error: { detail: "message" }
     if (this.body.detail) return this.body.detail;
 
+    // Handle standardized app error: { error: { code: "...", message: "..." } }
+    if (this.body.error && typeof this.body.error === "object") {
+      const err = this.body.error as { code?: string; message?: string };
+      if (err.message) return err.message;
+      if (err.code) return err.code;
+    }
+
+    // Fallback: join field-level validation errors
     return Object.entries(this.body)
       .map(([field, msgs]) => {
         const text = Array.isArray(msgs) ? msgs.join(", ") : String(msgs ?? "");

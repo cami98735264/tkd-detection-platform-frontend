@@ -12,6 +12,7 @@ const vars = wrangler.vars ?? {};
 
 const defines = {
 	__API_URL__: JSON.stringify(process.env.API_URL ?? vars.API_URL ?? 'http://localhost:8000'),
+	__API_PREFIX__: JSON.stringify(process.env.API_PREFIX ?? vars.API_PREFIX ?? 'api/v1'),
 	__MOCK_AUTH__: JSON.stringify(process.env.MOCK_AUTH ?? vars.MOCK_AUTH ?? 'true'),
 };
 

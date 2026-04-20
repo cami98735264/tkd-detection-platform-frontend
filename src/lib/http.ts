@@ -7,10 +7,11 @@ import { useAuthStore } from "@/features/auth/store/authStore";
 // Axios instance
 // JWT is stored in an httpOnly cookie — the browser attaches it automatically.
 // withCredentials: true is the only requirement on the client side.
+// baseURL includes the versioned prefix so all calls are versioned automatically.
 // ---------------------------------------------------------------------------
 
 export const axiosInstance = axios.create({
-  baseURL: config.apiUrl,
+  baseURL: `${config.apiUrl}/${config.apiPrefix}/`,
   withCredentials: true, // sends the httpOnly JWT cookie on every request
   headers: {
     "Content-Type": "application/json",
@@ -56,9 +57,9 @@ axiosInstance.interceptors.response.use(
     // Skip refresh for auth endpoints — these 401s are expected (not logged in, bad creds)
     const url = originalRequest.url ?? "";
     const isAuthEndpoint =
-      url.includes("/api/auth/login") ||
-      url.includes("/api/auth/me") ||
-      url.includes("/api/auth/refresh");
+      url.includes(`/auth/login`) ||
+      url.includes(`/auth/me`) ||
+      url.includes(`/auth/refresh`);
 
     if (status === 401 && !originalRequest._retry && !isAuthEndpoint) {
       // If we're already refreshing, queue this request
@@ -73,7 +74,7 @@ axiosInstance.interceptors.response.use(
 
       try {
         // Attempt to refresh — the refresh endpoint reads the refresh_token cookie
-        await axiosInstance.post("/api/auth/refresh/", null, {
+        await axiosInstance.post(`/auth/refresh/`, null, {
           // Prevent infinite loop: if refresh itself 401s, don't retry
           _retry: true,
         } as AxiosRequestConfig & { _retry: boolean });

@@ -4,9 +4,9 @@ import type { Enrollment } from "@/types/entities";
 
 export const enrollmentsApi = {
   list: (page = 1) =>
-    http.get<PaginatedResponse<Enrollment>>(`/api/enrollments/?page=${page}`),
+    http.get<PaginatedResponse<Enrollment>>(`/enrollments/?page=${page}`),
 
-  get: (id: number) => http.get<Enrollment>(`/api/enrollments/${id}/`),
+  get: (id: number) => http.get<Enrollment>(`/enrollments/${id}/`),
 
   create: (data: {
     athlete: number;
@@ -15,7 +15,7 @@ export const enrollmentsApi = {
     end_date?: string | null;
     status?: string;
     notes?: string | null;
-  }) => http.post<Enrollment>("/api/enrollments/", data),
+  }) => http.post<Enrollment>("/enrollments/", data),
 
   update: (
     id: number,
@@ -27,7 +27,7 @@ export const enrollmentsApi = {
       status?: string;
       notes?: string | null;
     },
-  ) => http.put<Enrollment>(`/api/enrollments/${id}/`, data),
+  ) => http.put<Enrollment>(`/enrollments/${id}/`, data),
 
-  delete: (id: number) => http.delete(`/api/enrollments/${id}/`),
+  delete: (id: number) => http.delete(`/enrollments/${id}/`),
 };
