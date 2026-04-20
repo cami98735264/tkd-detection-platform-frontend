@@ -95,7 +95,7 @@ export default function Login() {
               {loading ? "Ingresando..." : "Iniciar Sesión"}
             </Button>
 
-            <div className="flex justify-between text-sm mt-2">
+            <div className="flex justify-center text-sm mt-2">
 
               <Link
                 to="/forgot-password"

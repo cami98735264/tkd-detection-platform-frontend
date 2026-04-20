@@ -49,8 +49,20 @@ export interface Program {
   id: number;
   name: string;
   description: string | null;
-  schedule: string | null;
   capacity: number | null;
+  active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+/** /api/editions/ — EditionSerializer */
+export interface Edition {
+  id: number;
+  program: number;
+  program_name: string;
+  start_date: string;
+  end_date: string | null;
+  schedule: string | null;
   active: boolean;
   created_at: string;
   updated_at: string;
@@ -92,6 +104,22 @@ export interface Evaluation {
   result_summary: string;
   metrics: EvaluationMetric[];
   notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+/** /api/competition-categories/ — CompetitionCategorySerializer */
+export interface CompetitionCategory {
+  id: number;
+  nombre: string;
+  edad_min: number;
+  edad_max: number;
+  belt_from: number;
+  belt_to: number;
+  belt_from_name: string;
+  belt_to_name: string;
+  peso_min: number;
+  peso_max: number;
   created_at: string;
   updated_at: string;
 }

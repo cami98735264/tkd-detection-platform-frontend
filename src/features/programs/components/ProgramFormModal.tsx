@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import FormModal from "@/components/common/FormModal";
+import SchedulePicker, { type ScheduleEntry } from "@/components/common/SchedulePicker";
 import type { Program } from "@/types/entities";
 
 const schema = Yup.object({
@@ -78,7 +79,10 @@ export default function ProgramFormModal({
 
             <div className="space-y-1">
               <Label>Horario</Label>
-              <Field as={Input} name="schedule" placeholder="Lun/Mié/Vie 18:00-19:30" />
+              <SchedulePicker
+                value={values.schedule ? JSON.parse(values.schedule) : []}
+                onChange={(parsed: ScheduleEntry[]) => setFieldValue("schedule", JSON.stringify(parsed))}
+              />
             </div>
 
             <div className="space-y-1">

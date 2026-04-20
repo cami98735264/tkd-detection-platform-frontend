@@ -3,8 +3,8 @@ import type { PaginatedResponse } from "@/types/api";
 import type { Program } from "@/types/entities";
 
 export const programsApi = {
-  list: (page = 1) =>
-    http.get<PaginatedResponse<Program>>(`/programs/?page=${page}`),
+  list: (page = 1, search = "") =>
+    http.get<PaginatedResponse<Program>>(`/programs/?page=${page}&search=${encodeURIComponent(search)}`),
 
   get: (id: number) => http.get<Program>(`/programs/${id}/`),
 

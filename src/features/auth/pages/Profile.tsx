@@ -11,12 +11,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import * as Yup from "yup";
 
 import { profileValidationSchema } from "@/validations/profile.schema";
 import { profileApi } from "@/features/auth/api/profileApi";
+import { authApi } from "@/features/auth/api/authApi";
 import { useAuthStore } from "@/features/auth/store/authStore";
 import { useApiErrorHandler } from "@/feedback/useApiErrorHandler";
 import { useFeedback } from "@/feedback/useFeedback";
+import FormModal from "@/components/common/FormModal";
 import type { Profile as ProfileType } from "@/types/entities";
 
 const ROLE_LABELS: Record<string, string> = {
@@ -34,14 +37,25 @@ function getInitials(name: string): string {
     .slice(0, 2);
 }
 
+const passwordSchema = Yup.object({
+  current_password: Yup.string().required("Contraseña actual obligatoria"),
+  new_password: Yup.string()
+    .min(8, "Mínimo 8 caracteres")
+    .required("Nueva contraseña obligatoria"),
+  confirm_password: Yup.string()
+    .oneOf([Yup.ref("new_password")], "Las contraseñas deben coincidir")
+    .required("Confirmación obligatoria"),
+});
+
 export default function Profile() {
   const user = useAuthStore((s) => s.user);
   const { handleError } = useApiErrorHandler();
-  const { showToast } = useFeedback();
+  const { showToast, confirm } = useFeedback();
 
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<ProfileType | null>(null);
+  const [passwordModalOpen, setPasswordModalOpen] = useState(false);
 
   useEffect(() => {
     profileApi
@@ -295,13 +309,81 @@ export default function Profile() {
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>Seguridad</CardTitle>
 
-              <Button className="bg-blue-600 hover:bg-blue-700">
+              <Button
+                className="bg-blue-600 hover:bg-blue-700"
+                onClick={() => setPasswordModalOpen(true)}
+              >
                 Cambiar contraseña
               </Button>
             </CardHeader>
           </Card>
         </div>
       </div>
+
+      {/* Change Password Modal */}
+      <FormModal
+        open={passwordModalOpen}
+        onOpenChange={setPasswordModalOpen}
+        title="Cambiar Contraseña"
+      >
+        {!passwordModalOpen ? null : (
+          <Formik
+            initialValues={{
+              current_password: "",
+              new_password: "",
+              confirm_password: "",
+            }}
+            validationSchema={passwordSchema}
+            onSubmit={async (values, { setSubmitting, resetForm }) => {
+              try {
+                await authApi.changePassword({
+                  current_password: values.current_password,
+                  new_password: values.new_password,
+                });
+                showToast({
+                  title: "Contraseña actualizada",
+                  description: "Tu contraseña ha sido cambiada exitosamente.",
+                  variant: "success",
+                });
+                setPasswordModalOpen(false);
+                resetForm();
+              } catch (err) {
+                handleError(err);
+              } finally {
+                setSubmitting(false);
+              }
+            }}
+          >
+            {({ isSubmitting }) => (
+              <Form className="space-y-4">
+                <div className="space-y-1">
+                  <Label>Contraseña Actual</Label>
+                  <Field as={Input} type="password" name="current_password" />
+                  <ErrorMessage name="current_password" component="p" className="text-sm text-red-500" />
+                </div>
+                <div className="space-y-1">
+                  <Label>Nueva Contraseña</Label>
+                  <Field as={Input} type="password" name="new_password" />
+                  <ErrorMessage name="new_password" component="p" className="text-sm text-red-500" />
+                </div>
+                <div className="space-y-1">
+                  <Label>Confirmar Nueva Contraseña</Label>
+                  <Field as={Input} type="password" name="confirm_password" />
+                  <ErrorMessage name="confirm_password" component="p" className="text-sm text-red-500" />
+                </div>
+                <div className="flex justify-end gap-3 pt-4">
+                  <Button type="button" variant="outline" onClick={() => setPasswordModalOpen(false)}>
+                    Cancelar
+                  </Button>
+                  <Button type="submit" className="bg-green-600 hover:bg-green-700" disabled={isSubmitting}>
+                    {isSubmitting ? "Guardando..." : "Cambiar"}
+                  </Button>
+                </div>
+              </Form>
+            )}
+          </Formik>
+        )}
+      </FormModal>
     </div>
   );
 }

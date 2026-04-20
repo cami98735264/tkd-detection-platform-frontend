@@ -2,7 +2,9 @@ import { useState } from "react";
 import { Link, Outlet, useNavigate } from "react-router-dom";
 import { authApi } from "@/features/auth/api/authApi";
 import { useAuthStore } from "@/features/auth/store/authStore";
+import { usePermissions } from "@/features/auth/hooks/usePermissions";
 import { useApiErrorHandler } from "@/feedback/useApiErrorHandler";
+import { useFeedback } from "@/feedback/useFeedback";
 import {
   Menu,
   X,
@@ -15,6 +17,12 @@ import {
   Bell,
   Shield,
   BookOpen,
+  Trophy,
+  Settings,
+  Calendar,
+  Package,
+  Dumbbell,
+  HelpCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -30,10 +38,17 @@ function getInitials(name: string): string {
 export default function DashboardLayout() {
   const navigate = useNavigate();
   const { handleError } = useApiErrorHandler();
+  const { confirm } = useFeedback();
+  const { isAdmin } = usePermissions();
   const user = useAuthStore((s) => s.user);
   const [open, setOpen] = useState(false);
 
   const handleLogout = async () => {
+    const ok = await confirm({
+      title: "Cerrar sesión",
+      description: "¿Estás seguro de que deseas cerrar sesión?",
+    });
+    if (!ok) return;
     try {
       await authApi.logout();
     } catch (err) {
@@ -44,7 +59,6 @@ export default function DashboardLayout() {
   };
 
   const initials = user ? getInitials(user.full_name) : "??";
-  const isAdmin = user?.role === "administrator";
 
   return (
     <div className="flex min-h-screen bg-gray-100 relative">
@@ -87,9 +101,26 @@ export default function DashboardLayout() {
           <SidebarItem to="/dashboard/programas" icon={BookOpen} label="Programas" />
           <SidebarItem to="/dashboard/inscripcion" icon={ClipboardList} label="Inscripción" />
           <SidebarItem to="/dashboard/evaluacion" icon={CheckCircle} label="Evaluación" />
-          {isAdmin && (
-            <SidebarItem to="/dashboard/reportes" icon={BarChart3} label="Reportes" />
+          <SidebarItem to="/dashboard/entrenamientos" icon={Dumbbell} label="Entrenamientos" />
+
+          {/* Admin-only sections */}
+          {isAdmin() && (
+            <>
+              <div className="pt-4 pb-2">
+                <span className="text-xs text-green-400 uppercase tracking-wider">Administración</span>
+              </div>
+              <SidebarItem to="/dashboard/usuarios" icon={Settings} label="Usuarios" />
+              <SidebarItem to="/dashboard/reuniones" icon={Calendar} label="Reuniones" />
+              <SidebarItem to="/dashboard/inventario" icon={Package} label="Inventario" />
+              <SidebarItem to="/dashboard/inventario/tipos" icon={Package} label="Ítems" />
+              <SidebarItem to="/dashboard/reportes" icon={BarChart3} label="Reportes" />
+              <SidebarItem to="/dashboard/categorias-competencia" icon={Trophy} label="Categorías" />
+            </>
           )}
+
+          <div className="pt-4">
+            <SidebarItem to="/dashboard/ayuda" icon={HelpCircle} label="Ayuda" />
+          </div>
           <SidebarItem to="/dashboard/profile" icon={User} label="Perfil" />
         </nav>
 

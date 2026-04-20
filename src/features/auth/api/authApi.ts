@@ -93,4 +93,12 @@ export const authApi = {
     if (config.mockAuth) return Promise.resolve();
     return http.post<void>("/auth/password/reset/", { email });
   },
+
+  /**
+   * POST /api/auth/password/change/
+   */
+  changePassword: (payload: { current_password: string; new_password: string }): Promise<void> => {
+    if (config.mockAuth) return Promise.resolve();
+    return http.post<void>("/auth/password/change/", payload);
+  },
 };

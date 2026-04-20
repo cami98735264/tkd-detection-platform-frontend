@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus } from "lucide-react";
+import { Plus, Calendar } from "lucide-react";
 import DataTable, { type Column } from "@/components/common/DataTable";
 import Pagination from "@/components/common/Pagination";
 import ProgramFormModal from "@/features/programs/components/ProgramFormModal";
@@ -11,23 +11,10 @@ import { useAuthStore } from "@/features/auth/store/authStore";
 import { useApiErrorHandler } from "@/feedback/useApiErrorHandler";
 import { useFeedback } from "@/feedback/useFeedback";
 import type { Program } from "@/types/entities";
-
-const columns: Column<Program>[] = [
-  { key: "name", header: "Nombre" },
-  { key: "schedule", header: "Horario", render: (r) => r.schedule ?? "—" },
-  { key: "capacity", header: "Capacidad", render: (r) => r.capacity ?? "—" },
-  {
-    key: "active",
-    header: "Estado",
-    render: (r) => (
-      <Badge variant={r.active ? "default" : "secondary"}>
-        {r.active ? "Activo" : "Inactivo"}
-      </Badge>
-    ),
-  },
-];
+import { useNavigate } from "react-router-dom";
 
 export default function ProgramsPage() {
+  const navigate = useNavigate();
   const user = useAuthStore((s) => s.user);
   const { handleError } = useApiErrorHandler();
   const { showToast, confirm } = useFeedback();
@@ -39,6 +26,33 @@ export default function ProgramsPage() {
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Program | null>(null);
+
+  const columns: Column<Program>[] = [
+    { key: "name", header: "Nombre" },
+    { key: "capacity", header: "Capacidad", render: (r) => r.capacity ?? "—" },
+    {
+      key: "active",
+      header: "Estado",
+      render: (r) => (
+        <Badge variant={r.active ? "default" : "secondary"}>
+          {r.active ? "Activo" : "Inactivo"}
+        </Badge>
+      ),
+    },
+    {
+      key: "editions",
+      header: "Ediciones",
+      render: (r) => (
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => navigate(`/dashboard/programas/${r.id}/ediciones`)}
+        >
+          <Calendar size={14} className="mr-1" /> Ver
+        </Button>
+      ),
+    },
+  ];
 
   const fetchData = useCallback(
     (p: number) => {
@@ -53,7 +67,7 @@ export default function ProgramsPage() {
         .finally(() => setLoading(false));
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [],
+    [page],
   );
 
   useEffect(() => {

@@ -12,6 +12,7 @@ import { programsApi } from "@/features/programs/api/programsApi";
 import { useAuthStore } from "@/features/auth/store/authStore";
 import { useApiErrorHandler } from "@/feedback/useApiErrorHandler";
 import { useFeedback } from "@/feedback/useFeedback";
+import { formatDateForDisplay } from "@/lib/dateUtils";
 import type { Enrollment } from "@/types/entities";
 
 const STATUS_LABELS: Record<string, string> = {
@@ -77,8 +78,8 @@ export default function EnrollmentsPage() {
       header: "Programa",
       render: (r) => programMap[r.program] ?? `#${r.program}`,
     },
-    { key: "start_date", header: "Inicio" },
-    { key: "end_date", header: "Fin", render: (r) => r.end_date ?? "—" },
+    { key: "start_date", header: "Inicio", render: (r) => formatDateForDisplay(r.start_date) },
+    { key: "end_date", header: "Fin", render: (r) => formatDateForDisplay(r.end_date) ?? "—" },
     {
       key: "status",
       header: "Estado",

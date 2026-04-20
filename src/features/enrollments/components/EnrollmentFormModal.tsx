@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback } from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import { Button } from "@/components/ui/button";
@@ -6,9 +6,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import FormModal from "@/components/common/FormModal";
+import AsyncSelectField from "@/components/common/AsyncSelectField";
 import { athletesApi } from "@/features/athletes/api/athletesApi";
 import { programsApi } from "@/features/programs/api/programsApi";
-import type { Enrollment, Athlete, Program } from "@/types/entities";
+import type { Enrollment } from "@/types/entities";
 
 const schema = Yup.object({
   athlete: Yup.number().required("Selecciona un deportista"),
@@ -40,15 +41,24 @@ export default function EnrollmentFormModal({
   onSubmit,
 }: Props) {
   const isEdit = !!enrollment;
-  const [athletes, setAthletes] = useState<Athlete[]>([]);
-  const [programs, setPrograms] = useState<Program[]>([]);
 
-  useEffect(() => {
-    if (open) {
-      athletesApi.list(1).then((r) => setAthletes(r.results)).catch(() => {});
-      programsApi.list(1).then((r) => setPrograms(r.results)).catch(() => {});
-    }
-  }, [open]);
+  const loadAthletes = useCallback(
+    (input: string, page: number) =>
+      athletesApi.list(page, input).then((res) => ({
+        options: res.results.map((a) => ({ value: a.id, label: a.full_name })),
+        hasMore: res.next !== null,
+      })),
+    []
+  );
+
+  const loadPrograms = useCallback(
+    (input: string, page: number) =>
+      programsApi.list(page, input).then((res) => ({
+        options: res.results.map((p) => ({ value: p.id, label: p.name })),
+        hasMore: res.next !== null,
+      })),
+    []
+  );
 
   return (
     <FormModal
@@ -79,39 +89,29 @@ export default function EnrollmentFormModal({
           setSubmitting(false);
         }}
       >
-        {({ isSubmitting }) => (
+        {({ isSubmitting, setFieldValue }) => (
           <Form className="space-y-4">
             <div className="space-y-1">
               <Label>Deportista</Label>
-              <Field
-                as="select"
+              <AsyncSelectField
                 name="athlete"
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-              >
-                <option value="">Seleccionar...</option>
-                {athletes.map((a) => (
-                  <option key={a.id} value={a.id}>
-                    {a.full_name}
-                  </option>
-                ))}
-              </Field>
+                value={enrollment?.athlete ?? null}
+                onChange={(val) => setFieldValue("athlete", val)}
+                loadOptions={loadAthletes}
+                placeholder="Buscar deportista..."
+              />
               <ErrorMessage name="athlete" component="p" className="text-sm text-red-500" />
             </div>
 
             <div className="space-y-1">
               <Label>Programa</Label>
-              <Field
-                as="select"
+              <AsyncSelectField
                 name="program"
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-              >
-                <option value="">Seleccionar...</option>
-                {programs.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.name}
-                  </option>
-                ))}
-              </Field>
+                value={enrollment?.program ?? null}
+                onChange={(val) => setFieldValue("program", val)}
+                loadOptions={loadPrograms}
+                placeholder="Buscar programa..."
+              />
               <ErrorMessage name="program" component="p" className="text-sm text-red-500" />
             </div>
 
