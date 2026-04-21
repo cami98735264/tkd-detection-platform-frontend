@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, BookOpen, ClipboardList, CheckCircle, BarChart3, Settings, Calendar, Package } from "lucide-react";
+import { Users, BookOpen, ClipboardList, CheckCircle, BarChart3, Settings, Calendar, Package, ClipboardCheck, Camera, User } from "lucide-react";
 import { useAuthStore } from "@/features/auth/store/authStore";
 import { usePermissions } from "@/features/auth/hooks/usePermissions";
+import { useParentChildrenStore } from "@/features/athletes/store/parentChildrenStore";
 import { athletesApi } from "@/features/athletes/api/athletesApi";
 import { programsApi } from "@/features/programs/api/programsApi";
 import { enrollmentsApi } from "@/features/enrollments/api/enrollmentsApi";
@@ -25,7 +26,9 @@ interface QuickAction {
 
 export default function Home() {
   const user = useAuthStore((s) => s.user);
-  const { isAdmin } = usePermissions();
+  const { isAdmin, hasRole } = usePermissions();
+
+  const isParent = hasRole(["parent"]);
 
   const [stats, setStats] = useState<StatCard[]>([
     { label: "Deportistas", value: null, icon: Users },
@@ -38,7 +41,16 @@ export default function Home() {
   const [recentActivity, setRecentActivity] = useState<UserActivity[]>([]);
   const [activityLoading, setActivityLoading] = useState(true);
 
+  const fetchChildren = useParentChildrenStore((s) => s.fetchChildren);
+
   useEffect(() => {
+    if (isParent) {
+      fetchChildren();
+    }
+  }, [isParent, fetchChildren]);
+
+  useEffect(() => {
+    if (isParent) return;
     Promise.allSettled([
       athletesApi.list(1),
       programsApi.list(1),
@@ -68,7 +80,7 @@ export default function Home() {
         },
       ]);
     });
-  }, []);
+  }, [isParent]);
 
   useEffect(() => {
     if (isAdmin()) {
@@ -98,6 +110,13 @@ export default function Home() {
         { label: "Programas", icon: BookOpen, to: "/dashboard/programas" },
         { label: "Reuniones", icon: Calendar, to: "/dashboard/reuniones" },
         { label: "Inventario", icon: Package, to: "/dashboard/inventario" },
+      ]
+    : isParent
+    ? [
+        { label: "Reuniones", icon: Calendar, to: "/dashboard/reuniones" },
+        { label: "Asistencia", icon: ClipboardCheck, to: "/dashboard/asistencia" },
+        { label: "Evaluación Técnica", icon: Camera, to: "/dashboard/evaluacion-tecnica" },
+        { label: "Perfil", icon: User, to: "/dashboard/profile" },
       ]
     : [
         { label: "Deportistas", icon: Users, to: "/dashboard/deportistas" },

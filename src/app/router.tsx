@@ -26,6 +26,9 @@ import ItemsPage from "@/features/inventory/pages/ItemsPage";
 import TrainingsPage from "@/features/trainings/pages/TrainingsPage";
 import HelpPage from "@/features/help/pages/HelpPage";
 
+import AttendancePage from "@/features/attendance/pages/AttendancePage";
+import TechnicalEvaluationPage from "@/features/technical-evaluation/pages/TechnicalEvaluationPage";
+
 import FeedbackLab from "@/feedback/FeedbackLab";
 import NotFound from "@/components/common/NotFound";
 
@@ -47,11 +50,19 @@ export default function AppRouter() {
       >
         <Route index element={<Home />} />
         <Route path="profile" element={<Profile />} />
-        <Route path="deportistas" element={<AthletesPage />} />
-        <Route path="programas" element={<ProgramsPage />} />
+        <Route path="deportistas" element={
+          <RoleRoute allowedRoles={["sportsman", "administrator"]}><AthletesPage /></RoleRoute>
+        } />
+        <Route path="programas" element={
+          <RoleRoute allowedRoles={["sportsman", "administrator"]}><ProgramsPage /></RoleRoute>
+        } />
         <Route path="programas/:programId/ediciones" element={<EditionsPage />} />
-        <Route path="inscripcion" element={<EnrollmentsPage />} />
-        <Route path="evaluacion" element={<EvaluationsPage />} />
+        <Route path="inscripcion" element={
+          <RoleRoute allowedRoles={["sportsman", "administrator"]}><EnrollmentsPage /></RoleRoute>
+        } />
+        <Route path="evaluacion" element={
+          <RoleRoute allowedRoles={["sportsman", "administrator"]}><EvaluationsPage /></RoleRoute>
+        } />
         <Route path="categorias-competencia" element={<CompetitionCategoriesPage />} />
         <Route path="reportes" element={
           <RoleRoute allowedRoles={["administrator"]}><ReportsPage /></RoleRoute>
@@ -60,7 +71,7 @@ export default function AppRouter() {
           <RoleRoute allowedRoles={["administrator"]}><UsersPage /></RoleRoute>
         } />
         <Route path="reuniones" element={
-          <RoleRoute allowedRoles={["administrator"]}><MeetingsPage /></RoleRoute>
+          <RoleRoute allowedRoles={["parent", "sportsman", "administrator"]}><MeetingsPage /></RoleRoute>
         } />
         <Route path="inventario" element={
           <RoleRoute allowedRoles={["administrator"]}><InventoryPage /></RoleRoute>
@@ -70,6 +81,12 @@ export default function AppRouter() {
         } />
         <Route path="entrenamientos" element={<TrainingsPage />} />
         <Route path="ayuda" element={<HelpPage />} />
+        <Route path="asistencia" element={
+          <RoleRoute allowedRoles={["parent", "sportsman", "administrator"]}><AttendancePage /></RoleRoute>
+        } />
+        <Route path="evaluacion-tecnica" element={
+          <RoleRoute allowedRoles={["parent"]}><TechnicalEvaluationPage /></RoleRoute>
+        } />
         <Route path="feedback-lab" element={<FeedbackLab />} />
         <Route path="*" element={<NotFound />} />
       </Route>

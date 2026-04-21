@@ -51,6 +51,7 @@ export interface Program {
   description: string | null;
   capacity: number | null;
   active: boolean;
+  schedule?: string | null;
   created_at: string;
   updated_at: string;
 }

@@ -9,7 +9,7 @@ interface Option {
 
 interface Props {
   name?: string;
-  value: number | null;
+  value: string | number | null;
   onChange: (value: number | null) => void;
   loadOptions: (input: string, page: number) => Promise<{ options: Option[]; hasMore: boolean }>;
   placeholder?: string;
@@ -76,8 +76,6 @@ export default function AsyncSelectField({
         }}
         placeholder={placeholder}
         isSearchable
-        defaultOptions
-        cacheOptions
         isDisabled={isDisabled}
         loadingMessage={() => "Cargando..."}
         noOptionsMessage={() => "Sin opciones"}

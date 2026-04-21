@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { Pencil, Trash2 } from "lucide-react";
+import { Pencil, Trash2, CheckCircle, Eye } from "lucide-react";
 
 export interface Column<T> {
   key: string;
@@ -23,6 +23,10 @@ interface DataTableProps<T> {
   loading?: boolean;
   onEdit?: (row: T) => void;
   onDelete?: (row: T) => void;
+  onConfirm?: (row: T) => void;
+  onViewConfirmations?: (row: T) => void;
+  confirmLabel?: string | ((row: T) => string);
+  viewConfirmationsLabel?: string;
 }
 
 export default function DataTable<T extends Record<string, any>>({
@@ -31,8 +35,12 @@ export default function DataTable<T extends Record<string, any>>({
   loading,
   onEdit,
   onDelete,
+  onConfirm,
+  onViewConfirmations,
+  confirmLabel = "Confirmar",
+  viewConfirmationsLabel = "Verificar",
 }: DataTableProps<T>) {
-  const showActions = !!onEdit || !!onDelete;
+  const showActions = !!onEdit || !!onDelete || !!onConfirm || !!onViewConfirmations;
 
   if (loading) {
     return (
@@ -72,6 +80,26 @@ export default function DataTable<T extends Record<string, any>>({
             ))}
             {showActions && (
               <TableCell className="text-right space-x-2">
+                {onViewConfirmations && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onViewConfirmations(row)}
+                  >
+                    <Eye size={16} className="mr-1" />
+                    {viewConfirmationsLabel}
+                  </Button>
+                )}
+                {onConfirm && (
+                  <Button
+                    variant="default"
+                    size="sm"
+                    onClick={() => onConfirm(row)}
+                  >
+                    <CheckCircle size={16} className="mr-1" />
+                    {typeof confirmLabel === "function" ? confirmLabel(row) : confirmLabel}
+                  </Button>
+                )}
                 {onEdit && (
                   <Button
                     variant="ghost"

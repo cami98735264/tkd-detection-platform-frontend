@@ -12,9 +12,12 @@ const ROLES = [
   { value: "administrator", label: "Administrador" },
 ];
 
-const schema = Yup.object({
+const schema = (isEdit: boolean) => Yup.object({
   email: Yup.string().email("Email inválido").required("El email es obligatorio"),
   full_name: Yup.string().required("El nombre es obligatorio"),
+  password: isEdit
+    ? Yup.string()
+    : Yup.string().min(8, "La contraseña debe tener al menos 8 caracteres").required("La contraseña es obligatoria"),
   role: Yup.string().required("El rol es obligatorio"),
   is_active: Yup.boolean().default(true),
 });
@@ -28,6 +31,7 @@ interface Props {
     full_name: string;
     role: string;
     is_active: boolean;
+    password?: string;
   }) => Promise<void>;
 }
 
@@ -50,11 +54,12 @@ export default function UserFormModal({
           initialValues={{
             email: user?.email ?? "",
             full_name: user?.full_name ?? "",
+            password: "",
             role: user?.role ?? "sportsman",
             is_active: user?.is_active ?? true,
           }}
           enableReinitialize
-          validationSchema={schema}
+          validationSchema={schema(isEdit)}
           onSubmit={async (values, { setSubmitting }) => {
             await onSubmit(values);
             setSubmitting(false);
@@ -81,6 +86,18 @@ export default function UserFormModal({
                   className="text-sm text-red-500"
                 />
               </div>
+
+              {!isEdit && (
+                <div className="space-y-1">
+                  <Label>Contraseña</Label>
+                  <Field as={Input} type="password" name="password" />
+                  <ErrorMessage
+                    name="password"
+                    component="p"
+                    className="text-sm text-red-500"
+                  />
+                </div>
+              )}
 
               <div className="space-y-1">
                 <Label>Rol</Label>

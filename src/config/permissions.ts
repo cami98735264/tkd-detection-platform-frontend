@@ -5,6 +5,9 @@
 export const ADMIN_ROLES = ["administrator"] as const;
 export type AdminRole = (typeof ADMIN_ROLES)[number];
 
+export const PARENT_ROLES = ["parent"] as const;
+export type ParentRole = (typeof PARENT_ROLES)[number];
+
 export type RoleName = "sportsman" | "parent" | "administrator";
 
 export type Module =
@@ -22,7 +25,9 @@ export type Module =
   | "trainings"
   | "reports"
   | "profile"
-  | "help";
+  | "help"
+  | "attendance"
+  | "technical-evaluation";
 
 export type Action = "view" | "create" | "edit" | "delete" | "export";
 
@@ -85,7 +90,7 @@ export const PERMISSIONS: Record<Module, Record<Action, readonly RoleName[]>> = 
     export: ["administrator"],
   },
   meetings: {
-    view: ["administrator"],
+    view: ["sportsman", "parent", "administrator"],
     create: ["administrator"],
     edit: ["administrator"],
     delete: ["administrator"],
@@ -122,6 +127,20 @@ export const PERMISSIONS: Record<Module, Record<Action, readonly RoleName[]>> = 
   help: {
     view: ["sportsman", "parent", "administrator"],
     create: [],
+    edit: [],
+    delete: [],
+    export: [],
+  },
+  attendance: {
+    view: ["sportsman", "parent", "administrator"],
+    create: ["administrator"],
+    edit: ["administrator"],
+    delete: ["administrator"],
+    export: [],
+  },
+  "technical-evaluation": {
+    view: ["parent"],
+    create: ["parent"],
     edit: [],
     delete: [],
     export: [],

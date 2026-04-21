@@ -23,6 +23,8 @@ import {
   Package,
   Dumbbell,
   HelpCircle,
+  ClipboardCheck,
+  Camera,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -39,7 +41,7 @@ export default function DashboardLayout() {
   const navigate = useNavigate();
   const { handleError } = useApiErrorHandler();
   const { confirm } = useFeedback();
-  const { isAdmin } = usePermissions();
+  const { isAdmin, hasRole, can } = usePermissions();
   const user = useAuthStore((s) => s.user);
   const [open, setOpen] = useState(false);
 
@@ -97,11 +99,21 @@ export default function DashboardLayout() {
         {/* MENU */}
         <nav className="p-4 space-y-2">
           <SidebarItem to="/dashboard" icon={LayoutDashboard} label="Panel" />
-          <SidebarItem to="/dashboard/deportistas" icon={Users} label="Deportistas" />
-          <SidebarItem to="/dashboard/programas" icon={BookOpen} label="Programas" />
-          <SidebarItem to="/dashboard/inscripcion" icon={ClipboardList} label="Inscripción" />
-          <SidebarItem to="/dashboard/evaluacion" icon={CheckCircle} label="Evaluación" />
+
+          {/* Only show for non-parent roles */}
+          {!hasRole(["parent"]) && (
+            <>
+              <SidebarItem to="/dashboard/deportistas" icon={Users} label="Deportistas" />
+              <SidebarItem to="/dashboard/programas" icon={BookOpen} label="Programas" />
+              <SidebarItem to="/dashboard/inscripcion" icon={ClipboardList} label="Inscripción" />
+              <SidebarItem to="/dashboard/evaluacion" icon={CheckCircle} label="Evaluación" />
+            </>
+          )}
+
           <SidebarItem to="/dashboard/entrenamientos" icon={Dumbbell} label="Entrenamientos" />
+          {can("view", "meetings") && (
+            <SidebarItem to="/dashboard/reuniones" icon={Calendar} label="Reuniones" />
+          )}
 
           {/* Admin-only sections */}
           {isAdmin() && (
@@ -110,11 +122,18 @@ export default function DashboardLayout() {
                 <span className="text-xs text-green-400 uppercase tracking-wider">Administración</span>
               </div>
               <SidebarItem to="/dashboard/usuarios" icon={Settings} label="Usuarios" />
-              <SidebarItem to="/dashboard/reuniones" icon={Calendar} label="Reuniones" />
               <SidebarItem to="/dashboard/inventario" icon={Package} label="Inventario" />
               <SidebarItem to="/dashboard/inventario/tipos" icon={Package} label="Ítems" />
               <SidebarItem to="/dashboard/reportes" icon={BarChart3} label="Reportes" />
               <SidebarItem to="/dashboard/categorias-competencia" icon={Trophy} label="Categorías" />
+            </>
+          )}
+
+          {/* Parent-only sections */}
+          {hasRole(["parent"]) && (
+            <>
+              <SidebarItem to="/dashboard/asistencia" icon={ClipboardCheck} label="Asistencia" />
+              <SidebarItem to="/dashboard/evaluacion-tecnica" icon={Camera} label="Evaluación Técnica" />
             </>
           )}
 

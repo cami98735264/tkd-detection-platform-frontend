@@ -40,36 +40,36 @@ interface RegistrationState {
   reset: () => void;
 }
 
-const initial: RegistrationState = {
-  step1: {
-    first_name: "",
-    last_name: "",
-    documento: "",
-    birth_date: "",
-    gender: "",
-    email: "",
-    phone: "",
-    blood_type: "",
-    medical_certificate: null,
-    current_weight: "",
-    current_belt: null,
-  },
-  step2: null,
-  step3: {
-    consent_data_accuracy: false,
-    consent_data_policy: false,
-    consent_terms: false,
-    consent_media_auth: false,
-    submitted_at: null,
-  },
+const initialStep1: RegistrationState["step1"] = {
+  first_name: "",
+  last_name: "",
+  documento: "",
+  birth_date: "",
+  gender: "",
+  email: "",
+  phone: "",
+  blood_type: "",
+  medical_certificate: null,
+  current_weight: "",
+  current_belt: null,
+};
+
+const initialStep3: RegistrationState["step3"] = {
+  consent_data_accuracy: false,
+  consent_data_policy: false,
+  consent_terms: false,
+  consent_media_auth: false,
+  submitted_at: null,
 };
 
 export const useRegistrationStore = create<RegistrationState>()((set) => ({
-  ...initial,
+  step1: initialStep1,
+  step2: null,
+  step3: initialStep3,
   setStep1: (data) =>
     set((s) => ({ step1: { ...s.step1, ...data } })),
   setStep2: (data) => set({ step2: data }),
   setStep3: (data) =>
     set((s) => ({ step3: { ...s.step3, ...data } })),
-  reset: () => set(initial),
+  reset: () => set({ step1: initialStep1, step2: null, step3: initialStep3 }),
 }));

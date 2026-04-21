@@ -1,5 +1,6 @@
 import { useNavigate, Link } from "react-router-dom";
-import { useState } from "react";
+import { Formik, Form, Field, ErrorMessage } from "formik";
+import * as Yup from "yup";
 import { Shield } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -9,34 +10,14 @@ import { Label } from "@/components/ui/label";
 import { authApi } from "@/features/auth/api/authApi";
 import { useApiErrorHandler } from "@/feedback/useApiErrorHandler";
 
+const schema = Yup.object({
+  email: Yup.string().email("Email inválido").required("El email es obligatorio"),
+  password: Yup.string().required("La contraseña es obligatoria"),
+});
+
 export default function Login() {
   const navigate = useNavigate();
   const { handleError } = useApiErrorHandler();
-
-  const [email, setEmail] = useState<string>("");
-  const [password, setPassword] = useState<string>("");
-  const [loading, setLoading] = useState(false);
-
-  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setEmail(e.target.value);
-  };
-
-  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setPassword(e.target.value);
-  };
-
-  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      await authApi.login({ email, password });
-      navigate("/dashboard");
-    } catch (err) {
-      handleError(err);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-600 to-emerald-900">
@@ -61,53 +42,53 @@ export default function Login() {
         </CardHeader>
 
         <CardContent>
-          <form onSubmit={handleLogin} className="space-y-4">
+          <Formik
+            initialValues={{ email: "", password: "" }}
+            validationSchema={schema}
+            onSubmit={async (values, { setSubmitting }) => {
+              try {
+                await authApi.login(values);
+                navigate("/dashboard");
+              } catch (err) {
+                handleError(err);
+              } finally {
+                setSubmitting(false);
+              }
+            }}
+          >
+            {({ isSubmitting }) => (
+              <Form className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="email">Correo</Label>
+                  <Field as={Input} id="email" type="email" name="email" placeholder="admin@warriors.com" />
+                  <ErrorMessage name="email" component="p" className="text-sm text-red-500" />
+                </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="email">Correo</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="admin@warriors.com"
-                value={email}
-                onChange={handleEmailChange}
-              />
-            </div>
+                <div className="space-y-2">
+                  <Label htmlFor="password">Contraseña</Label>
+                  <Field as={Input} id="password" type="password" name="password" placeholder="123456" />
+                  <ErrorMessage name="password" component="p" className="text-sm text-red-500" />
+                </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="password">Contraseña</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="123456"
-                value={password}
-                onChange={handlePasswordChange}
-              />
-            </div>
+                <Button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="w-full bg-green-600 hover:bg-green-700"
+                >
+                  {isSubmitting ? "Ingresando..." : "Iniciar Sesión"}
+                </Button>
 
-            {/* Removed inline error — errors are now shown via toast */}
-
-            <Button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-green-600 hover:bg-green-700"
-            >
-              {loading ? "Ingresando..." : "Iniciar Sesión"}
-            </Button>
-
-            <div className="flex justify-center text-sm mt-2">
-
-              <Link
-                to="/forgot-password"
-                className="text-green-700 hover:underline"
-              >
-                ¿Olvidaste tu contraseña?
-              </Link>
-
-
-            </div>
-
-          </form>
+                <div className="flex justify-center text-sm mt-2">
+                  <Link
+                    to="/forgot-password"
+                    className="text-green-700 hover:underline"
+                  >
+                    ¿Olvidaste tu contraseña?
+                  </Link>
+                </div>
+              </Form>
+            )}
+          </Formik>
         </CardContent>
 
       </Card>

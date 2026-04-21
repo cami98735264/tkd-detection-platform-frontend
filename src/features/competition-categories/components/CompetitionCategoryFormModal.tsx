@@ -84,13 +84,13 @@ export default function CompetitionCategoryFormModal({
           }}
           enableReinitialize
           validationSchema={schema}
-          onSubmit={async (values, { setSubmitting }) => {
+          onSubmit={async (values: Record<string, string | number | null>, { setSubmitting }) => {
             await onSubmit({
-              nombre: generateName(values),
+              nombre: generateName(values as any),
               edad_min: Number(values.edad_min),
               edad_max: Number(values.edad_max),
-              belt_from: values.belt_from!,
-              belt_to: values.belt_to!,
+              belt_from: values.belt_from as number,
+              belt_to: values.belt_to as number,
               peso_min: Number(values.peso_min),
               peso_max: Number(values.peso_max),
             });

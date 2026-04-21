@@ -8,6 +8,7 @@ import TrainingFormModal from "@/features/trainings/components/TrainingFormModal
 import { trainingsApi, type Training } from "@/features/trainings/api/trainingsApi";
 import { useApiErrorHandler } from "@/feedback/useApiErrorHandler";
 import { useFeedback } from "@/feedback/useFeedback";
+import { useAuthStore } from "@/features/auth/store/authStore";
 
 const columns: Column<Training>[] = [
   { key: "program_name", header: "Programa" },
@@ -21,6 +22,8 @@ const columns: Column<Training>[] = [
 export default function TrainingsPage() {
   const { handleError } = useApiErrorHandler();
   const { showToast, confirm } = useFeedback();
+  const user = useAuthStore((s) => s.user);
+  const canWrite = user?.is_staff || user?.role === "administrator";
 
   const [data, setData] = useState<Training[]>([]);
   const [count, setCount] = useState(0);
@@ -82,9 +85,11 @@ export default function TrainingsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">Entrenamientos</h1>
-        <Button className="bg-green-600 hover:bg-green-700" onClick={() => { setEditing(null); setModalOpen(true); }}>
-          <Plus size={18} className="mr-2" /> Nuevo
-        </Button>
+        {canWrite && (
+          <Button className="bg-green-600 hover:bg-green-700" onClick={() => { setEditing(null); setModalOpen(true); }}>
+            <Plus size={18} className="mr-2" /> Nuevo
+          </Button>
+        )}
       </div>
       <Card>
         <CardHeader><CardTitle>Sesiones de Entrenamiento</CardTitle></CardHeader>
@@ -93,8 +98,8 @@ export default function TrainingsPage() {
             columns={columns}
             data={data}
             loading={loading}
-            onEdit={(row) => { setEditing(row); setModalOpen(true); }}
-            onDelete={handleDelete}
+            onEdit={canWrite ? (row) => { setEditing(row); setModalOpen(true); } : undefined}
+            onDelete={canWrite ? handleDelete : undefined}
           />
           <Pagination count={count} page={page} onPageChange={setPage} />
         </CardContent>
