@@ -29,8 +29,11 @@ export interface Athlete {
   user: number | null;
   full_name: string;
   date_of_birth: string | null;
-  category: string | null;
+  categoria_competencia: number | null;
+  categoria_competencia_name: string | null;
   status: "active" | "inactive";
+  belt_actual: number | null;
+  belt_actual_name: string | null;
   created_at: string;
   updated_at: string;
 }

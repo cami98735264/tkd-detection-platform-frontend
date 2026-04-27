@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -7,17 +7,11 @@ import DataTable, { type Column } from "@/components/common/DataTable";
 import Pagination from "@/components/common/Pagination";
 import AthleteFormModal from "@/features/athletes/components/AthleteFormModal";
 import { athletesApi } from "@/features/athletes/api/athletesApi";
+import { categoriesApi } from "@/features/categories/api/categoriesApi";
 import { usePermissions } from "@/features/auth/hooks/usePermissions";
 import { useApiErrorHandler } from "@/feedback/useApiErrorHandler";
 import { useFeedback } from "@/feedback/useFeedback";
-import type { Athlete } from "@/types/entities";
-
-const CATEGORY_OPTIONS = [
-  { value: "", label: "Todas" },
-  { value: "child", label: "Niño" },
-  { value: "youth", label: "Juvenil" },
-  { value: "adult", label: "Adulto" },
-];
+import type { Athlete, CompetitionCategory } from "@/types/entities";
 
 const STATUS_OPTIONS = [
   { value: "", label: "Todos" },
@@ -26,9 +20,10 @@ const STATUS_OPTIONS = [
 ];
 
 const columns: Column<Athlete>[] = [
+  { key: "id", header: "ID" },
   { key: "full_name", header: "Nombre" },
   { key: "date_of_birth", header: "Fecha Nac.", render: (r) => r.date_of_birth ? new Date(r.date_of_birth).toLocaleDateString() : "—" },
-  { key: "category", header: "Categoría", render: (r) => r.category ?? "—" },
+  { key: "categoria_competencia_name", header: "Categoría", render: (r) => r.categoria_competencia_name ?? "—" },
   {
     key: "status",
     header: "Estado",
@@ -38,6 +33,7 @@ const columns: Column<Athlete>[] = [
       </Badge>
     ),
   },
+  { key: "belt_actual_name", header: "Cinturón", render: (r) => r.belt_actual_name ?? "—" },
   { key: "created_at", header: "F. Ingreso", render: (r) => new Date(r.created_at).toLocaleDateString() },
 ];
 
@@ -52,52 +48,57 @@ export default function AthletesPage() {
   const [data, setData] = useState<Athlete[]>([]);
   const [count, setCount] = useState(0);
   const [page, setPage] = useState(1);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Athlete | null>(null);
   const [statusFilter, setStatusFilter] = useState("");
+  const [categoryOptions, setCategoryOptions] = useState<CompetitionCategory[]>([]);
   const [categoryFilter, setCategoryFilter] = useState("");
-
-  // Dashboard cards
   const [totalCount, setTotalCount] = useState(0);
   const [activeCount, setActiveCount] = useState(0);
   const [inactiveCount, setInactiveCount] = useState(0);
+  const [statsLoaded, setStatsLoaded] = useState(false);
 
-  const fetchData = useCallback(
-    (p: number) => {
-      setLoading(true);
-      athletesApi
-        .list(p)
-        .then((res) => {
-          let results = res.results;
-          if (statusFilter) results = results.filter((a) => a.status === statusFilter);
-          if (categoryFilter) results = results.filter((a) => a.category === categoryFilter);
-          setData(results);
-          setCount(res.count);
-        })
-        .catch(handleError)
-        .finally(() => setLoading(false));
-    },
-    [handleError, statusFilter, categoryFilter],
-  );
-
+  // Categories - load once
   useEffect(() => {
-    // Fetch dashboard stats
-    athletesApi.list(1).then((res) => {
+    categoriesApi.list(1).then((res) => setCategoryOptions(res.results)).catch(() => {});
+  }, []);
+
+  // Stats - load once on mount
+  useEffect(() => {
+    if (statsLoaded) return;
+    setStatsLoaded(true);
+    athletesApi.list(1, "", "").then((res) => {
       setTotalCount(res.count);
       setActiveCount(res.results.filter((a) => a.status === "active").length);
       setInactiveCount(res.results.filter((a) => a.status === "inactive").length);
-    }).catch(handleError);
-  }, [handleError]);
+    }).catch(() => {});
+  }, [statsLoaded]);
 
+  // Athletes table - load when page/filters change
   useEffect(() => {
-    fetchData(page);
-  }, [page, fetchData]);
+    let cancelled = false;
+    setLoading(true);
+    athletesApi.list(page, "", statusFilter || "")
+      .then((res) => {
+        if (cancelled) return;
+        const results = categoryFilter
+          ? res.results.filter((a) => String(a.categoria_competencia) === categoryFilter)
+          : res.results;
+        setData(results);
+        setCount(res.count);
+      })
+      .catch((err) => { handleError(err); })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => { cancelled = true; };
+  }, [page, statusFilter, categoryFilter]);
 
   const handleSubmit = async (values: {
     full_name: string;
     date_of_birth: string | null;
-    category: string | null;
+    categoria_competencia: number | null;
     status: string;
   }) => {
     try {
@@ -110,7 +111,7 @@ export default function AthletesPage() {
       }
       setModalOpen(false);
       setEditing(null);
-      fetchData(page);
+      setPage(1);
     } catch (err) {
       handleError(err);
     }
@@ -127,7 +128,7 @@ export default function AthletesPage() {
     try {
       await athletesApi.update(athlete.id, { ...athlete, status: newStatus });
       showToast({ title: `Deportista ${action === "inactivar" ? "inactivado" : "activado"}`, variant: "success" });
-      fetchData(page);
+      setPage(1);
     } catch (err) {
       handleError(err);
     }
@@ -135,35 +136,27 @@ export default function AthletesPage() {
 
   return (
     <div className="space-y-6">
-      {/* Dashboard Cards */}
       <div className="grid gap-4 sm:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Total Deportistas</CardTitle>
           </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold">{totalCount}</p>
-          </CardContent>
+          <CardContent><p className="text-3xl font-bold">{totalCount}</p></CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Activos</CardTitle>
           </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold text-green-600">{activeCount}</p>
-          </CardContent>
+          <CardContent><p className="text-3xl font-bold text-green-600">{activeCount}</p></CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Inactivos</CardTitle>
           </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold text-muted-foreground">{inactiveCount}</p>
-          </CardContent>
+          <CardContent><p className="text-3xl font-bold text-muted-foreground">{inactiveCount}</p></CardContent>
         </Card>
       </div>
 
-      {/* Filters */}
       <Card>
         <CardContent className="pt-6">
           <div className="flex gap-4 flex-wrap">
@@ -181,31 +174,26 @@ export default function AthletesPage() {
               value={categoryFilter}
               onChange={(e) => { setCategoryFilter(e.target.value); setPage(1); }}
             >
-              {CATEGORY_OPTIONS.map((o) => (
-                <option key={o.value} value={o.value}>{o.label}</option>
+              <option value="">Todas las categorías</option>
+              {categoryOptions.map((o) => (
+                <option key={o.id} value={String(o.id)}>{o.nombre}</option>
               ))}
             </select>
           </div>
         </CardContent>
       </Card>
 
-      {/* Main Table */}
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">Deportistas</h1>
         {canCreate && (
-          <Button
-            className="bg-green-600 hover:bg-green-700"
-            onClick={() => { setEditing(null); setModalOpen(true); }}
-          >
+          <Button className="bg-green-600 hover:bg-green-700" onClick={() => { setEditing(null); setModalOpen(true); }}>
             <Plus size={18} className="mr-2" /> Nuevo
           </Button>
         )}
       </div>
 
       <Card>
-        <CardHeader>
-          <CardTitle>Lista de deportistas</CardTitle>
-        </CardHeader>
+        <CardHeader><CardTitle>Lista de deportistas</CardTitle></CardHeader>
         <CardContent>
           <DataTable
             columns={columns}

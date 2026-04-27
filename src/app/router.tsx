@@ -27,7 +27,9 @@ import TrainingsPage from "@/features/trainings/pages/TrainingsPage";
 import HelpPage from "@/features/help/pages/HelpPage";
 
 import AttendancePage from "@/features/attendance/pages/AttendancePage";
+import AttendanceRegisterPage from "@/features/attendance/pages/AttendanceRegisterPage";
 import TechnicalEvaluationPage from "@/features/technical-evaluation/pages/TechnicalEvaluationPage";
+import AthleteDashboardPage from "@/features/athlete-dashboard/pages/AthleteDashboardPage";
 
 import FeedbackLab from "@/feedback/FeedbackLab";
 import NotFound from "@/components/common/NotFound";
@@ -84,8 +86,14 @@ export default function AppRouter() {
         <Route path="asistencia" element={
           <RoleRoute allowedRoles={["parent", "sportsman", "administrator"]}><AttendancePage /></RoleRoute>
         } />
+        <Route path="asistencia/registrar" element={
+          <RoleRoute allowedRoles={["administrator"]}><AttendanceRegisterPage /></RoleRoute>
+        } />
         <Route path="evaluacion-tecnica" element={
-          <RoleRoute allowedRoles={["parent"]}><TechnicalEvaluationPage /></RoleRoute>
+          <RoleRoute allowedRoles={["parent", "sportsman"]}><TechnicalEvaluationPage /></RoleRoute>
+        } />
+        <Route path="deportista" element={
+          <RoleRoute allowedRoles={["sportsman"]}><AthleteDashboardPage /></RoleRoute>
         } />
         <Route path="feedback-lab" element={<FeedbackLab />} />
         <Route path="*" element={<NotFound />} />

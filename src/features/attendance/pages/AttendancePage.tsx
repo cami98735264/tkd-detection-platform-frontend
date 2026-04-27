@@ -11,30 +11,30 @@ type ViewMode = "weekly" | "monthly" | "yearly";
 
 const columns: Column<AttendanceRecord>[] = [
   {
-    key: "training_name",
+    key: "program_name",
     header: "Entrenamiento",
-    render: (r) => <span className="font-medium">{r.training_name}</span>,
+    render: (r) => <span className="font-medium">{r.program_name}</span>,
   },
   { key: "athlete_name", header: "Atleta" },
   {
-    key: "date",
+    key: "fecha",
     header: "Fecha",
-    render: (r) => new Date(r.date).toLocaleDateString(),
+    render: (r) => new Date(r.fecha).toLocaleDateString(),
   },
-  { key: "time", header: "Hora" },
+  { key: "hora", header: "Hora" },
   {
     key: "status",
     header: "Estado",
     render: (r) => {
       const labels: Record<string, string> = {
-        confirmed: "Confirmado",
-        pending: "Pendiente",
+        present: "Presente",
         absent: "Ausente",
+        late: "Tarde",
       };
       const classes: Record<string, string> = {
-        confirmed: "bg-green-100 text-green-800 border-green-300",
-        pending: "bg-yellow-100 text-yellow-800 border-yellow-300",
+        present: "bg-green-100 text-green-800 border-green-300",
         absent: "bg-red-100 text-red-800 border-red-300",
+        late: "bg-yellow-100 text-yellow-800 border-yellow-300",
       };
       return (
         <span className={`px-2 py-1 rounded-full text-xs font-semibold border ${classes[r.status] ?? ""}`}>
@@ -42,11 +42,6 @@ const columns: Column<AttendanceRecord>[] = [
         </span>
       );
     },
-  },
-  {
-    key: "confirmed_at",
-    header: "Confirmado el",
-    render: (r) => (r.confirmed_at ? new Date(r.confirmed_at).toLocaleString() : "—"),
   },
 ];
 
@@ -95,7 +90,7 @@ export default function AttendancePage() {
   const handleConfirm = async (record: AttendanceRecord) => {
     const ok = await confirm({
       title: "Confirmar asistencia",
-      description: `¿Confirmar la asistencia de ${record.athlete_name} a "${record.training_name}"?`,
+      description: `¿Confirmar la asistencia de ${record.athlete_name} a "${record.program_name}"?`,
     });
     if (!ok) return;
     try {
@@ -131,7 +126,7 @@ export default function AttendancePage() {
             columns={columns}
             data={data}
             loading={loading}
-            onConfirm={(row) => row.status === "pending" && handleConfirm(row)}
+            onConfirm={(row) => row.status === "present" && handleConfirm(row)}
             confirmLabel="Confirmar"
           />
 

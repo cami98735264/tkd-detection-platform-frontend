@@ -1,15 +1,17 @@
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import FormModal from "@/components/common/FormModal";
-import type { Athlete } from "@/types/entities";
+import { categoriesApi } from "@/features/categories/api/categoriesApi";
+import type { Athlete, CompetitionCategory } from "@/types/entities";
 
 const schema = Yup.object({
   full_name: Yup.string().required("El nombre es obligatorio"),
   date_of_birth: Yup.string().nullable().defined(),
-  category: Yup.string().nullable().defined(),
+  categoria_competencia: Yup.number().nullable().defined(),
   status: Yup.string().required("El estado es obligatorio"),
 });
 
@@ -20,7 +22,7 @@ interface Props {
   onSubmit: (values: {
     full_name: string;
     date_of_birth: string | null;
-    category: string | null;
+    categoria_competencia: number | null;
     status: string;
   }) => Promise<void>;
 }
@@ -32,6 +34,13 @@ export default function AthleteFormModal({
   onSubmit,
 }: Props) {
   const isEdit = !!athlete;
+  const [categories, setCategories] = useState<CompetitionCategory[]>([]);
+
+  useEffect(() => {
+    if (open) {
+      categoriesApi.list(1).then((res) => setCategories(res.results)).catch(() => {});
+    }
+  }, [open]);
 
   return (
     <FormModal
@@ -43,7 +52,7 @@ export default function AthleteFormModal({
         initialValues={{
           full_name: athlete?.full_name ?? "",
           date_of_birth: athlete?.date_of_birth ?? "",
-          category: athlete?.category ?? "",
+          categoria_competencia: athlete?.categoria_competencia != null ? String(athlete.categoria_competencia) : "",
           status: athlete?.status ?? "active",
         }}
         enableReinitialize
@@ -52,7 +61,7 @@ export default function AthleteFormModal({
           await onSubmit({
             full_name: values.full_name,
             date_of_birth: values.date_of_birth || null,
-            category: values.category || null,
+            categoria_competencia: values.categoria_competencia ? Number(values.categoria_competencia) : null,
             status: values.status,
           });
           setSubmitting(false);
@@ -76,8 +85,19 @@ export default function AthleteFormModal({
             </div>
 
             <div className="space-y-1">
-              <Label>Categoría</Label>
-              <Field as={Input} name="category" />
+              <Label>Categoría de competencia</Label>
+              <Field
+                as="select"
+                name="categoria_competencia"
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              >
+                <option value="">Sin categoría</option>
+                {categories.map((cat) => (
+                  <option key={cat.id} value={String(cat.id)}>
+                    {cat.nombre}
+                  </option>
+                ))}
+              </Field>
             </div>
 
             <div className="space-y-1">

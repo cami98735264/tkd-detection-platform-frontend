@@ -124,8 +124,22 @@ export default function DashboardLayout() {
               <SidebarItem to="/dashboard/usuarios" icon={Settings} label="Usuarios" />
               <SidebarItem to="/dashboard/inventario" icon={Package} label="Inventario" />
               <SidebarItem to="/dashboard/inventario/tipos" icon={Package} label="Ítems" />
+              <SidebarItem to="/dashboard/asistencia" icon={ClipboardCheck} label="Asistencia" />
+              <SidebarItem to="/dashboard/asistencia/registrar" icon={ClipboardCheck} label="Registrar Asistencia" />
               <SidebarItem to="/dashboard/reportes" icon={BarChart3} label="Reportes" />
               <SidebarItem to="/dashboard/categorias-competencia" icon={Trophy} label="Categorías" />
+            </>
+          )}
+
+          {/* Sportsman-only sections */}
+          {hasRole(["sportsman"]) && (
+            <>
+              <div className="pt-4 pb-2">
+                <span className="text-xs text-green-400 uppercase tracking-wider">Deportista</span>
+              </div>
+              <SidebarItem to="/dashboard/deportista" icon={Users} label="Mi Dashboard" />
+              <SidebarItem to="/dashboard/asistencia" icon={ClipboardCheck} label="Mi Asistencia" />
+              <SidebarItem to="/dashboard/evaluacion-tecnica" icon={Camera} label="Evaluación Técnica" />
             </>
           )}
 
