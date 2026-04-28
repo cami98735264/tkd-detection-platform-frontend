@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import AsyncSelect from "react-select";
 import type { ActionMeta, SingleValue } from "react-select";
 
@@ -26,35 +26,41 @@ export default function AsyncSelectField({
   isDisabled = false,
 }: Props) {
   const [options, setOptions] = useState<Option[]>([]);
-  const [hasMore, setHasMore] = useState(false);
-  const [page, setPage] = useState(1);
-  const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [hasMore, setHasMore] = useState(false);
+  const pageRef = useRef(1);
+  const inputRef = useRef("");
+  const loadingRef = useRef(false);
+  const initializedRef = useRef(false);
 
-  const loadMore = useCallback(
-    async (inputValue: string, pageNum: number) => {
-      setLoading(true);
-      try {
-        const result = await loadOptions(inputValue, pageNum);
-        if (pageNum === 1) {
-          setOptions(result.options);
-        } else {
-          setOptions(prev => [...prev, ...result.options]);
-        }
-        setHasMore(result.hasMore);
-        setPage(pageNum);
-      } finally {
-        setLoading(false);
+  const load = useCallback((input: string, page: number, append: boolean) => {
+    if (loadingRef.current && !append) return;
+    loadingRef.current = true;
+    setLoading(!append);
+
+    loadOptions(input, page).then(result => {
+      if (append) {
+        setOptions(prev => [...prev, ...result.options]);
+      } else {
+        setOptions(result.options);
       }
-    },
-    [loadOptions]
-  );
+      setHasMore(result.hasMore);
+      pageRef.current = page;
+      inputRef.current = input;
+      loadingRef.current = false;
+    }).catch(() => {
+      loadingRef.current = false;
+    }).finally(() => {
+      setLoading(false);
+    });
+  }, [loadOptions]);
 
-  const handleInputChange = (newInput: string) => {
-    setInput(newInput);
-    setPage(1);
-    loadMore(newInput, 1);
-  };
+  // Initial load on mount
+  useEffect(() => {
+    if (initializedRef.current) return;
+    initializedRef.current = true;
+    load("", 1, false);
+  }, [load]);
 
   const handleChange = (
     newValue: SingleValue<Option>,
@@ -63,22 +69,31 @@ export default function AsyncSelectField({
     onChange(newValue?.value ?? null);
   };
 
+  const handleInputChange = (input: string) => {
+    pageRef.current = 1;
+    load(input, 1, false);
+  };
+
+  const handleMenuScrollToBottom = () => {
+    if (hasMore && !loadingRef.current) {
+      load(inputRef.current, pageRef.current + 1, true);
+    }
+  };
+
   return (
     <div className="space-y-1">
       <AsyncSelect
+        options={options}
         value={options.find(o => o.value === value) || null}
         onChange={handleChange}
         onInputChange={handleInputChange}
-        onMenuScrollToBottom={() => {
-          if (hasMore && !loading) {
-            loadMore(input, page + 1);
-          }
-        }}
+        onMenuScrollToBottom={handleMenuScrollToBottom}
         placeholder={placeholder}
         isSearchable
         isDisabled={isDisabled}
         loadingMessage={() => "Cargando..."}
-        noOptionsMessage={() => "Sin opciones"}
+        noOptionsMessage={() => loading ? "Cargando..." : "Sin opciones"}
+        isLoading={loading}
       />
       {error && <p className="text-sm text-red-500">{error}</p>}
     </div>

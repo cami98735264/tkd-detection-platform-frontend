@@ -76,13 +76,43 @@ export interface Edition {
 export interface Enrollment {
   id: number;
   athlete: number;
+  athlete_name?: string;
   program: number;
+  program_name?: string;
   enrolled_at: string;
   start_date: string;
   end_date: string | null;
   status: "active" | "completed" | "dropped";
   notes: string | null;
+  certificado_medico_adjunto: string;
+  consentimiento_menor: boolean;
+  blood_type: string;
+  acepta_terminos: boolean;
+  acepta_datos: boolean;
+  acepta_imagenes: boolean;
+  confirmacion_precision: boolean;
+  fecha_aceptacion: string | null;
   updated_at: string;
+}
+
+/** Enrollment creation payload */
+export interface EnrollmentCreatePayload {
+  athlete_id: number;
+  program_id: number;
+  start_date: string;
+  end_date?: string | null;
+  notes?: string;
+  blood_type?: string;
+  certificado_medico?: File;
+  guardian_full_name?: string;
+  guardian_documento?: string;
+  guardian_relationship?: string;
+  guardian_email?: string;
+  guardian_address?: string;
+  acepta_terminos: boolean;
+  acepta_datos: boolean;
+  acepta_imagenes: boolean;
+  confirmacion_precision: boolean;
 }
 
 /** Nested inside Evaluation — EvaluationMetricSerializer */

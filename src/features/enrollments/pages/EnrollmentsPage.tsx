@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Plus } from "lucide-react";
 import DataTable, { type Column } from "@/components/common/DataTable";
 import Pagination from "@/components/common/Pagination";
-import EnrollmentFormModal from "@/features/enrollments/components/EnrollmentFormModal";
+import EnrollmentFormSheet from "@/features/enrollments/components/EnrollmentFormSheet";
 import { enrollmentsApi } from "@/features/enrollments/api/enrollmentsApi";
 import { athletesApi } from "@/features/athletes/api/athletesApi";
 import { programsApi } from "@/features/programs/api/programsApi";
@@ -13,6 +13,7 @@ import { useAuthStore } from "@/features/auth/store/authStore";
 import { useApiErrorHandler } from "@/feedback/useApiErrorHandler";
 import { useFeedback } from "@/feedback/useFeedback";
 import { formatDateForDisplay } from "@/lib/dateUtils";
+import { config } from "@/config/env";
 import type { Enrollment } from "@/types/entities";
 
 const STATUS_LABELS: Record<string, string> = {
@@ -24,7 +25,7 @@ const STATUS_LABELS: Record<string, string> = {
 export default function EnrollmentsPage() {
   const user = useAuthStore((s) => s.user);
   const { handleError } = useApiErrorHandler();
-  const { showToast, confirm } = useFeedback();
+  const { confirm } = useFeedback();
   const isAdmin = user?.role === "administrator";
 
   const [data, setData] = useState<Enrollment[]>([]);
@@ -32,7 +33,7 @@ export default function EnrollmentsPage() {
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
-  const [editing, setEditing] = useState<Enrollment | null>(null);
+  const [editingEnrollment, setEditingEnrollment] = useState<Enrollment | null>(null);
 
   // Lookup maps for display names
   const [athleteMap, setAthleteMap] = useState<Record<number, string>>({});
@@ -97,31 +98,23 @@ export default function EnrollmentsPage() {
         </Badge>
       ),
     },
+    {
+      key: "certificado",
+      header: "Cert. Médico",
+      render: (r) =>
+        r.certificado_medico_adjunto ? (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => window.open(`${config.apiUrl}/media/${r.certificado_medico_adjunto}`, "_blank")}
+          >
+            Ver
+          </Button>
+        ) : (
+          "—"
+        ),
+    },
   ];
-
-  const handleSubmit = async (values: {
-    athlete: number;
-    program: number;
-    start_date: string;
-    end_date: string | null;
-    status: string;
-    notes: string | null;
-  }) => {
-    try {
-      if (editing) {
-        await enrollmentsApi.update(editing.id, values);
-        showToast({ title: "Inscripción actualizada", variant: "success" });
-      } else {
-        await enrollmentsApi.create(values);
-        showToast({ title: "Inscripción creada", variant: "success" });
-      }
-      setModalOpen(false);
-      setEditing(null);
-      fetchData(page);
-    } catch (err) {
-      handleError(err);
-    }
-  };
 
   const handleDelete = async (enrollment: Enrollment) => {
     const ok = await confirm({
@@ -131,7 +124,6 @@ export default function EnrollmentsPage() {
     if (!ok) return;
     try {
       await enrollmentsApi.delete(enrollment.id);
-      showToast({ title: "Inscripción eliminada", variant: "success" });
       fetchData(page);
     } catch (err) {
       handleError(err);
@@ -145,10 +137,7 @@ export default function EnrollmentsPage() {
         {isAdmin && (
           <Button
             className="bg-green-600 hover:bg-green-700"
-            onClick={() => {
-              setEditing(null);
-              setModalOpen(true);
-            }}
+            onClick={() => setModalOpen(true)}
           >
             <Plus size={18} className="mr-2" /> Nueva
           </Button>
@@ -164,28 +153,18 @@ export default function EnrollmentsPage() {
             columns={columns}
             data={data}
             loading={loading}
-            onEdit={
-              isAdmin
-                ? (row) => {
-                    setEditing(row);
-                    setModalOpen(true);
-                  }
-                : undefined
-            }
+            onEdit={isAdmin ? (row) => { setEditingEnrollment(row); setModalOpen(true); } : undefined}
             onDelete={isAdmin ? handleDelete : undefined}
           />
           <Pagination count={count} page={page} onPageChange={setPage} />
         </CardContent>
       </Card>
 
-      <EnrollmentFormModal
+      <EnrollmentFormSheet
         open={modalOpen}
-        onOpenChange={(v) => {
-          setModalOpen(v);
-          if (!v) setEditing(null);
-        }}
-        enrollment={editing}
-        onSubmit={handleSubmit}
+        onOpenChange={(v) => { setModalOpen(v); if (!v) setEditingEnrollment(null); }}
+        editing={editingEnrollment}
+        onSuccess={() => fetchData(page)}
       />
     </div>
   );
