@@ -26,10 +26,15 @@ export interface AttendanceBulkRecord {
 }
 
 export interface AttendanceBulkPayload {
-  edition_id: number;
-  fecha: string;
-  hora?: string;
+  program_id: number;
   records: AttendanceBulkRecord[];
+}
+
+export interface AttendanceBulkResult {
+  created: number;
+  errors: { athlete_id: number; error: string }[];
+  fecha?: string;
+  hora?: string;
 }
 
 export const attendanceApi = {
@@ -50,7 +55,7 @@ export const attendanceApi = {
   },
 
   bulkCreate: (payload: AttendanceBulkPayload) =>
-    http.post<{ created: number; errors: { athlete_id: number; error: string }[] }>(
+    http.post<AttendanceBulkResult>(
       `/attendances/bulk/`,
       payload
     ),
