@@ -84,6 +84,20 @@ export default function TechnicalEvaluationPage() {
       })()
     : false;
 
+  // Auto-advance once athlete and consent are loaded
+  useEffect(() => {
+    if (!step || step !== "choose" || !myAthlete || !consentInfo) return;
+    // Adult sportsman who already self-consented → go to kick selection
+    if (isAdult && isSportsman && consentInfo.consent_granted) {
+      setStep("kick");
+      return;
+    }
+    // Minor sportsman with parent consent → go to kick selection
+    if (!isAdult && isSportsman && consentInfo.consent_granted) {
+      setStep("kick");
+    }
+  }, [step, myAthlete, consentInfo, isAdult, isSportsman]);
+
   const canProceed = isSportsman
     ? isAdult
       ? consentInfo?.consent_granted
