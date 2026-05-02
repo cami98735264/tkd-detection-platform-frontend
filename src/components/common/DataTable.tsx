@@ -92,8 +92,9 @@ export default function DataTable<T extends Record<string, any>>({
                 )}
                 {onConfirm && (
                   <Button
-                    variant="default"
+                    variant={row.is_confirmed ? "outline" : "default"}
                     size="sm"
+                    className={row.is_confirmed ? "text-green-600 border-green-300 hover:bg-green-50" : ""}
                     onClick={() => onConfirm(row)}
                   >
                     <CheckCircle size={16} className="mr-1" />

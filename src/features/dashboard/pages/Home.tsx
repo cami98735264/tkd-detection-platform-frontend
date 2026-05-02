@@ -11,6 +11,7 @@ import { enrollmentsApi } from "@/features/enrollments/api/enrollmentsApi";
 import { evaluationsApi } from "@/features/evaluations/api/evaluationsApi";
 import { reportsApi } from "@/features/reports/api/reportsApi";
 import { userActivityApi, type UserActivity } from "@/features/users/api/userActivityApi";
+import { parentAthletesApi } from "@/features/athletes/api/parentAthletesApi";
 
 interface StatCard {
   label: string;
@@ -43,14 +44,20 @@ export default function Home() {
 
   const fetchChildren = useParentChildrenStore((s) => s.fetchChildren);
 
+  const isSportsman = hasRole(["sportsman"]);
+
   useEffect(() => {
-    if (isParent) {
+    if (isParent || isSportsman) {
       fetchChildren();
     }
-  }, [isParent, fetchChildren]);
+  }, [isParent, isSportsman, fetchChildren]);
 
   useEffect(() => {
     if (isParent) return;
+    if (!isAdmin()) {
+      setStats([]);
+      return;
+    }
     Promise.allSettled([
       athletesApi.list(1),
       programsApi.list(1),
@@ -90,6 +97,27 @@ export default function Home() {
     }
   }, [isAdmin]);
 
+  // Fetch stats for parent from linked children data
+  useEffect(() => {
+    if (!isParent) return;
+    Promise.allSettled([
+      parentAthletesApi.getChildren(),
+      enrollmentsApi.getMyEnrollments(),
+      evaluationsApi.list(1),
+    ]).then(([childrenResult, enrollmentsResult, evaluationsResult]) => {
+      const childCount = childrenResult.status === "fulfilled" ? childrenResult.value.length : 0;
+      const enrollmentCount = enrollmentsResult.status === "fulfilled" ? enrollmentsResult.value.length : 0;
+      // evaluations for parent's children - count all for now
+      const evalCount = evaluationsResult.status === "fulfilled" ? evaluationsResult.value.count : 0;
+      setStats([
+        { label: "Deportistas", value: childCount, icon: Users },
+        { label: "Programas", value: enrollmentCount > 0 ? 1 : 0, icon: BookOpen },
+        { label: "Inscripciones", value: enrollmentCount, icon: ClipboardList },
+        { label: "Evaluaciones", value: evalCount, icon: CheckCircle },
+      ]);
+    });
+  }, [isParent]);
+
   const fetchActivity = useCallback(() => {
     setActivityLoading(true);
     userActivityApi.list(1)
@@ -100,7 +128,7 @@ export default function Home() {
 
   useEffect(() => {
     fetchActivity();
-  }, [fetchActivity]);
+  }, [fetchActivity, isParent, isSportsman]);
 
   const quickActions: QuickAction[] = isAdmin()
     ? [
@@ -119,10 +147,8 @@ export default function Home() {
         { label: "Perfil", icon: User, to: "/dashboard/profile" },
       ]
     : [
-        { label: "Deportistas", icon: Users, to: "/dashboard/deportistas" },
-        { label: "Programas", icon: BookOpen, to: "/dashboard/programas" },
-        { label: "Inscripción", icon: ClipboardList, to: "/dashboard/inscripcion" },
-        { label: "Evaluación", icon: CheckCircle, to: "/dashboard/evaluacion" },
+        // Sportsman or unknown role - redirect to athlete dashboard handled by router
+        // No quick actions shown here for sportsman (they should use /dashboard/deportista)
       ];
 
   return (
@@ -132,11 +158,16 @@ export default function Home() {
           Bienvenido{user ? `, ${user.full_name.split(" ")[0]}` : ""}
         </h1>
         <p className="text-muted-foreground">
-          Panel de administración de Warriors TKD
+          {isSportsman
+            ? "Tu panel de seguimiento como deportista"
+            : isParent
+            ? "Panel de control como acudiente"
+            : "Panel de administración de Warriors TKD"}
         </p>
       </div>
 
-      {/* KPI Cards */}
+      {/* KPI Cards — only for admin */}
+      {!isSportsman && (
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {stats.map((stat) => (
           <Card key={stat.label}>
@@ -169,8 +200,10 @@ export default function Home() {
           </Card>
         )}
       </div>
+      )}
 
       {/* Quick Actions */}
+      {!isSportsman && (
       <Card>
         <CardHeader>
           <CardTitle>Acciones Rápidas</CardTitle>
@@ -190,6 +223,7 @@ export default function Home() {
           </div>
         </CardContent>
       </Card>
+      )}
 
       {/* Recent Activity */}
       <Card>

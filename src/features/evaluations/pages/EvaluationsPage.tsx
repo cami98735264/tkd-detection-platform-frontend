@@ -6,7 +6,7 @@ import DataTable, { type Column } from "@/components/common/DataTable";
 import Pagination from "@/components/common/Pagination";
 import EvaluationFormModal from "@/features/evaluations/components/EvaluationFormModal";
 import { evaluationsApi } from "@/features/evaluations/api/evaluationsApi";
-import { useAuthStore } from "@/features/auth/store/authStore";
+import { usePermissions } from "@/features/auth/hooks/usePermissions";
 import { useApiErrorHandler } from "@/feedback/useApiErrorHandler";
 import { useFeedback } from "@/feedback/useFeedback";
 import type { Evaluation } from "@/types/entities";
@@ -28,10 +28,11 @@ const columns: Column<Evaluation>[] = [
 ];
 
 export default function EvaluationsPage() {
-  const user = useAuthStore((s) => s.user);
+  const { isAdmin, hasRole } = usePermissions();
   const { handleError } = useApiErrorHandler();
   const { showToast, confirm } = useFeedback();
-  const canWrite = user?.is_staff || user?.role === "administrator";
+  const isAdminUser = isAdmin();
+  const isParent = hasRole(["parent"]);
 
   const [data, setData] = useState<Evaluation[]>([]);
   const [count, setCount] = useState(0);
@@ -96,7 +97,7 @@ export default function EvaluationsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">Evaluaciones</h1>
-        {canWrite && (
+        {isAdminUser && (
           <Button
             className="bg-green-600 hover:bg-green-700"
             onClick={() => {
@@ -119,28 +120,30 @@ export default function EvaluationsPage() {
             data={data}
             loading={loading}
             onEdit={
-              canWrite
+              isAdminUser
                 ? (row) => {
                     setEditing(row);
                     setModalOpen(true);
                   }
                 : undefined
             }
-            onDelete={canWrite ? handleDelete : undefined}
+            onDelete={isAdminUser ? handleDelete : undefined}
           />
-          <Pagination count={count} page={page} onPageChange={setPage} />
+          {!isParent && <Pagination count={count} page={page} onPageChange={setPage} />}
         </CardContent>
       </Card>
 
-      <EvaluationFormModal
-        open={modalOpen}
-        onOpenChange={(v) => {
-          setModalOpen(v);
-          if (!v) setEditing(null);
-        }}
-        evaluation={editing}
-        onSubmit={handleSubmit}
-      />
+      {isAdminUser && (
+        <EvaluationFormModal
+          open={modalOpen}
+          onOpenChange={(v) => {
+            setModalOpen(v);
+            if (!v) setEditing(null);
+          }}
+          evaluation={editing}
+          onSubmit={handleSubmit}
+        />
+      )}
     </div>
   );
 }

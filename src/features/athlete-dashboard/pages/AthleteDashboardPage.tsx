@@ -4,7 +4,7 @@ import {
   Card, CardContent, CardHeader, CardTitle
 } from "@/components/ui/card";
 import {
-  BarChart3, Calendar, CheckCircle, Clock, Dumbbell,
+  BarChart3, Calendar, Dumbbell,
   FileText, User, Camera, ClipboardCheck
 } from "lucide-react";
 import { useAuthStore } from "@/features/auth/store/authStore";
@@ -24,16 +24,6 @@ export default function AthleteDashboardPage() {
 
   // Attendance summary
   const [viewMode, setViewMode] = useState<ViewMode>("monthly");
-  const [startDate, setStartDate] = useState(() => {
-    const now = new Date();
-    const start = new Date(now.getFullYear(), now.getMonth(), 1);
-    return start.toISOString().split("T")[0];
-  });
-  const [endDate, setEndDate] = useState(() => {
-    const now = new Date();
-    const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-    return end.toISOString().split("T")[0];
-  });
   const [summary, setSummary] = useState<{
     total_sessions: number;
     present_sessions: number;
@@ -46,10 +36,17 @@ export default function AthleteDashboardPage() {
   useEffect(() => {
     setLoading(true);
     athletesApi.getMe()
-      .then(setAthlete)
-      .catch((err) => handleError(err))
+      .then((data) => {
+        console.log("athlete data:", data);
+        setAthlete(data);
+      })
+      .catch((err) => {
+        console.error("athlete error:", err);
+        handleError(err);
+      })
       .finally(() => setLoading(false));
-  }, [handleError]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Load attendance summary when athlete or date range changes
   const loadSummary = useCallback(() => {
@@ -64,27 +61,6 @@ export default function AthleteDashboardPage() {
   }, [athlete, loadSummary]);
 
   const updateRange = (mode: ViewMode) => {
-    const now = new Date();
-    let start: Date;
-    let end: Date = now;
-
-    switch (mode) {
-      case "weekly":
-        start = new Date(now);
-        start.setDate(now.getDate() - 7);
-        break;
-      case "monthly":
-        start = new Date(now.getFullYear(), now.getMonth(), 1);
-        end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-        break;
-      case "yearly":
-        start = new Date(now.getFullYear(), 0, 1);
-        end = new Date(now.getFullYear(), 11, 31);
-        break;
-    }
-
-    setStartDate(start.toISOString().split("T")[0]);
-    setEndDate(end.toISOString().split("T")[0]);
     setViewMode(mode);
   };
 
@@ -168,7 +144,7 @@ export default function AthleteDashboardPage() {
         </Link>
 
         <Link
-          to="/dashboard/deportista/evaluacion-tecnica"
+          to="/dashboard/evaluacion-tecnica"
           className="flex flex-col items-center p-4 bg-white rounded-lg border hover:shadow-md transition"
         >
           <Camera className="text-orange-600 mb-2" size={32} />

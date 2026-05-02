@@ -8,10 +8,12 @@ import Pagination from "@/components/common/Pagination";
 import AthleteFormModal from "@/features/athletes/components/AthleteFormModal";
 import { athletesApi } from "@/features/athletes/api/athletesApi";
 import { categoriesApi } from "@/features/categories/api/categoriesApi";
+import { parentAthletesApi } from "@/features/athletes/api/parentAthletesApi";
 import { usePermissions } from "@/features/auth/hooks/usePermissions";
 import { useApiErrorHandler } from "@/feedback/useApiErrorHandler";
 import { useFeedback } from "@/feedback/useFeedback";
 import type { Athlete, CompetitionCategory } from "@/types/entities";
+import type { ParentChild } from "@/features/athletes/api/parentAthletesApi";
 
 const STATUS_OPTIONS = [
   { value: "", label: "Todos" },
@@ -19,7 +21,7 @@ const STATUS_OPTIONS = [
   { value: "inactive", label: "Inactivo" },
 ];
 
-const columns: Column<Athlete>[] = [
+const adminColumns: Column<Athlete>[] = [
   { key: "id", header: "ID" },
   { key: "full_name", header: "Nombre" },
   { key: "date_of_birth", header: "Fecha Nac.", render: (r) => r.date_of_birth ? new Date(r.date_of_birth).toLocaleDateString() : "—" },
@@ -37,14 +39,55 @@ const columns: Column<Athlete>[] = [
   { key: "created_at", header: "F. Ingreso", render: (r) => new Date(r.created_at).toLocaleDateString() },
 ];
 
+const parentColumns: Column<ParentChild>[] = [
+  {
+    key: "athlete",
+    header: "Nombre",
+    render: (r) => r.athlete.full_name,
+  },
+  {
+    key: "date_of_birth",
+    header: "Fecha Nac.",
+    render: (r) =>
+      r.athlete.date_of_birth
+        ? new Date(r.athlete.date_of_birth).toLocaleDateString()
+        : "—",
+  },
+  {
+    key: "categoria_competencia",
+    header: "Categoría",
+    render: (r) => r.athlete.categoria_competencia_name ?? "—",
+  },
+  {
+    key: "belt_actual",
+    header: "Cinturón",
+    render: (r) => r.athlete.belt_actual_name ?? "—",
+  },
+  {
+    key: "status",
+    header: "Estado",
+    render: (r) => (
+      <Badge variant={r.athlete.status === "active" ? "default" : "secondary"}>
+        {r.athlete.status === "active" ? "Activo" : "Inactivo"}
+      </Badge>
+    ),
+  },
+  {
+    key: "relationship",
+    header: "Parentesco",
+    render: (r) => <Badge variant="outline">{r.relationship}</Badge>,
+  },
+];
+
 export default function AthletesPage() {
-  const { can } = usePermissions();
   const { handleError } = useApiErrorHandler();
   const { showToast, confirm } = useFeedback();
-
-  const isAdmin = can("edit", "athletes");
+  const { isAdmin, hasRole, can } = usePermissions();
+  const isAdminUser = isAdmin();
+  const isParent = hasRole(["parent"]);
   const canCreate = can("create", "athletes");
 
+  // Admin state
   const [data, setData] = useState<Athlete[]>([]);
   const [count, setCount] = useState(0);
   const [page, setPage] = useState(1);
@@ -59,24 +102,32 @@ export default function AthletesPage() {
   const [inactiveCount, setInactiveCount] = useState(0);
   const [statsLoaded, setStatsLoaded] = useState(false);
 
+  // Parent state
+  const [children, setChildren] = useState<ParentChild[]>([]);
+  const [childrenLoading, setChildrenLoading] = useState(true);
+
+  // Debug
+  console.log("[AthletesPage] isParent:", isParent, "children:", children, "childrenLoading:", childrenLoading);
+
   // Categories - load once
   useEffect(() => {
     categoriesApi.list(1).then((res) => setCategoryOptions(res.results)).catch(() => {});
   }, []);
 
-  // Stats - load once on mount
+  // Stats - load once on mount (admin only)
   useEffect(() => {
-    if (statsLoaded) return;
+    if (!isAdminUser || statsLoaded) return;
     setStatsLoaded(true);
     athletesApi.list(1, "", "").then((res) => {
       setTotalCount(res.count);
       setActiveCount(res.results.filter((a) => a.status === "active").length);
       setInactiveCount(res.results.filter((a) => a.status === "inactive").length);
     }).catch(() => {});
-  }, [statsLoaded]);
+  }, [isAdminUser, statsLoaded]);
 
-  // Athletes table - load when page/filters change
+  // Athletes table - load when page/filters change (admin only)
   useEffect(() => {
+    if (!isAdminUser) return;
     let cancelled = false;
     setLoading(true);
     athletesApi.list(page, "", statusFilter || "")
@@ -93,7 +144,19 @@ export default function AthletesPage() {
         if (!cancelled) setLoading(false);
       });
     return () => { cancelled = true; };
-  }, [page, statusFilter, categoryFilter]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAdminUser, page, statusFilter, categoryFilter]);
+
+  // Fetch children for parent
+  useEffect(() => {
+    if (!isParent) return;
+    setChildrenLoading(true);
+    parentAthletesApi
+      .getChildren()
+      .then(setChildren)
+      .catch(handleError)
+      .finally(() => setChildrenLoading(false));
+  }, [isParent]);
 
   const handleSubmit = async (values: {
     full_name: string;
@@ -134,6 +197,34 @@ export default function AthletesPage() {
     }
   };
 
+  // Parent view — always show, loading state only affects table content
+  if (isParent) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold">Deportistas</h1>
+          <p className="text-muted-foreground">
+            Deportistas vinculados a tu cuenta
+          </p>
+        </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Lista de deportistas</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <DataTable
+              columns={parentColumns}
+              data={children}
+              loading={childrenLoading}
+            />
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Admin view
   return (
     <div className="space-y-6">
       <div className="grid gap-4 sm:grid-cols-3">
@@ -196,11 +287,11 @@ export default function AthletesPage() {
         <CardHeader><CardTitle>Lista de deportistas</CardTitle></CardHeader>
         <CardContent>
           <DataTable
-            columns={columns}
+            columns={adminColumns}
             data={data}
             loading={loading}
-            onEdit={isAdmin ? (row) => { setEditing(row); setModalOpen(true); } : undefined}
-            onDelete={isAdmin ? handleInactivate : undefined}
+            onEdit={isAdminUser ? (row) => { setEditing(row); setModalOpen(true); } : undefined}
+            onDelete={isAdminUser ? handleInactivate : undefined}
           />
           <Pagination count={count} page={page} onPageChange={setPage} />
         </CardContent>

@@ -35,6 +35,7 @@ export default function MeetingsPage() {
 
   const canWrite = user?.is_staff || user?.role === "administrator";
   const isParent = user?.role === "parent";
+  const isSportsman = user?.role === "sportsman";
 
   const [data, setData] = useState<Meeting[]>([]);
   const [count, setCount] = useState(0);
@@ -142,7 +143,7 @@ export default function MeetingsPage() {
             loading={loading}
             onEdit={canWrite ? (row) => { setEditing(row); setModalOpen(true); } : undefined}
             onDelete={canWrite ? handleDelete : undefined}
-            onConfirm={isParent ? handleToggleConfirmation : undefined}
+            onConfirm={isParent || isSportsman ? handleToggleConfirmation : undefined}
             onViewConfirmations={canWrite ? handleViewConfirmations : undefined}
             confirmLabel={(row: Meeting) => row.is_confirmed ? "Cancelar" : "Confirmar"}
             viewConfirmationsLabel="Confirmaciones"

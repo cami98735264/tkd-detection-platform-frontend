@@ -7,18 +7,20 @@ import DataTable, { type Column } from "@/components/common/DataTable";
 import Pagination from "@/components/common/Pagination";
 import ProgramFormModal from "@/features/programs/components/ProgramFormModal";
 import { programsApi } from "@/features/programs/api/programsApi";
-import { useAuthStore } from "@/features/auth/store/authStore";
+import { enrollmentsApi } from "@/features/enrollments/api/enrollmentsApi";
+import { usePermissions } from "@/features/auth/hooks/usePermissions";
 import { useApiErrorHandler } from "@/feedback/useApiErrorHandler";
 import { useFeedback } from "@/feedback/useFeedback";
-import type { Program } from "@/types/entities";
 import { useNavigate } from "react-router-dom";
+import type { Program } from "@/types/entities";
 
 export default function ProgramsPage() {
   const navigate = useNavigate();
-  const user = useAuthStore((s) => s.user);
+  const { isAdmin, hasRole } = usePermissions();
   const { handleError } = useApiErrorHandler();
   const { showToast, confirm } = useFeedback();
-  const isAdmin = user?.role === "administrator";
+  const isAdminUser = isAdmin();
+  const isParent = hasRole(["parent"]);
 
   const [data, setData] = useState<Program[]>([]);
   const [count, setCount] = useState(0);
@@ -26,33 +28,6 @@ export default function ProgramsPage() {
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Program | null>(null);
-
-  const columns: Column<Program>[] = [
-    { key: "name", header: "Nombre" },
-    { key: "capacity", header: "Capacidad", render: (r) => r.capacity ?? "—" },
-    {
-      key: "active",
-      header: "Estado",
-      render: (r) => (
-        <Badge variant={r.active ? "default" : "secondary"}>
-          {r.active ? "Activo" : "Inactivo"}
-        </Badge>
-      ),
-    },
-    {
-      key: "editions",
-      header: "Ediciones",
-      render: (r) => (
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => navigate(`/dashboard/programas/${r.id}/ediciones`)}
-        >
-          <Calendar size={14} className="mr-1" /> Ver
-        </Button>
-      ),
-    },
-  ];
 
   const fetchData = useCallback(
     (p: number) => {
@@ -70,9 +45,58 @@ export default function ProgramsPage() {
     [page],
   );
 
+  const loadParentPrograms = useCallback(() => {
+    setLoading(true);
+    enrollmentsApi.getMyEnrollments()
+      .then((enrollments) => {
+        const programIds = new Set(enrollments.map((e) => e.program));
+        return programsApi.list(1).then((res) => ({
+          programs: res.results.filter((p) => programIds.has(p.id)),
+          count: enrollments.length,
+        }));
+      })
+      .then(({ programs, count: c }) => {
+        setData(programs);
+        setCount(c);
+      })
+      .catch(handleError)
+      .finally(() => setLoading(false));
+  }, []);
+
   useEffect(() => {
-    fetchData(page);
-  }, [page, fetchData]);
+    if (isParent) {
+      loadParentPrograms();
+    } else {
+      fetchData(page);
+    }
+  }, [isParent, page, fetchData, loadParentPrograms]);
+
+  const columns: Column<Program>[] = [
+    { key: "name", header: "Nombre" },
+    { key: "capacity", header: "Capacidad", render: (r) => r.capacity ?? "—" },
+    {
+      key: "active",
+      header: "Estado",
+      render: (r) => (
+        <Badge variant={r.active ? "default" : "secondary"}>
+          {r.active ? "Activo" : "Inactivo"}
+        </Badge>
+      ),
+    },
+    ...(isAdminUser ? [{
+      key: "editions",
+      header: "Ediciones",
+      render: (r: Program) => (
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => navigate(`/dashboard/programas/${r.id}/ediciones`)}
+        >
+          <Calendar size={14} className="mr-1" /> Ver
+        </Button>
+      ),
+    }] : []),
+  ];
 
   const handleSubmit = async (values: {
     name: string;
@@ -116,7 +140,7 @@ export default function ProgramsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">Programas</h1>
-        {isAdmin && (
+        {isAdminUser && (
           <Button
             className="bg-green-600 hover:bg-green-700"
             onClick={() => {
@@ -139,16 +163,16 @@ export default function ProgramsPage() {
             data={data}
             loading={loading}
             onEdit={
-              isAdmin
+              isAdminUser
                 ? (row) => {
                     setEditing(row);
                     setModalOpen(true);
                   }
                 : undefined
             }
-            onDelete={isAdmin ? handleDelete : undefined}
+            onDelete={isAdminUser ? handleDelete : undefined}
           />
-          <Pagination count={count} page={page} onPageChange={setPage} />
+          {!isParent && <Pagination count={count} page={page} onPageChange={setPage} />}
         </CardContent>
       </Card>
 

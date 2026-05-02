@@ -30,6 +30,11 @@ import AttendancePage from "@/features/attendance/pages/AttendancePage";
 import AttendanceRegisterPage from "@/features/attendance/pages/AttendanceRegisterPage";
 import TechnicalEvaluationPage from "@/features/technical-evaluation/pages/TechnicalEvaluationPage";
 import AthleteDashboardPage from "@/features/athlete-dashboard/pages/AthleteDashboardPage";
+import AthleteSubLayout from "@/features/athlete-dashboard/layout/AthleteSubLayout";
+import MyProgramsPage from "@/features/programs/pages/MyProgramsPage";
+import MyEnrollmentPage from "@/features/enrollments/pages/MyEnrollmentPage";
+import MyTrainingsPage from "@/features/trainings/pages/MyTrainingsPage";
+import ParentAthletesPage from "@/features/parent/pages/ParentAthletesPage";
 
 import FeedbackLab from "@/feedback/FeedbackLab";
 import NotFound from "@/components/common/NotFound";
@@ -53,17 +58,17 @@ export default function AppRouter() {
         <Route index element={<Home />} />
         <Route path="profile" element={<Profile />} />
         <Route path="deportistas" element={
-          <RoleRoute allowedRoles={["sportsman", "administrator"]}><AthletesPage /></RoleRoute>
+          <RoleRoute allowedRoles={["sportsman", "parent", "administrator"]}><AthletesPage /></RoleRoute>
         } />
         <Route path="programas" element={
-          <RoleRoute allowedRoles={["sportsman", "administrator"]}><ProgramsPage /></RoleRoute>
+          <RoleRoute allowedRoles={["sportsman", "parent", "administrator"]}><ProgramsPage /></RoleRoute>
         } />
         <Route path="programas/:programId/ediciones" element={<EditionsPage />} />
         <Route path="inscripcion" element={
-          <RoleRoute allowedRoles={["sportsman", "administrator"]}><EnrollmentsPage /></RoleRoute>
+          <RoleRoute allowedRoles={["sportsman", "parent", "administrator"]}><EnrollmentsPage /></RoleRoute>
         } />
         <Route path="evaluacion" element={
-          <RoleRoute allowedRoles={["sportsman", "administrator"]}><EvaluationsPage /></RoleRoute>
+          <RoleRoute allowedRoles={["sportsman", "parent", "administrator"]}><EvaluationsPage /></RoleRoute>
         } />
         <Route path="categorias-competencia" element={<CompetitionCategoriesPage />} />
         <Route path="reportes" element={
@@ -93,14 +98,22 @@ export default function AppRouter() {
           <RoleRoute allowedRoles={["parent", "sportsman"]}><TechnicalEvaluationPage /></RoleRoute>
         } />
         <Route path="deportista" element={
-          <RoleRoute allowedRoles={["sportsman"]}><AthleteDashboardPage /></RoleRoute>
+          <RoleRoute allowedRoles={["sportsman"]}><AthleteSubLayout /></RoleRoute>
+        }>
+          <Route index element={<AthleteDashboardPage />} />
+          <Route path="mis-programas" element={<MyProgramsPage />} />
+          <Route path="mi-inscripcion" element={<MyEnrollmentPage />} />
+          <Route path="entrenamientos" element={<MyTrainingsPage />} />
+        </Route>
+        <Route path="acudientes" element={
+          <RoleRoute allowedRoles={["administrator"]}><ParentAthletesPage /></RoleRoute>
         } />
         <Route path="feedback-lab" element={<FeedbackLab />} />
         <Route path="*" element={<NotFound />} />
       </Route>
 
       {/* Default redirect */}
-      <Route path="/" element={<Navigate to="/login" replace />} />
+      <Route path="/" element={<Navigate to="/dashboard/deportista" replace />} />
 
       {/* Public registration */}
       <Route path="/registro" element={<GuestRoute><RegistrationPage /></GuestRoute>} />

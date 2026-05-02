@@ -8,6 +8,9 @@ export const enrollmentsApi = {
 
   get: (id: number) => http.get<Enrollment>(`/enrollments/${id}/`),
 
+  getMyEnrollments: () =>
+    http.get<Enrollment[]>("/enrollments/me/"),
+
   create: (data: EnrollmentCreatePayload) => {
     // If there's a file, use FormData
     if (data.certificado_medico) {

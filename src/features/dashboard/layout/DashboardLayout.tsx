@@ -8,7 +8,6 @@ import { useFeedback } from "@/feedback/useFeedback";
 import {
   Menu,
   X,
-  LayoutDashboard,
   Users,
   ClipboardList,
   CheckCircle,
@@ -25,6 +24,7 @@ import {
   HelpCircle,
   ClipboardCheck,
   Camera,
+  Home,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -41,7 +41,7 @@ export default function DashboardLayout() {
   const navigate = useNavigate();
   const { handleError } = useApiErrorHandler();
   const { confirm } = useFeedback();
-  const { isAdmin, hasRole, can } = usePermissions();
+  const { isAdmin, hasRole } = usePermissions();
   const user = useAuthStore((s) => s.user);
   const [open, setOpen] = useState(false);
 
@@ -98,21 +98,16 @@ export default function DashboardLayout() {
 
         {/* MENU */}
         <nav className="p-4 space-y-2">
-          <SidebarItem to="/dashboard" icon={LayoutDashboard} label="Panel" />
-
-          {/* Only show for non-parent roles */}
-          {!hasRole(["parent"]) && (
+          {/* Only show for admin role */}
+          {isAdmin() && (
             <>
               <SidebarItem to="/dashboard/deportistas" icon={Users} label="Deportistas" />
               <SidebarItem to="/dashboard/programas" icon={BookOpen} label="Programas" />
               <SidebarItem to="/dashboard/inscripcion" icon={ClipboardList} label="Inscripción" />
               <SidebarItem to="/dashboard/evaluacion" icon={CheckCircle} label="Evaluación" />
+              <SidebarItem to="/dashboard/entrenamientos" icon={Dumbbell} label="Entrenamientos" />
+              <SidebarItem to="/dashboard/reuniones" icon={Calendar} label="Reuniones" />
             </>
-          )}
-
-          <SidebarItem to="/dashboard/entrenamientos" icon={Dumbbell} label="Entrenamientos" />
-          {can("view", "meetings") && (
-            <SidebarItem to="/dashboard/reuniones" icon={Calendar} label="Reuniones" />
           )}
 
           {/* Admin-only sections */}
@@ -122,6 +117,7 @@ export default function DashboardLayout() {
                 <span className="text-xs text-green-400 uppercase tracking-wider">Administración</span>
               </div>
               <SidebarItem to="/dashboard/usuarios" icon={Settings} label="Usuarios" />
+              <SidebarItem to="/dashboard/acudientes" icon={Users} label="Acudientes" />
               <SidebarItem to="/dashboard/inventario" icon={Package} label="Inventario" />
               <SidebarItem to="/dashboard/inventario/tipos" icon={Package} label="Ítems" />
               <SidebarItem to="/dashboard/asistencia" icon={ClipboardCheck} label="Asistencia" />
@@ -138,7 +134,11 @@ export default function DashboardLayout() {
                 <span className="text-xs text-green-400 uppercase tracking-wider">Deportista</span>
               </div>
               <SidebarItem to="/dashboard/deportista" icon={Users} label="Mi Dashboard" />
+              <SidebarItem to="/dashboard/deportista/mis-programas" icon={BookOpen} label="Mis Programas" />
+              <SidebarItem to="/dashboard/deportista/mi-inscripcion" icon={ClipboardList} label="Mi Inscripción" />
+              <SidebarItem to="/dashboard/deportista/entrenamientos" icon={Dumbbell} label="Entrenamientos" />
               <SidebarItem to="/dashboard/asistencia" icon={ClipboardCheck} label="Mi Asistencia" />
+              <SidebarItem to="/dashboard/reuniones" icon={Calendar} label="Reuniones" />
               <SidebarItem to="/dashboard/evaluacion-tecnica" icon={Camera} label="Evaluación Técnica" />
             </>
           )}
@@ -146,6 +146,17 @@ export default function DashboardLayout() {
           {/* Parent-only sections */}
           {hasRole(["parent"]) && (
             <>
+              <div className="pt-4 pb-2">
+                <span className="text-xs text-green-400 uppercase tracking-wider">Hijo/A</span>
+              </div>
+              <SidebarItem to="/dashboard/deportistas" icon={Users} label="Deportistas" />
+              <SidebarItem to="/dashboard/programas" icon={BookOpen} label="Programas" />
+              <SidebarItem to="/dashboard/inscripcion" icon={ClipboardList} label="Inscripciones" />
+              <SidebarItem to="/dashboard/evaluacion" icon={CheckCircle} label="Evaluaciones" />
+              <div className="pt-4 pb-2">
+                <span className="text-xs text-green-400 uppercase tracking-wider">Mi Hijo/A</span>
+              </div>
+              <SidebarItem to="/dashboard/reuniones" icon={Calendar} label="Confirmar Reuniones" />
               <SidebarItem to="/dashboard/asistencia" icon={ClipboardCheck} label="Asistencia" />
               <SidebarItem to="/dashboard/evaluacion-tecnica" icon={Camera} label="Evaluación Técnica" />
             </>
@@ -189,6 +200,10 @@ export default function DashboardLayout() {
             <button className="lg:hidden" onClick={() => setOpen(true)}>
               <Menu />
             </button>
+
+            <Link to="/dashboard/" className="flex items-center gap-2 hover:text-green-600 transition">
+              <Home size={20} />
+            </Link>
 
             <div className="flex items-center gap-2">
               <div className="h-8 w-8 bg-green-600 rounded-full flex items-center justify-center text-white font-bold">

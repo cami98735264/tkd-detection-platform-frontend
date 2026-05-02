@@ -9,7 +9,8 @@ import EnrollmentFormSheet from "@/features/enrollments/components/EnrollmentFor
 import { enrollmentsApi } from "@/features/enrollments/api/enrollmentsApi";
 import { athletesApi } from "@/features/athletes/api/athletesApi";
 import { programsApi } from "@/features/programs/api/programsApi";
-import { useAuthStore } from "@/features/auth/store/authStore";
+import { parentAthletesApi } from "@/features/athletes/api/parentAthletesApi";
+import { usePermissions } from "@/features/auth/hooks/usePermissions";
 import { useApiErrorHandler } from "@/feedback/useApiErrorHandler";
 import { useFeedback } from "@/feedback/useFeedback";
 import { formatDateForDisplay } from "@/lib/dateUtils";
@@ -23,10 +24,11 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 export default function EnrollmentsPage() {
-  const user = useAuthStore((s) => s.user);
+  const { isAdmin, hasRole } = usePermissions();
   const { handleError } = useApiErrorHandler();
   const { confirm } = useFeedback();
-  const isAdmin = user?.role === "administrator";
+  const isAdminUser = isAdmin();
+  const isParent = hasRole(["parent"]);
 
   const [data, setData] = useState<Enrollment[]>([]);
   const [count, setCount] = useState(0);
@@ -64,9 +66,34 @@ export default function EnrollmentsPage() {
     [],
   );
 
+  // Fetch my enrollments for parent
+  const fetchMyEnrollments = useCallback(() => {
+    setLoading(true);
+    Promise.all([
+      enrollmentsApi.getMyEnrollments(),
+      parentAthletesApi.getChildren(),
+      programsApi.list(1),
+    ])
+      .then(([enrollments, children, progRes]) => {
+        setData(enrollments);
+        const aMap: Record<number, string> = {};
+        children.forEach((c) => (aMap[c.athlete_id] = c.athlete.full_name));
+        setAthleteMap(aMap);
+        const pMap: Record<number, string> = {};
+        progRes.results.forEach((p) => (pMap[p.id] = p.name));
+        setProgramMap(pMap);
+      })
+      .catch(handleError)
+      .finally(() => setLoading(false));
+  }, []);
+
   useEffect(() => {
-    fetchData(page);
-  }, [page, fetchData]);
+    if (isParent) {
+      fetchMyEnrollments();
+    } else {
+      fetchData(page);
+    }
+  }, [isParent, page, fetchData, fetchMyEnrollments]);
 
   const columns: Column<Enrollment>[] = [
     {
@@ -124,7 +151,11 @@ export default function EnrollmentsPage() {
     if (!ok) return;
     try {
       await enrollmentsApi.delete(enrollment.id);
-      fetchData(page);
+      if (isParent) {
+        fetchMyEnrollments();
+      } else {
+        fetchData(page);
+      }
     } catch (err) {
       handleError(err);
     }
@@ -134,7 +165,7 @@ export default function EnrollmentsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">Inscripciones</h1>
-        {isAdmin && (
+        {isAdminUser && (
           <Button
             className="bg-green-600 hover:bg-green-700"
             onClick={() => setModalOpen(true)}
@@ -149,23 +180,35 @@ export default function EnrollmentsPage() {
           <CardTitle>Lista de inscripciones</CardTitle>
         </CardHeader>
         <CardContent>
-          <DataTable
-            columns={columns}
-            data={data}
-            loading={loading}
-            onEdit={isAdmin ? (row) => { setEditingEnrollment(row); setModalOpen(true); } : undefined}
-            onDelete={isAdmin ? handleDelete : undefined}
-          />
-          <Pagination count={count} page={page} onPageChange={setPage} />
+          {isParent ? (
+            <DataTable
+              columns={columns}
+              data={data}
+              loading={loading}
+            />
+          ) : (
+            <>
+              <DataTable
+                columns={columns}
+                data={data}
+                loading={loading}
+                onEdit={isAdminUser ? (row) => { setEditingEnrollment(row); setModalOpen(true); } : undefined}
+                onDelete={isAdminUser ? handleDelete : undefined}
+              />
+              <Pagination count={count} page={page} onPageChange={setPage} />
+            </>
+          )}
         </CardContent>
       </Card>
 
-      <EnrollmentFormSheet
-        open={modalOpen}
-        onOpenChange={(v) => { setModalOpen(v); if (!v) setEditingEnrollment(null); }}
-        editing={editingEnrollment}
-        onSuccess={() => fetchData(page)}
-      />
+      {!isParent && (
+        <EnrollmentFormSheet
+          open={modalOpen}
+          onOpenChange={(v) => { setModalOpen(v); if (!v) setEditingEnrollment(null); }}
+          editing={editingEnrollment}
+          onSuccess={() => fetchData(page)}
+        />
+      )}
     </div>
   );
 }

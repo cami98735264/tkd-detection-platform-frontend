@@ -32,19 +32,29 @@ export interface EvaluationSession {
 }
 
 export const technicalEvaluationApi = {
-  getConsent: () => http.get<ConsentStatus>("/technical-evaluation/consent/"),
+  getConsent: (athleteId?: number) => {
+    const params = athleteId ? `?athlete_id=${athleteId}` : "";
+    return http.get<any>(`/technical-evaluation/consent/${params}`);
+  },
 
-  setConsent: (granted: boolean) =>
-    http.post<ConsentStatus>("/technical-evaluation/consent/", { consent_granted: granted }),
+  setConsent: (granted: boolean, athleteId?: number) =>
+    http.post<any>("/technical-evaluation/consent/", {
+      consent_granted: granted,
+      athlete_id: athleteId,
+    }),
 
-  listSessions: () => http.get<EvaluationSession[]>("/technical-evaluation/sessions/"),
+  listSessions: (athleteId?: number) => {
+    const params = athleteId ? `?athlete_id=${athleteId}` : "";
+    return http.get<EvaluationSession[]>(`/technical-evaluation/sessions/${params}`);
+  },
 
   getSession: (id: number) =>
     http.get<EvaluationSession>(`/technical-evaluation/sessions/${id}/`),
 
-  createSession: (kick_type: KickType, recording_url: string) =>
+  createSession: (kickType: KickType, recordingUrl: string, athleteId?: number) =>
     http.post<EvaluationSession>("/technical-evaluation/sessions/", {
-      kick_type,
-      recording_url,
+      kick_type: kickType,
+      recording_url: recordingUrl,
+      athlete_id: athleteId,
     }),
 };
