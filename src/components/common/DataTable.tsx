@@ -70,6 +70,7 @@ interface DataTableProps<T> {
   confirmLabel?: string | ((row: T) => string);
   /** @deprecated Use `rowActions` instead. */
   viewConfirmationsLabel?: string;
+  viewMetricsLabel?: string;
 }
 
 const DENSITY_CELL = {

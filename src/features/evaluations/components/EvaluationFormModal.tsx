@@ -35,6 +35,36 @@ const createSchema = Yup.object({
 const editSchema = Yup.object({
   result_summary: Yup.string().required("El resumen es obligatorio"),
   notes: Yup.string().nullable().defined(),
+  metrics: Yup.array()
+    .of(
+      Yup.object({
+        metric_name: Yup.string().required("Nombre requerido"),
+        score: Yup.number()
+          .min(0, "Mín. 0")
+          .max(100, "Máx. 100")
+          .required("Puntaje requerido"),
+        notes: Yup.string().nullable().defined(),
+      }),
+    )
+    .min(1, "Se necesita al menos una métrica"),
+});
+
+const editFullSchema = Yup.object({
+  result_summary: Yup.string().required("El resumen es obligatorio"),
+  notes: Yup.string().nullable().defined(),
+  metrics: Yup.array()
+    .of(
+      Yup.object({
+        id: Yup.number().nullable(),
+        metric_name: Yup.string().required("Nombre requerido"),
+        score: Yup.number()
+          .min(0, "Mín. 0")
+          .max(100, "Máx. 100")
+          .required("Puntaje requerido"),
+        notes: Yup.string().nullable().defined(),
+      }),
+    )
+    .min(1, "Se necesita al menos una métrica"),
 });
 
 interface Props {
@@ -42,6 +72,7 @@ interface Props {
   onOpenChange: (open: boolean) => void;
   evaluation?: Evaluation | null;
   onSubmit: (values: any) => Promise<void>;
+  isAdmin?: boolean;
 }
 
 export default function EvaluationFormModal({
@@ -49,17 +80,18 @@ export default function EvaluationFormModal({
   onOpenChange,
   evaluation,
   onSubmit,
+  isAdmin = false,
 }: Props) {
   const isEdit = !!evaluation;
   const [athletes, setAthletes] = useState<Athlete[]>([]);
   const [programs, setPrograms] = useState<Program[]>([]);
 
   useEffect(() => {
-    if (open && !isEdit) {
-      athletesApi.list(1).then((r) => setAthletes(r.results)).catch(() => {});
+    if (open) {
+      athletesApi.list(1, "", "", false, 100).then((r) => setAthletes(r.results)).catch(() => {});
       programsApi.list(1).then((r) => setPrograms(r.results)).catch(() => {});
     }
-  }, [open, isEdit]);
+  }, [open]);
 
   return (
     <FormModal
@@ -67,8 +99,8 @@ export default function EvaluationFormModal({
       onOpenChange={onOpenChange}
       title={isEdit ? "Editar Evaluación" : "Nueva Evaluación"}
     >
-      {!open ? null : isEdit ? (
-        /* EDIT MODE — only result_summary and notes */
+      {!open ? null : isEdit && !isAdmin ? (
+        /* EDIT MODE — non-admin: result_summary and notes only */
         <Formik
           initialValues={{
             result_summary: evaluation?.result_summary ?? "",
@@ -111,6 +143,148 @@ export default function EvaluationFormModal({
                  
                   disabled={isSubmitting}
                 >
+                  {isSubmitting ? "Guardando..." : "Actualizar"}
+                </Button>
+              </div>
+            </Form>
+          )}
+        </Formik>
+      ) : isEdit && isAdmin ? (
+        /* EDIT MODE — admin: full form with metrics */
+        <Formik
+          initialValues={{
+            athlete: evaluation?.athlete_id ?? "",
+            program: evaluation?.program_id ?? "",
+            evaluated_at: evaluation?.evaluated_at ?? "",
+            result_summary: evaluation?.result_summary ?? "",
+            notes: evaluation?.notes ?? "",
+            metrics: evaluation?.metrics?.map((m) => ({
+              id: m.id,
+              metric_name: m.metric_name,
+              score: m.score,
+              notes: m.notes ?? "",
+            })) ?? [],
+          }}
+          enableReinitialize
+          validationSchema={editFullSchema}
+          onSubmit={async (values, { setSubmitting }) => {
+            await onSubmit({
+              athlete: Number(values.athlete) || evaluation?.athlete_id,
+              program: values.program ? Number(values.program) : null,
+              evaluated_at: values.evaluated_at ? values.evaluated_at.slice(0, 10) : evaluation?.evaluated_at?.slice(0, 10),
+              result_summary: values.result_summary,
+              notes: values.notes || null,
+              metrics: values.metrics.map((m) => ({
+                id: m.id ?? null,
+                metric_name: m.metric_name,
+                score: Number(m.score),
+                notes: m.notes || null,
+              })),
+            });
+            setSubmitting(false);
+          }}
+        >
+          {({ isSubmitting, values }) => (
+            <Form className="space-y-4">
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-1">
+                  <Label>Deportista</Label>
+                  <Field
+                    as="select"
+                    name="athlete"
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  >
+                    <option value="">Seleccionar...</option>
+                    {athletes.map((a) => (
+                      <option key={a.id} value={a.id}>
+                        {a.full_name}
+                      </option>
+                    ))}
+                  </Field>
+                </div>
+                <div className="space-y-1">
+                  <Label>Programa (opcional)</Label>
+                  <Field
+                    as="select"
+                    name="program"
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  >
+                    <option value="">Ninguno</option>
+                    {programs.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.name}
+                      </option>
+                    ))}
+                  </Field>
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <Label>Fecha de evaluación</Label>
+                <Field as={Input} type="date" name="evaluated_at" />
+              </div>
+
+              <div className="space-y-1">
+                <Label>Resumen del resultado</Label>
+                <Field as={Textarea} name="result_summary" rows={2} />
+                <ErrorMessage name="result_summary" component="p" className="text-sm text-red-500" />
+              </div>
+
+              <div className="space-y-1">
+                <Label>Notas</Label>
+                <Field as={Textarea} name="notes" rows={2} />
+              </div>
+
+              <FieldArray name="metrics">
+                {({ push, remove }) => (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <Label className="text-base font-semibold">Métricas</Label>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => push({ id: null, metric_name: "", score: "", notes: "" })}
+                      >
+                        <Plus size={14} className="mr-1" /> Agregar
+                      </Button>
+                    </div>
+                    <ErrorMessage name="metrics">{(msg) => typeof msg === "string" ? <p className="text-sm text-red-500">{msg}</p> : null}</ErrorMessage>
+                    {(values.metrics ?? []).map((_, idx) => (
+                      <div key={idx} className="grid gap-2 md:grid-cols-[1fr_80px_1fr_auto] items-start border p-3 rounded-md">
+                        <div>
+                          <Label className="text-xs">Nombre</Label>
+                          <Field as={Input} name={`metrics.${idx}.metric_name`} />
+                          <p className="text-xs text-red-500 min-h-[1rem]">
+                            <ErrorMessage name={`metrics.${idx}.metric_name`} />
+                          </p>
+                        </div>
+                        <div>
+                          <Label className="text-xs">Puntaje</Label>
+                          <Field as={Input} type="number" name={`metrics.${idx}.score`} min={0} max={100} />
+                          <p className="text-xs text-red-500 min-h-[1rem]">
+                            <ErrorMessage name={`metrics.${idx}.score`} />
+                          </p>
+                        </div>
+                        <div>
+                          <Label className="text-xs">Notas</Label>
+                          <Field as={Input} name={`metrics.${idx}.notes`} />
+                          <div className="min-h-[1rem]" />
+                        </div>
+                        <Button type="button" variant="ghost" size="sm" className="text-red-600 mt-5" onClick={() => remove(idx)}>
+                          <Trash2 size={14} />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </FieldArray>
+
+              <div className="flex justify-end gap-3 pt-4">
+                <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                  Cancelar
+                </Button>
+                <Button type="submit" className="bg-green-600 hover:bg-green-700" disabled={isSubmitting}>
                   {isSubmitting ? "Guardando..." : "Actualizar"}
                 </Button>
               </div>

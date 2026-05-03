@@ -216,6 +216,7 @@ export default function AthletesPage() {
       setModalOpen(false);
       setEditing(null);
       setPage(1);
+      refreshStats();
     } catch (err) {
       handleError(err);
     }
@@ -236,6 +237,7 @@ export default function AthletesPage() {
         variant: "success",
       });
       setPage(1);
+      refreshStats();
     } catch (err) {
       handleError(err);
     }

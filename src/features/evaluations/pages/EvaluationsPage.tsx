@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import type { Column, RowAction } from "@/components/common/DataTable";
 import { ListPageTemplate } from "@/components/common/ListPageTemplate";
 import EvaluationFormModal from "@/features/evaluations/components/EvaluationFormModal";
+import MetricsModal from "@/features/evaluations/components/MetricsModal";
 import { evaluationsApi } from "@/features/evaluations/api/evaluationsApi";
 import { usePermissions } from "@/features/auth/hooks/usePermissions";
 import { useApiErrorHandler } from "@/feedback/useApiErrorHandler";
@@ -60,6 +61,7 @@ export default function EvaluationsPage() {
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Evaluation | null>(null);
+  const [viewingMetrics, setViewingMetrics] = useState<Evaluation | null>(null);
 
   const fetchData = useCallback((p: number) => {
     setLoading(true);

@@ -20,10 +20,17 @@ export const evaluationsApi = {
     notes?: string | null;
   }) => http.post<Evaluation>("/evaluations/", data),
 
-  /** Only result_summary and notes can be updated */
+  /** Only result_summary and notes can be updated by non-admin */
   update: (
     id: number,
-    data: { result_summary?: string; notes?: string | null },
+    data: {
+      result_summary?: string;
+      notes?: string | null;
+      athlete?: number;
+      program?: number | null;
+      evaluated_at?: string;
+      metrics?: { id?: number | null; metric_name: string; score: number; notes?: string | null }[];
+    },
   ) => http.patch<Evaluation>(`/evaluations/${id}/`, data),
 
   delete: (id: number) => http.delete(`/evaluations/${id}/`),

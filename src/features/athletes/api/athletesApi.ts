@@ -3,12 +3,13 @@ import type { PaginatedResponse } from "@/types/api";
 import type { Athlete } from "@/types/entities";
 
 export const athletesApi = {
-  list: (page = 1, search = "", status = "", notEnrolled = false) => {
+  list: (page = 1, search = "", status = "", notEnrolled = false, pageSize?: number) => {
     const params = new URLSearchParams();
     params.set("page", String(page));
     if (search) params.set("search", search);
     if (status) params.set("status", status);
     if (notEnrolled) params.set("not_enrolled", "true");
+    if (pageSize) params.set("page_size", String(pageSize));
     return http.get<PaginatedResponse<Athlete>>(`/athletes/?${params.toString()}`);
   },
 
