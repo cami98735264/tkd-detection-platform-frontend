@@ -169,5 +169,4 @@ dist
 dist/
 public/client.js
 public/client.js.map
-public/styles.css
 
