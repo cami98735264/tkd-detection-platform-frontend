@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import DataTable, { type Column } from "@/components/common/DataTable";
 import Pagination from "@/components/common/Pagination";
+import { PageHeader } from "@/components/common/PageHeader";
 import InventoryFormModal from "@/features/inventory/components/InventoryFormModal";
 import { inventoryApi, type InventoryItem } from "@/features/inventory/api/inventoryApi";
 import { useApiErrorHandler } from "@/feedback/useApiErrorHandler";
@@ -78,14 +79,17 @@ export default function InventoryPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Inventario</h1>
-        <Button onClick={() => { setEditing(null); setModalOpen(true); }}>
-          <Plus size={18} className="mr-2" /> Nuevo Ítem
-        </Button>
-      </div>
+      <PageHeader
+        eyebrow="Inventario"
+        title="Inventario"
+        description="Gestiona el equipo y materiales disponibles para la academia."
+        actions={
+          <Button onClick={() => { setEditing(null); setModalOpen(true); }}>
+            <Plus size={18} className="mr-2" /> Nuevo Ítem
+          </Button>
+        }
+      />
       <Card>
-        <CardHeader><CardTitle>Inventario de Equipo</CardTitle></CardHeader>
         <CardContent>
           <DataTable
             columns={columns}

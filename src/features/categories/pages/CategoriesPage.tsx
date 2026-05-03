@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import DataTable, { type Column } from "@/components/common/DataTable";
 import Pagination from "@/components/common/Pagination";
+import { PageHeader } from "@/components/common/PageHeader";
 import CategoryFormModal from "@/features/categories/components/CategoryFormModal";
 import { categoriesApi } from "@/features/categories/api/categoriesApi";
 import { useApiErrorHandler } from "@/feedback/useApiErrorHandler";
@@ -90,14 +91,17 @@ export default function CategoriesPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Categorías de Competencia</h1>
-        <Button onClick={() => { setEditing(null); setModalOpen(true); }}>
-          <Plus size={18} className="mr-2" /> Nueva
-        </Button>
-      </div>
+      <PageHeader
+        eyebrow="Inventario"
+        title="Categorías de competencia"
+        description="Administra los rangos de edad, cinturón y peso usados en las competencias."
+        actions={
+          <Button onClick={() => { setEditing(null); setModalOpen(true); }}>
+            <Plus size={18} className="mr-2" /> Nueva
+          </Button>
+        }
+      />
       <Card>
-        <CardHeader><CardTitle>Categorías</CardTitle></CardHeader>
         <CardContent>
           <DataTable
             columns={columns}

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus, Loader2 } from "lucide-react";
 import { useAuthStore } from "@/features/auth/store/authStore";
@@ -7,6 +7,7 @@ import { useApiErrorHandler } from "@/feedback/useApiErrorHandler";
 import { useFeedback } from "@/feedback/useFeedback";
 import DataTable, { type Column } from "@/components/common/DataTable";
 import Pagination from "@/components/common/Pagination";
+import { PageHeader } from "@/components/common/PageHeader";
 import ItemTypeFormModal from "@/features/inventory/components/ItemTypeFormModal";
 import { itemTypesApi, type ItemType } from "@/features/inventory/api/itemTypesApi";
 
@@ -87,14 +88,17 @@ export default function ItemsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Tipos de Ítem</h1>
-        <Button onClick={() => { setEditing(null); setModalOpen(true); }}>
-          <Plus size={18} className="mr-2" /> Nuevo Tipo
-        </Button>
-      </div>
+      <PageHeader
+        eyebrow="Inventario"
+        title="Tipos de ítem"
+        description="Configura los tipos de material que se usan para clasificar el inventario."
+        actions={
+          <Button onClick={() => { setEditing(null); setModalOpen(true); }}>
+            <Plus size={18} className="mr-2" /> Nuevo Tipo
+          </Button>
+        }
+      />
       <Card>
-        <CardHeader><CardTitle>Tipos de ítems para inventario</CardTitle></CardHeader>
         <CardContent>
           <DataTable
             columns={columns}

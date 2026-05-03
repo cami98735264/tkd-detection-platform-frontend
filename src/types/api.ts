@@ -13,7 +13,83 @@ export interface PaginatedResponse<T> {
 /** DRF error body — `detail` for single message, field keys for validation */
 export interface ApiErrorBody {
   detail?: string;
-  [field: string]: string | string[] | undefined;
+  [field: string]: unknown;
+}
+
+function translateErrorMessage(message: string): string {
+  if (message.includes("may not be blank") || message.includes("blank")) {
+    return "Este campo no puede estar vacío";
+  }
+  if (message.includes("field is required")) return "Este campo es obligatorio";
+  if (message.includes("Invalid")) return message.replace("Invalid ", "Inválido/a ");
+  return message;
+}
+
+export function formatApiErrorValue(value: unknown): string {
+  if (typeof value === "string") return translateErrorMessage(value);
+  if (typeof value === "number" || typeof value === "boolean") return String(value);
+  if (value == null) return "";
+
+  if (Array.isArray(value)) {
+    return value.map(formatApiErrorValue).filter(Boolean).join(", ");
+  }
+
+  if (typeof value === "object") {
+    const record = value as Record<string, unknown>;
+
+    if (typeof record.detail === "string") return translateErrorMessage(record.detail);
+    if (typeof record.message === "string") return translateErrorMessage(record.message);
+    if (typeof record.error === "string") return translateErrorMessage(record.error);
+    if (typeof record.error !== "undefined") return formatApiErrorValue(record.error);
+    if (typeof record.code === "string" && Object.keys(record).length === 1) return record.code;
+    if (typeof record.string === "string") return translateErrorMessage(record.string);
+
+    const parts = Object.entries(record)
+      .map(([key, nestedValue]) => {
+        const message = formatApiErrorValue(nestedValue);
+        return message ? `${key}: ${message}` : "";
+      })
+      .filter(Boolean);
+
+    return parts.join(" · ");
+  }
+
+  return translateErrorMessage(String(value));
+}
+
+export function formatApiErrorBody(body: ApiErrorBody): string {
+  if (typeof body.detail === "string" && body.detail) return translateErrorMessage(body.detail);
+
+  const standardizedError = body.error;
+  if (typeof standardizedError === "string") return translateErrorMessage(standardizedError);
+  if (typeof standardizedError !== "undefined") return formatApiErrorValue(standardizedError);
+
+  if (Array.isArray(body.errors)) {
+    const messages = body.errors
+      .map((item) => {
+        if (typeof item === "string") return translateErrorMessage(item);
+        if (item && typeof item === "object") {
+          const record = item as Record<string, unknown>;
+          const athleteId = record.athlete_id;
+          const message = formatApiErrorValue(record.error ?? record.message ?? record.detail ?? item);
+          if (athleteId !== undefined && message) {
+            return `Atleta ${String(athleteId)}: ${message}`;
+          }
+          return message;
+        }
+        return formatApiErrorValue(item);
+      })
+      .filter(Boolean);
+
+    if (messages.length > 0) return messages.join(" · ");
+  }
+
+  // Fallback: join validation-style fields while ignoring transport metadata.
+  return Object.entries(body)
+    .filter(([field]) => field !== "detail" && field !== "error" && field !== "errors")
+    .map(([field, value]) => `${field}: ${formatApiErrorValue(value)}`)
+    .filter((entry) => !entry.endsWith(": "))
+    .join(" · ");
 }
 
 // ---------------------------------------------------------------------------
@@ -53,60 +129,7 @@ export class ApiError extends Error {
     return this.status === 403;
   }
 
-  /**
-   * Returns a human-readable message extracted from the DRF error body.
-   * Handles both standard DRF error format (detail) and the app's standardized
-   * error format ({ error: { code, message } }).
-   * Joins field-level validation errors into a single string when `detail`
-   * is absent.
-   */
   get userMessage(): string {
-    // Handle standard DRF error: { detail: "message" }
-    if (this.body.detail) return this.body.detail;
-
-    // Translate DRF error codes to Spanish
-    const translate = (msg: string): string => {
-      if (msg.includes("may not be blank") || msg.includes("blank")) return "Este campo no puede estar vacío";
-      if (msg.includes("field is required")) return "Este campo es obligatorio";
-      if (msg.includes("Invalid")) return msg.replace("Invalid ", "Inválido/a ");
-      return msg;
-    };
-
-    // Parse Python dictrepr strings like "{'email': [ErrorDetail(...)]}"
-    const parseDictrepr = (s: string): string => {
-      const dictMatch = s.match(/^\{.*\}$/);
-      if (!dictMatch) return translate(s);
-      const fieldMatches = s.matchAll(/'([^']+)':\s*\[([^\]]+)\]/g);
-      const parts: string[] = [];
-      for (const m of fieldMatches) {
-        const field = m[1];
-        const val = m[2];
-        const text = val.includes("ErrorDetail") ? "Este campo no puede estar vacío" : translate(val.replace(/'/g, ""));
-        parts.push(`${field}: ${text}`);
-      }
-      return parts.length ? parts.join(" · ") : translate(s);
-    };
-
-    // Handle standardized app error: { error: { code: "...", message: "..." } }
-    if (this.body.error && typeof this.body.error === "object") {
-      const err = this.body.error as { code?: string; message?: string };
-      if (err.message) return parseDictrepr(err.message);
-      if (err.code) return err.code;
-    }
-
-    // Normalize a single error value (string, ErrorDetail object, or nested array)
-    const normalize = (val: unknown): string => {
-      if (typeof val === "string") return translate(val);
-      if (Array.isArray(val)) return (val as unknown[]).map(normalize).filter(Boolean).join(", ");
-      if (val && typeof val === "object" && "string" in val) {
-        return translate(String((val as { string: string }).string));
-      }
-      return translate(String(val));
-    };
-
-    // Fallback: join field-level validation errors
-    return Object.entries(this.body)
-      .map(([field, msgs]) => `${field}: ${normalize(msgs)}`)
-      .join(" · ");
+    return formatApiErrorBody(this.body);
   }
 }

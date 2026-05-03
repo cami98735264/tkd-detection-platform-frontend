@@ -25,6 +25,7 @@ import { EmptyState } from "@/components/common/EmptyState";
 import { PageHeader } from "@/components/common/PageHeader";
 import { cn } from "@/lib/utils";
 import { axiosInstance } from "@/lib/http";
+import { formatApiErrorValue } from "@/types/api";
 import {
   attendanceApi,
   type AttendanceStatus,
@@ -171,7 +172,7 @@ export default function AttendanceRegisterPage() {
         showToast({
           title: "Errores al registrar",
           description: result.errors
-            .map((e) => `Atleta ${e.athlete_id}: ${e.error}`)
+            .map((e) => `Atleta ${e.athlete_id}: ${formatApiErrorValue(e.error)}`)
             .join("; "),
           variant: "error",
           duration: 6000,

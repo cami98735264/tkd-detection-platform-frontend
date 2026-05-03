@@ -72,7 +72,7 @@ export default function DashboardLayout() {
   };
 
   return (
-    <div className="flex min-h-screen bg-bg text-text">
+    <div className="flex h-screen bg-bg text-text">
       <a href="#main-content" className="skip-link">
         Saltar al contenido
       </a>
@@ -91,7 +91,7 @@ export default function DashboardLayout() {
       </Sheet>
 
       {/* Main column */}
-      <div className="flex min-w-0 flex-1 flex-col">
+      <div className="flex min-w-0 flex-1 flex-col min-h-0">
         <Topbar
           onOpenMobileNav={() => setOpen(true)}
           user={user}
