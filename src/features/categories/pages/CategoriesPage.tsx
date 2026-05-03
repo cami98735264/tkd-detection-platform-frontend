@@ -92,7 +92,7 @@ export default function CategoriesPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">Categorías de Competencia</h1>
-        <Button className="bg-green-600 hover:bg-green-700" onClick={() => { setEditing(null); setModalOpen(true); }}>
+        <Button onClick={() => { setEditing(null); setModalOpen(true); }}>
           <Plus size={18} className="mr-2" /> Nueva
         </Button>
       </div>

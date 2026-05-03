@@ -1,7 +1,11 @@
 import { useEffect, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Dumbbell } from "lucide-react";
+
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { EmptyState } from "@/components/common/EmptyState";
+import { PageHeader } from "@/components/common/PageHeader";
 import { trainingsApi, type Training } from "@/features/trainings/api/trainingsApi";
 import { enrollmentsApi } from "@/features/enrollments/api/enrollmentsApi";
 import { useApiErrorHandler } from "@/feedback/useApiErrorHandler";
@@ -9,19 +13,16 @@ import { formatDateForDisplay } from "@/lib/dateUtils";
 
 export default function MyTrainingsPage() {
   const { handleError } = useApiErrorHandler();
-  const [enrollments, setEnrollments] = useState<{ program: number }[]>([]);
   const [trainings, setTrainings] = useState<Training[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    Promise.all([
-      enrollmentsApi.getMyEnrollments(),
-      trainingsApi.list(1),
-    ])
+    Promise.all([enrollmentsApi.getMyEnrollments(), trainingsApi.list(1)])
       .then(([enrollRes, trainRes]) => {
-        setEnrollments(enrollRes);
         const enrolledProgramIds = new Set(enrollRes.map((e) => e.program));
-        setTrainings(trainRes.results.filter((t) => enrolledProgramIds.has(t.program)));
+        setTrainings(
+          trainRes.results.filter((t) => enrolledProgramIds.has(t.program)),
+        );
       })
       .catch(handleError)
       .finally(() => setLoading(false));
@@ -29,47 +30,58 @@ export default function MyTrainingsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Entrenamientos</h1>
-      </div>
+      <PageHeader
+        title="Entrenamientos"
+        description="Sesiones programadas en los programas a los que estás inscrito."
+        eyebrow="Mi entrenamiento"
+      />
 
       {loading ? (
-        <p className="text-muted-foreground">Cargando...</p>
+        <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
+          {[0, 1, 2, 3].map((i) => (
+            <Skeleton key={i} className="h-36 w-full" />
+          ))}
+        </div>
       ) : trainings.length === 0 ? (
         <Card>
-          <CardContent className="py-12 text-center">
-            <Dumbbell className="mx-auto mb-4 text-gray-400" size={48} />
-            <p className="text-muted-foreground">
-              No hay entrenamientos disponibles para tus programas inscritos.
-            </p>
-          </CardContent>
+          <EmptyState
+            icon={Dumbbell}
+            title="Sin entrenamientos disponibles"
+            description="Cuando se programen sesiones para tus programas inscritos aparecerán aquí."
+          />
         </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {trainings.map((training) => (
             <Card key={training.id}>
               <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  <span>{training.nombre}</span>
+                <CardTitle className="flex items-center justify-between gap-2">
+                  <span className="font-display text-lg font-semibold tracking-tight">
+                    {training.nombre}
+                  </span>
                   <Badge variant="outline">{training.program_name}</Badge>
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-2">
-                <p className="text-sm text-muted-foreground">{training.descripcion}</p>
-                <div className="flex gap-4 text-sm">
+              <CardContent className="space-y-3">
+                {training.descripcion && (
+                  <p className="text-sm text-muted">{training.descripcion}</p>
+                )}
+                <dl className="grid grid-cols-3 gap-3 text-xs">
                   <div>
-                    <span className="text-muted-foreground">Fecha: </span>
-                    <span className="font-medium">{formatDateForDisplay(training.fecha)}</span>
+                    <dt className="text-faint">Fecha</dt>
+                    <dd className="font-medium text-text">
+                      {formatDateForDisplay(training.fecha)}
+                    </dd>
                   </div>
                   <div>
-                    <span className="text-muted-foreground">Hora: </span>
-                    <span className="font-medium">{training.time}</span>
+                    <dt className="text-faint">Hora</dt>
+                    <dd className="font-medium text-text">{training.time}</dd>
                   </div>
                   <div>
-                    <span className="text-muted-foreground">Atletas: </span>
-                    <span className="font-medium">{training.numero_atletas}</span>
+                    <dt className="text-faint">Atletas</dt>
+                    <dd className="font-medium text-text">{training.numero_atletas}</dd>
                   </div>
-                </div>
+                </dl>
               </CardContent>
             </Card>
           ))}

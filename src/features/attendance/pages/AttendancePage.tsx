@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import DataTable, { type Column } from "@/components/common/DataTable";
-import Pagination from "@/components/common/Pagination";
+import { CalendarRange, CheckCircle } from "lucide-react";
+
+import { Badge } from "@/components/ui/badge";
+import { ListPageTemplate } from "@/components/common/ListPageTemplate";
+import type { Column, RowAction } from "@/components/common/DataTable";
 import AttendanceFilters from "@/features/attendance/components/AttendanceFilters";
 import { attendanceApi, type AttendanceRecord } from "@/features/attendance/api/attendanceApi";
 import { useApiErrorHandler } from "@/feedback/useApiErrorHandler";
@@ -9,39 +11,30 @@ import { useFeedback } from "@/feedback/useFeedback";
 
 type ViewMode = "weekly" | "monthly" | "yearly";
 
+function StatusBadge({ status }: { status: AttendanceRecord["status"] }) {
+  if (status === "present") return <Badge variant="success">Presente</Badge>;
+  if (status === "absent") return <Badge variant="destructive">Ausente</Badge>;
+  if (status === "late") return <Badge variant="warning">Tarde</Badge>;
+  return <Badge variant="outline-muted">{status}</Badge>;
+}
+
 const columns: Column<AttendanceRecord>[] = [
   {
     key: "program_name",
     header: "Entrenamiento",
-    render: (r) => <span className="font-medium">{r.program_name}</span>,
+    render: (r) => <span className="font-medium text-text">{r.program_name}</span>,
   },
-  { key: "athlete_name", header: "Atleta" },
+  { key: "athlete_name", header: "Atleta", hideOnMobile: true },
   {
     key: "fecha",
     header: "Fecha",
     render: (r) => new Date(r.fecha).toLocaleDateString(),
   },
-  { key: "hora", header: "Hora" },
+  { key: "hora", header: "Hora", hideOnMobile: true },
   {
     key: "status",
     header: "Estado",
-    render: (r) => {
-      const labels: Record<string, string> = {
-        present: "Presente",
-        absent: "Ausente",
-        late: "Tarde",
-      };
-      const classes: Record<string, string> = {
-        present: "bg-green-100 text-green-800 border-green-300",
-        absent: "bg-red-100 text-red-800 border-red-300",
-        late: "bg-yellow-100 text-yellow-800 border-yellow-300",
-      };
-      return (
-        <span className={`px-2 py-1 rounded-full text-xs font-semibold border ${classes[r.status] ?? ""}`}>
-          {labels[r.status]}
-        </span>
-      );
-    },
+    render: (r) => <StatusBadge status={r.status} />,
   },
 ];
 
@@ -102,37 +95,58 @@ export default function AttendancePage() {
     }
   };
 
+  const rowActions: RowAction<AttendanceRecord>[] = [
+    {
+      id: "confirm",
+      label: "Confirmar asistencia",
+      icon: CheckCircle,
+      variant: "tonal",
+      show: (row) => row.status === "present",
+      onClick: handleConfirm,
+    },
+  ];
+
   return (
-    <div className="space-y-6">
-      <h1 className="text-3xl font-bold">Asistencia</h1>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Registro de Asistencia</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <AttendanceFilters
-            athleteId={athleteId}
-            viewMode={viewMode}
-            startDate={startDate}
-            endDate={endDate}
-            onAthleteChange={setAthleteId}
-            onViewModeChange={setViewMode}
-            onStartDateChange={setStartDate}
-            onEndDateChange={setEndDate}
-          />
-
-          <DataTable
-            columns={columns}
-            data={data}
-            loading={loading}
-            onConfirm={(row) => row.status === "present" && handleConfirm(row)}
-            confirmLabel="Confirmar"
-          />
-
-          <Pagination count={count} page={page} onPageChange={setPage} />
-        </CardContent>
-      </Card>
-    </div>
+    <ListPageTemplate
+      title="Asistencia"
+      description="Historial de registros de asistencia con filtros por deportista y rango de fechas."
+      eyebrow="Seguimiento"
+      filters={
+        <AttendanceFilters
+          athleteId={athleteId}
+          viewMode={viewMode}
+          startDate={startDate}
+          endDate={endDate}
+          onAthleteChange={setAthleteId}
+          onViewModeChange={setViewMode}
+          onStartDateChange={setStartDate}
+          onEndDateChange={setEndDate}
+        />
+      }
+      columns={columns}
+      data={data}
+      loading={loading}
+      rowActions={rowActions}
+      rowKey={(r) => r.id}
+      mobileCard={(r) => (
+        <div className="space-y-1">
+          <div className="flex items-center justify-between gap-2">
+            <p className="font-medium text-text">{r.program_name}</p>
+            <StatusBadge status={r.status} />
+          </div>
+          <p className="text-xs text-muted">{r.athlete_name}</p>
+          <p className="text-xs text-faint">
+            {new Date(r.fecha).toLocaleDateString()} · {r.hora}
+          </p>
+        </div>
+      )}
+      empty={{
+        icon: CalendarRange,
+        title: "Sin registros de asistencia",
+        description:
+          "Ajusta el rango de fechas o vuelve después del próximo entrenamiento.",
+      }}
+      pagination={{ count, page, onChange: setPage }}
+    />
   );
 }

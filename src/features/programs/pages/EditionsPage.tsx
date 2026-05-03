@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ArrowLeft, CalendarRange, Pencil, Plus, Trash2 } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, ArrowLeft } from "lucide-react";
-import DataTable, { type Column } from "@/components/common/DataTable";
-import Pagination from "@/components/common/Pagination";
+import type { Column, RowAction } from "@/components/common/DataTable";
+import { ListPageTemplate } from "@/components/common/ListPageTemplate";
 import EditionFormModal from "@/features/programs/components/EditionFormModal";
 import { editionsApi } from "@/features/programs/api/editionsApi";
 import { useAuthStore } from "@/features/auth/store/authStore";
@@ -14,38 +14,56 @@ import { useFeedback } from "@/feedback/useFeedback";
 import { formatDateForDisplay } from "@/lib/dateUtils";
 import type { Edition } from "@/types/entities";
 
+function safeScheduleCount(value: string | null | undefined): number | null {
+  if (!value) return null;
+  try {
+    const parsed = JSON.parse(value);
+    return Array.isArray(parsed) ? parsed.length : null;
+  } catch {
+    return null;
+  }
+}
+
 const columns: Column<Edition>[] = [
   {
     key: "start_date",
     header: "Fecha inicio",
-    render: (r) => formatDateForDisplay(r.start_date),
+    render: (r) => (
+      <span className="font-medium text-text">{formatDateForDisplay(r.start_date)}</span>
+    ),
   },
   {
     key: "end_date",
     header: "Fecha fin",
-    render: (r) => (r.end_date ? formatDateForDisplay(r.end_date) : "—"),
+    render: (r) => (
+      <span className="text-muted">
+        {r.end_date ? formatDateForDisplay(r.end_date) : "—"}
+      </span>
+    ),
+    hideOnMobile: true,
   },
   {
     key: "schedule",
     header: "Horarios",
     render: (r) => {
-      if (!r.schedule) return "—";
-      try {
-        const entries = JSON.parse(r.schedule) as { days: string[]; startTime: string; endTime: string }[];
-        return `${entries.length} horario(s)`;
-      } catch {
-        return "—";
-      }
+      const n = safeScheduleCount(r.schedule);
+      if (n === null) return <span className="text-faint">—</span>;
+      return (
+        <span className="text-muted tabular-nums">
+          {n} {n === 1 ? "horario" : "horarios"}
+        </span>
+      );
     },
   },
   {
     key: "active",
     header: "Estado",
-    render: (r) => (
-      <Badge variant={r.active ? "default" : "secondary"}>
-        {r.active ? "Activo" : "Inactivo"}
-      </Badge>
-    ),
+    render: (r) =>
+      r.active ? (
+        <Badge variant="success">Activa</Badge>
+      ) : (
+        <Badge variant="outline-muted">Inactiva</Badge>
+      ),
   },
 ];
 
@@ -109,7 +127,7 @@ export default function EditionsPage() {
   const handleDelete = async (edition: Edition) => {
     const ok = await confirm({
       title: "Eliminar edición",
-      description: `¿Estás seguro de eliminar esta edición (${formatDateForDisplay(edition.start_date)})?`,
+      description: `¿Eliminar la edición que comienza el ${formatDateForDisplay(edition.start_date)}?`,
     });
     if (!ok) return;
     try {
@@ -121,61 +139,112 @@ export default function EditionsPage() {
     }
   };
 
+  const actions: RowAction<Edition>[] = [];
+  if (isAdmin) {
+    actions.push({
+      id: "edit",
+      label: "Editar",
+      icon: Pencil,
+      variant: "ghost",
+      onClick: (row) => {
+        setEditing(row);
+        setModalOpen(true);
+      },
+    });
+    actions.push({
+      id: "delete",
+      label: "Eliminar",
+      icon: Trash2,
+      variant: "destructive",
+      onClick: handleDelete,
+    });
+  }
+
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Link to="/dashboard/programas">
-            <Button variant="outline" size="icon">
-              <ArrowLeft size={18} />
+    <div className="space-y-4">
+      <Link
+        to="/dashboard/programas"
+        className="inline-flex items-center gap-1.5 text-sm text-muted hover:text-text transition-colors"
+      >
+        <ArrowLeft className="h-3.5 w-3.5" />
+        Volver a Programas
+      </Link>
+
+      <ListPageTemplate
+        title="Ediciones del programa"
+        description="Periodos activos del programa con su horario semanal."
+        eyebrow="Programación"
+        primaryAction={
+          isAdmin ? (
+            <Button
+              onClick={() => {
+                setEditing(null);
+                setModalOpen(true);
+              }}
+            >
+              <Plus className="h-4 w-4" />
+              Nueva edición
             </Button>
-          </Link>
-          <h1 className="text-3xl font-bold">Ediciones del Programa</h1>
-        </div>
-        {isAdmin && (
-          <Button
-            className="bg-green-600 hover:bg-green-700"
-            onClick={() => {
-              setEditing(null);
-              setModalOpen(true);
-            }}
-          >
-            <Plus size={18} className="mr-2" /> Nueva Edición
-          </Button>
-        )}
-      </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Ediciones</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <DataTable
-            columns={columns}
-            data={data}
-            loading={loading}
-            onEdit={
-              isAdmin
-                ? (row) => {
-                    setEditing(row);
-                    setModalOpen(true);
-                  }
-                : undefined
-            }
-            onDelete={isAdmin ? handleDelete : undefined}
-          />
-          <Pagination count={count} page={page} onPageChange={setPage} />
-        </CardContent>
-      </Card>
-
-      <EditionFormModal
-        open={modalOpen}
-        onOpenChange={(v) => {
-          setModalOpen(v);
-          if (!v) setEditing(null);
+          ) : undefined
+        }
+        columns={columns}
+        data={data}
+        loading={loading}
+        rowActions={actions}
+        rowKey={(r) => r.id}
+        mobileCard={(r) => {
+          const n = safeScheduleCount(r.schedule);
+          return (
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between gap-2">
+                <p className="font-medium text-text">
+                  {formatDateForDisplay(r.start_date)}
+                  {r.end_date ? ` — ${formatDateForDisplay(r.end_date)}` : ""}
+                </p>
+                {r.active ? (
+                  <Badge variant="success">Activa</Badge>
+                ) : (
+                  <Badge variant="outline-muted">Inactiva</Badge>
+                )}
+              </div>
+              <p className="text-xs text-muted tabular-nums">
+                {n === null
+                  ? "Sin horario estructurado"
+                  : `${n} ${n === 1 ? "horario" : "horarios"}`}
+              </p>
+            </div>
+          );
         }}
-        edition={editing}
-        onSubmit={handleSubmit}
+        empty={{
+          icon: CalendarRange,
+          title: "Sin ediciones registradas",
+          description: isAdmin
+            ? "Crea la primera edición para definir fechas y horarios del programa."
+            : "Cuando se programen ediciones aparecerán aquí.",
+          action: isAdmin ? (
+            <Button
+              onClick={() => {
+                setEditing(null);
+                setModalOpen(true);
+              }}
+            >
+              <Plus className="h-4 w-4" />
+              Crear edición
+            </Button>
+          ) : undefined,
+        }}
+        pagination={{ count, page, onChange: setPage }}
+        formSheet={
+          <EditionFormModal
+            open={modalOpen}
+            onOpenChange={(v) => {
+              setModalOpen(v);
+              if (!v) setEditing(null);
+            }}
+            edition={editing}
+            onSubmit={handleSubmit}
+          />
+        }
       />
     </div>
   );

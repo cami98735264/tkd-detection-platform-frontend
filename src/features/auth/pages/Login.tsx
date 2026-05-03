@@ -1,17 +1,20 @@
-import { useNavigate, Link } from "react-router-dom";
-import { Formik, Form, Field, ErrorMessage } from "formik";
+import { ErrorMessage, Field, Form, Formik } from "formik";
+import { Link, useNavigate } from "react-router-dom";
 import * as Yup from "yup";
-import { Shield } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { FieldErrorText } from "@/components/common/FieldErrorText";
+import { flagAndShakeInvalidFields } from "@/lib/formAnimations";
 import { authApi } from "@/features/auth/api/authApi";
+import { AuthShell } from "@/features/auth/components/AuthShell";
 import { useApiErrorHandler } from "@/feedback/useApiErrorHandler";
 
 const schema = Yup.object({
-  email: Yup.string().email("Email inválido").required("El email es obligatorio"),
+  email: Yup.string()
+    .email("Correo electrónico no válido")
+    .required("El correo es obligatorio"),
   password: Yup.string().required("La contraseña es obligatoria"),
 });
 
@@ -20,79 +23,100 @@ export default function Login() {
   const { handleError } = useApiErrorHandler();
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-600 to-emerald-900">
-
-      <Card className="w-[420px] shadow-2xl">
-        <CardHeader className="text-center space-y-3">
-
-          <div className="flex justify-center">
-            <div className="bg-green-600 p-3 rounded-full">
-              <Shield className="text-white w-6 h-6" />
-            </div>
-          </div>
-
-          <CardTitle className="text-2xl">
-            Warriors TKD
-          </CardTitle>
-
-          <p className="text-sm text-muted-foreground">
-            Sistema Administrativo
+    <AuthShell>
+      <div className="space-y-8">
+        <header>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
+            Inicia sesión
           </p>
+          <h2 className="mt-2 font-display text-3xl font-semibold tracking-tight text-text">
+            Bienvenido de nuevo
+          </h2>
+          <p className="mt-2 text-sm text-muted">
+            Accede con tu correo institucional para continuar.
+          </p>
+        </header>
 
-        </CardHeader>
+        <Formik
+          initialValues={{ email: "", password: "" }}
+          validationSchema={schema}
+          validateOnChange={false}
+          validateOnBlur={false}
+          onSubmit={async (values, { setSubmitting }) => {
+            try {
+              await authApi.login(values);
+              navigate("/dashboard");
+            } catch (err) {
+              handleError(err);
+            } finally {
+              setSubmitting(false);
+            }
+          }}
+        >
+          {({ isSubmitting, validateForm, submitForm }) => (
+            <Form
+              className="space-y-5"
+              noValidate
+              onSubmit={async (event) => {
+                event.preventDefault();
+                const errs = await validateForm();
+                if (Object.keys(errs).length > 0) {
+                  flagAndShakeInvalidFields(event.currentTarget, errs);
+                  return;
+                }
+                submitForm();
+              }}
+            >
+              <div className="space-y-1.5" data-field="email">
+                <Label htmlFor="email">Correo</Label>
+                <Field
+                  as={Input}
+                  id="email"
+                  type="email"
+                  name="email"
+                  autoComplete="email"
+                  placeholder="tu.correo@ejemplo.com"
+                />
+                <ErrorMessage name="email" component={FieldErrorText} />
+              </div>
 
-        <CardContent>
-          <Formik
-            initialValues={{ email: "", password: "" }}
-            validationSchema={schema}
-            onSubmit={async (values, { setSubmitting }) => {
-              try {
-                await authApi.login(values);
-                navigate("/dashboard");
-              } catch (err) {
-                handleError(err);
-              } finally {
-                setSubmitting(false);
-              }
-            }}
-          >
-            {({ isSubmitting }) => (
-              <Form className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="email">Correo</Label>
-                  <Field as={Input} id="email" type="email" name="email" placeholder="admin@warriors.com" />
-                  <ErrorMessage name="email" component="p" className="text-sm text-red-500" />
-                </div>
-
-                <div className="space-y-2">
+              <div className="space-y-1.5" data-field="password">
+                <div className="flex items-baseline justify-between">
                   <Label htmlFor="password">Contraseña</Label>
-                  <Field as={Input} id="password" type="password" name="password" placeholder="123456" />
-                  <ErrorMessage name="password" component="p" className="text-sm text-red-500" />
-                </div>
-
-                <Button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="w-full bg-green-600 hover:bg-green-700"
-                >
-                  {isSubmitting ? "Ingresando..." : "Iniciar Sesión"}
-                </Button>
-
-                <div className="flex justify-center text-sm mt-2">
                   <Link
                     to="/forgot-password"
-                    className="text-green-700 hover:underline"
+                    className="text-xs font-medium text-primary underline-offset-4 hover:underline"
                   >
                     ¿Olvidaste tu contraseña?
                   </Link>
                 </div>
-              </Form>
-            )}
-          </Formik>
-        </CardContent>
+                <Field
+                  as={Input}
+                  id="password"
+                  type="password"
+                  name="password"
+                  autoComplete="current-password"
+                  placeholder="••••••••"
+                />
+                <ErrorMessage name="password" component={FieldErrorText} />
+              </div>
 
-      </Card>
+              <Button
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full"
+                size="lg"
+              >
+                {isSubmitting ? "Ingresando..." : "Iniciar sesión"}
+              </Button>
+            </Form>
+          )}
+        </Formik>
 
-    </div>
+        <p className="text-center text-xs text-faint">
+          ¿Necesitas una cuenta? Solicítala con la administración de la academia.
+        </p>
+      </div>
+    </AuthShell>
   );
 }

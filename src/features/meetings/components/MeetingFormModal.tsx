@@ -45,26 +45,26 @@ export default function MeetingFormModal({ open, onOpenChange, meeting, onSubmit
               <div className="space-y-1">
                 <Label>Título</Label>
                 <Field as={Input} name="title" />
-                <ErrorMessage name="title" component="p" className="text-sm text-red-500" />
+                <ErrorMessage name="title" component="p" className="text-sm text-error" />
               </div>
               <div className="space-y-1">
                 <Label>Descripción</Label>
                 <Field as={Input} name="description" />
-                <ErrorMessage name="description" component="p" className="text-sm text-red-500" />
+                <ErrorMessage name="description" component="p" className="text-sm text-error" />
               </div>
               <div className="space-y-1">
                 <Label>Fecha</Label>
                 <Field as={Input} type="date" name="date" />
-                <ErrorMessage name="date" component="p" className="text-sm text-red-500" />
+                <ErrorMessage name="date" component="p" className="text-sm text-error" />
               </div>
               <div className="space-y-1">
                 <Label>Hora</Label>
                 <Field as={Input} type="time" name="time" />
-                <ErrorMessage name="time" component="p" className="text-sm text-red-500" />
+                <ErrorMessage name="time" component="p" className="text-sm text-error" />
               </div>
               <div className="flex justify-end gap-3 pt-4">
                 <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
-                <Button type="submit" className="bg-green-600 hover:bg-green-700" disabled={isSubmitting}>
+                <Button type="submit" disabled={isSubmitting}>
                   {isSubmitting ? "Guardando..." : isEdit ? "Actualizar" : "Crear"}
                 </Button>
               </div>

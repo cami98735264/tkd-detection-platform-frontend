@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Pencil, Plus, Trash2, UserCog, UserPlus } from "lucide-react";
+
 import { Badge } from "@/components/ui/badge";
-import { Plus } from "lucide-react";
-import DataTable, { type Column } from "@/components/common/DataTable";
-import Pagination from "@/components/common/Pagination";
+import { Button } from "@/components/ui/button";
+import type { Column, RowAction } from "@/components/common/DataTable";
+import { ListPageTemplate } from "@/components/common/ListPageTemplate";
 import UserFormModal from "@/features/users/components/UserFormModal";
 import { usersApi, type User } from "@/features/users/api/usersApi";
 import { useApiErrorHandler } from "@/feedback/useApiErrorHandler";
@@ -16,24 +16,35 @@ const ROLE_LABELS: Record<string, string> = {
   administrator: "Administrador",
 };
 
+function StatusBadge({ active }: { active: boolean }) {
+  return active ? (
+    <Badge variant="success">Activo</Badge>
+  ) : (
+    <Badge variant="outline-muted">Inactivo</Badge>
+  );
+}
+
 const columns: Column<User>[] = [
-  { key: "full_name", header: "Nombre" },
-  { key: "email", header: "Email" },
+  {
+    key: "full_name",
+    header: "Nombre",
+    render: (r) => <span className="font-medium text-text">{r.full_name}</span>,
+  },
+  {
+    key: "email",
+    header: "Correo",
+    hideOnMobile: true,
+    render: (r) => <span className="text-muted">{r.email}</span>,
+  },
   {
     key: "role",
     header: "Rol",
-    render: (r) => (
-      <Badge variant="outline">{ROLE_LABELS[r.role] ?? r.role}</Badge>
-    ),
+    render: (r) => <Badge variant="outline">{ROLE_LABELS[r.role] ?? r.role}</Badge>,
   },
   {
     key: "is_active",
     header: "Estado",
-    render: (r) => (
-      <Badge variant={r.is_active ? "default" : "secondary"}>
-        {r.is_active ? "Activo" : "Inactivo"}
-      </Badge>
-    ),
+    render: (r) => <StatusBadge active={r.is_active} />,
   },
 ];
 
@@ -48,21 +59,18 @@ export default function UsersPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<User | null>(null);
 
-  const fetchData = useCallback(
-    (p: number) => {
-      setLoading(true);
-      usersApi
-        .list(p)
-        .then((res) => {
-          setData(res.results);
-          setCount(res.count);
-        })
-        .catch(handleError)
-        .finally(() => setLoading(false));
-    },
+  const fetchData = useCallback((p: number) => {
+    setLoading(true);
+    usersApi
+      .list(p)
+      .then((res) => {
+        setData(res.results);
+        setCount(res.count);
+      })
+      .catch(handleError)
+      .finally(() => setLoading(false));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [page],
-  );
+  }, []);
 
   useEffect(() => {
     fetchData(page);
@@ -105,49 +113,85 @@ export default function UsersPage() {
     }
   };
 
+  const actions: RowAction<User>[] = [
+    {
+      id: "edit",
+      label: "Editar",
+      icon: Pencil,
+      variant: "ghost",
+      onClick: (row) => {
+        setEditing(row);
+        setModalOpen(true);
+      },
+    },
+    {
+      id: "delete",
+      label: "Eliminar",
+      icon: Trash2,
+      variant: "destructive",
+      onClick: handleDelete,
+    },
+  ];
+
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Usuarios</h1>
+    <ListPageTemplate
+      title="Usuarios"
+      description="Gestiona las cuentas y los roles del sistema."
+      eyebrow="Administración"
+      primaryAction={
         <Button
-          className="bg-green-600 hover:bg-green-700"
           onClick={() => {
             setEditing(null);
             setModalOpen(true);
           }}
         >
-          <Plus size={18} className="mr-2" /> Nuevo
+          <UserPlus className="h-4 w-4" />
+          Nuevo usuario
         </Button>
-      </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Lista de usuarios</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <DataTable
-            columns={columns}
-            data={data}
-            loading={loading}
-            onEdit={(row) => {
-              setEditing(row);
+      }
+      columns={columns}
+      data={data}
+      loading={loading}
+      rowKey={(r) => r.id}
+      rowActions={actions}
+      mobileCard={(r) => (
+        <div className="space-y-1">
+          <div className="flex items-center justify-between gap-2">
+            <p className="font-medium text-text">{r.full_name}</p>
+            <StatusBadge active={r.is_active} />
+          </div>
+          <p className="text-xs text-muted">{r.email}</p>
+          <p className="text-xs text-faint">{ROLE_LABELS[r.role] ?? r.role}</p>
+        </div>
+      )}
+      empty={{
+        icon: UserCog,
+        title: "Sin usuarios registrados",
+        description: "Crea el primer usuario para comenzar a operar el sistema.",
+        action: (
+          <Button
+            onClick={() => {
+              setEditing(null);
               setModalOpen(true);
             }}
-            onDelete={handleDelete}
-          />
-          <Pagination count={count} page={page} onPageChange={setPage} />
-        </CardContent>
-      </Card>
-
-      <UserFormModal
-        open={modalOpen}
-        onOpenChange={(v) => {
-          setModalOpen(v);
-          if (!v) setEditing(null);
-        }}
-        user={editing}
-        onSubmit={handleSubmit}
-      />
-    </div>
+          >
+            <Plus className="h-4 w-4" />
+            Crear usuario
+          </Button>
+        ),
+      }}
+      pagination={{ count, page, onChange: setPage }}
+      formSheet={
+        <UserFormModal
+          open={modalOpen}
+          onOpenChange={(v) => {
+            setModalOpen(v);
+            if (!v) setEditing(null);
+          }}
+          user={editing}
+          onSubmit={handleSubmit}
+        />
+      }
+    />
   );
 }

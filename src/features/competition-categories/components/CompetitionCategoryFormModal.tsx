@@ -103,12 +103,12 @@ export default function CompetitionCategoryFormModal({
                 <div className="space-y-1">
                   <Label>Edad mínima</Label>
                   <Field as={Input} type="number" name="edad_min" min={0} />
-                  <ErrorMessage name="edad_min" component="p" className="text-sm text-red-500" />
+                  <ErrorMessage name="edad_min" component="p" className="text-sm text-error" />
                 </div>
                 <div className="space-y-1">
                   <Label>Edad máxima</Label>
                   <Field as={Input} type="number" name="edad_max" min={0} />
-                  <ErrorMessage name="edad_max" component="p" className="text-sm text-red-500" />
+                  <ErrorMessage name="edad_max" component="p" className="text-sm text-error" />
                 </div>
               </div>
 
@@ -122,7 +122,7 @@ export default function CompetitionCategoryFormModal({
                     loadOptions={loadBelts}
                     placeholder="Buscar cinturón..."
                   />
-                  <ErrorMessage name="belt_from" component="p" className="text-sm text-red-500" />
+                  <ErrorMessage name="belt_from" component="p" className="text-sm text-error" />
                 </div>
                 <div className="space-y-1">
                   <Label>Cinturón hasta</Label>
@@ -133,7 +133,7 @@ export default function CompetitionCategoryFormModal({
                     loadOptions={loadBelts}
                     placeholder="Buscar cinturón..."
                   />
-                  <ErrorMessage name="belt_to" component="p" className="text-sm text-red-500" />
+                  <ErrorMessage name="belt_to" component="p" className="text-sm text-error" />
                 </div>
               </div>
 
@@ -141,19 +141,19 @@ export default function CompetitionCategoryFormModal({
                 <div className="space-y-1">
                   <Label>Peso mínimo (kg)</Label>
                   <Field as={Input} type="number" name="peso_min" min={0} step={0.01} />
-                  <ErrorMessage name="peso_min" component="p" className="text-sm text-red-500" />
+                  <ErrorMessage name="peso_min" component="p" className="text-sm text-error" />
                 </div>
                 <div className="space-y-1">
                   <Label>Peso máximo (kg)</Label>
                   <Field as={Input} type="number" name="peso_max" min={0} step={0.01} />
-                  <ErrorMessage name="peso_max" component="p" className="text-sm text-red-500" />
+                  <ErrorMessage name="peso_max" component="p" className="text-sm text-error" />
                 </div>
               </div>
 
               {values.edad_min && values.edad_max && values.peso_min && values.peso_max && (
-                <div className="rounded-md bg-green-50 p-3 border border-green-200">
-                  <Label className="text-green-800">Nombre generado:</Label>
-                  <p className="text-sm font-medium text-green-900 mt-1">
+                <div className="rounded-md bg-success/10 border border-success/25 p-3">
+                  <Label className="text-success">Nombre generado:</Label>
+                  <p className="text-sm font-medium text-text mt-1">
                     {generateName(values)}
                   </p>
                 </div>
@@ -165,7 +165,7 @@ export default function CompetitionCategoryFormModal({
                 </Button>
                 <Button
                   type="submit"
-                  className="bg-green-600 hover:bg-green-700"
+                 
                   disabled={isSubmitting}
                 >
                   {isSubmitting ? "Guardando..." : isEdit ? "Actualizar" : "Crear"}

@@ -1,117 +1,157 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BookOpen } from "lucide-react";
+import {
+  BookOpen,
+  Calendar,
+  ClipboardCheck,
+  ClipboardList,
+  Dumbbell,
+  Mail,
+  Package,
+  ShieldCheck,
+  Trophy,
+  Users,
+  type LucideIcon,
+} from "lucide-react";
+
+import { Card, CardContent } from "@/components/ui/card";
+import { PageHeader } from "@/components/common/PageHeader";
+
+interface Section {
+  icon: LucideIcon;
+  title: string;
+  body: string;
+  audience?: string;
+}
+
+const SECTIONS: Section[] = [
+  {
+    icon: BookOpen,
+    title: "Panel de control",
+    body: "Vista general con métricas del sistema: deportistas registrados, programas activos, inscripciones y evaluaciones realizadas.",
+  },
+  {
+    icon: Users,
+    title: "Gestión de deportistas",
+    body: "Registra nuevos deportistas, actualiza su información, consulta su historial y cambia su estado entre activo e inactivo.",
+  },
+  {
+    icon: BookOpen,
+    title: "Programas y ediciones",
+    body: "Los programas agrupan las disciplinas que ofrece la academia. Cada programa puede tener múltiples ediciones con fechas y horarios específicos.",
+  },
+  {
+    icon: ClipboardList,
+    title: "Inscripciones",
+    body: "Registra a un deportista en un programa específico. Cada inscripción tiene fechas de inicio y fin, y un estado (activa, completada o retirado).",
+  },
+  {
+    icon: ShieldCheck,
+    title: "Evaluaciones",
+    body: "Registra evaluaciones de cinturón de cada deportista. Cada evaluación incluye métricas con puntuaciones y notas del evaluador.",
+  },
+  {
+    icon: Trophy,
+    title: "Reportes",
+    body: "Genera reportes de inscripción, rendimiento, asistencia y personalizados. Los reportes se generan de forma asíncrona y aparecen en la lista cuando estén listos.",
+    audience: "Administrador",
+  },
+  {
+    icon: Users,
+    title: "Gestión de usuarios",
+    body: "Crea usuarios y asigna roles: Deportista, Acudiente o Administrador. Cada rol tiene permisos distintos y vistas adaptadas.",
+    audience: "Administrador",
+  },
+  {
+    icon: Calendar,
+    title: "Reuniones",
+    body: "Programa reuniones con título, descripción, fecha y hora. Los acudientes y deportistas confirman su asistencia desde su panel.",
+    audience: "Administrador",
+  },
+  {
+    icon: Package,
+    title: "Inventario",
+    body: "Controla el equipo disponible: cascos, protectores de pecho, tatamis, pads de patadas y palchaguis. Registra cantidad y descripción de cada ítem.",
+    audience: "Administrador",
+  },
+  {
+    icon: Trophy,
+    title: "Categorías de competencia",
+    body: "Define categorías con rangos de edad, cinturones y peso para las competencias de Taekwondo.",
+    audience: "Administrador",
+  },
+  {
+    icon: Dumbbell,
+    title: "Entrenamientos",
+    body: "Registra sesiones indicando el tipo (fuerza, velocidad, agilidad, flexibilidad, sparring, poomsae, breaking, evaluación de cinturón), fecha, hora y número de atletas.",
+  },
+  {
+    icon: ClipboardCheck,
+    title: "Asistencia",
+    body: "Lleva el registro de asistencia por sesión: presente, tarde o ausente. Los reportes de asistencia ayudan a medir el compromiso del deportista.",
+  },
+];
 
 export default function HelpPage() {
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Ayuda</h1>
+      <PageHeader
+        title="Ayuda"
+        description="Guía rápida sobre cada módulo del sistema."
+        eyebrow="Manual de usuario"
+      />
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        {SECTIONS.map((section) => {
+          const Icon = section.icon;
+          return (
+            <Card key={section.title}>
+              <CardContent className="p-5">
+                <div className="flex items-start gap-3">
+                  <span className="grid h-9 w-9 shrink-0 place-items-center rounded-md bg-primary/10 text-primary">
+                    <Icon className="h-4 w-4" />
+                  </span>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <h2 className="font-display text-base font-semibold tracking-tight text-text">
+                        {section.title}
+                      </h2>
+                      {section.audience && (
+                        <span className="rounded-full border border-border px-2 py-0.5 text-[0.65rem] font-medium uppercase tracking-wider text-faint">
+                          {section.audience}
+                        </span>
+                      )}
+                    </div>
+                    <p className="mt-1.5 text-sm leading-relaxed text-muted">
+                      {section.body}
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
 
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <BookOpen className="h-5 w-5" />
-            Manual de Usuario — Warriors TKD
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <section>
-            <h2 className="text-xl font-semibold mb-2">Panel de Control</h2>
-            <p className="text-muted-foreground">
-              El panel de control te permite ver métricas generales del sistema, incluyendo
-              deportistas registrados, programas activos, inscripciones y evaluaciones realizadas.
-            </p>
-          </section>
-
-          <section>
-            <h2 className="text-xl font-semibold mb-2">Gestión de Deportistas</h2>
-            <p className="text-muted-foreground">
-              Aquí puedes registrar nuevos deportistas, actualizar su información,
-              consultar su historial y cambiar su estado (activo/inactivo).
-            </p>
-          </section>
-
-          <section>
-            <h2 className="text-xl font-semibold mb-2">Programas y Ediciones</h2>
-            <p className="text-muted-foreground">
-              Los programas agrupan las distintas disciplinasoffered. Cada programa
-              puede tener múltiples ediciones con fechas y horarios específicos.
-            </p>
-          </section>
-
-          <section>
-            <h2 className="text-xl font-semibold mb-2">Inscripciones</h2>
-            <p className="text-muted-foreground">
-              Registra a un deportista en un programa específico. Cada inscripción
-              tiene fechas de inicio y fin, y un estado (activa, completada, abandonada).
-            </p>
-          </section>
-
-          <section>
-            <h2 className="text-xl font-semibold mb-2">Evaluaciones</h2>
-            <p className="text-muted-foreground">
-              Registra las evaluaciones de cinturón de cada deportista. Cada evaluación
-              incluye métricas con puntuaciones y notas del evaluador.
-            </p>
-          </section>
-
-          <section>
-            <h2 className="text-xl font-semibold mb-2">Reportes (Admin)</h2>
-            <p className="text-muted-foreground">
-              Los administradores pueden generar reportes de inscripción, rendimiento,
-              asistencia y personalizados. Los reportes se generan de forma asíncrona.
-            </p>
-          </section>
-
-          <section>
-            <h2 className="text-xl font-semibold mb-2">Gestión de Usuarios (Admin)</h2>
-            <p className="text-muted-foreground">
-              Los administradores pueden crear usuarios y asignar roles: Deportista,
-              Acudiente o Administrador. Cada rol tiene permisos distintos.
-            </p>
-          </section>
-
-          <section>
-            <h2 className="text-xl font-semibold mb-2">Reuniones (Admin)</h2>
-            <p className="text-muted-foreground">
-              Programa reuniones con título, descripción, fecha y hora.
-              Gestiona las reuniones agendadas desde esta sección.
-            </p>
-          </section>
-
-          <section>
-            <h2 className="text-xl font-semibold mb-2">Inventario (Admin)</h2>
-            <p className="text-muted-foreground">
-              Controla el equipo disponible: cascos, protectores de pecho, tatamis,
-              pads de patadas y palchaguis. Registra cantidad y descripción de cada ítem.
-            </p>
-          </section>
-
-          <section>
-            <h2 className="text-xl font-semibold mb-2">Categorías de Competencia (Admin)</h2>
-            <p className="text-muted-foreground">
-              Define categorías con rangos de edad, cinturones y peso para las
-              competencias de Taekwondo.
-            </p>
-          </section>
-
-          <section>
-            <h2 className="text-xl font-semibold mb-2">Entrenamientos</h2>
-            <p className="text-muted-foreground">
-              Registra sesiones de entrenamiento indicando el tipo (fuerza, velocidad,
-              agilidad, flexibilidad, sparring, poomsae, breaking, evaluación de cinturón),
-              fecha, hora y número de atletas.
-            </p>
-          </section>
-
-          <section>
-            <h2 className="text-xl font-semibold mb-2">Contacto</h2>
-            <p className="text-muted-foreground">
-              Para soporte técnico, comunícate con el administrador del sistema
-              o escribe a soporte@warriors-tkd.com
-            </p>
-          </section>
+        <CardContent className="flex flex-col items-start gap-3 p-5 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-start gap-3">
+            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-md bg-primary/10 text-primary">
+              <Mail className="h-4 w-4" />
+            </span>
+            <div>
+              <p className="font-display text-base font-semibold tracking-tight text-text">
+                ¿Necesitas más ayuda?
+              </p>
+              <p className="text-sm text-muted">
+                Contacta al administrador o escribe a soporte@warriors-tkd.com
+              </p>
+            </div>
+          </div>
+          <a
+            href="mailto:soporte@warriors-tkd.com"
+            className="text-sm font-medium text-primary underline-offset-4 hover:underline"
+          >
+            soporte@warriors-tkd.com
+          </a>
         </CardContent>
       </Card>
     </div>

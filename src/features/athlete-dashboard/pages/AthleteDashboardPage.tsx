@@ -1,20 +1,73 @@
-import { useEffect, useState, useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
-  Card, CardContent, CardHeader, CardTitle
-} from "@/components/ui/card";
-import {
-  BarChart3, Calendar, Dumbbell,
-  FileText, User, Camera, ClipboardCheck
+  BarChart3,
+  Calendar,
+  Camera,
+  ClipboardCheck,
+  Dumbbell,
+  FileText,
+  type LucideIcon,
+  Trophy,
 } from "lucide-react";
+
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { EmptyState } from "@/components/common/EmptyState";
+import { PageHeader } from "@/components/common/PageHeader";
+import { ScrollReveal } from "@/components/common/ScrollReveal";
+import { StatsRow } from "@/components/common/StatsRow";
+import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/features/auth/store/authStore";
-import { attendanceApi } from "@/features/attendance/api/attendanceApi";
-import { athletesApi } from "@/features/athletes/api/athletesApi";
-import { useApiErrorHandler } from "@/feedback/useApiErrorHandler";
 import { useAuthReady } from "@/features/auth/components/RoleRoute";
+import { athletesApi } from "@/features/athletes/api/athletesApi";
+import { attendanceApi } from "@/features/attendance/api/attendanceApi";
+import { useApiErrorHandler } from "@/feedback/useApiErrorHandler";
 import type { Athlete } from "@/types/entities";
 
 type ViewMode = "weekly" | "monthly" | "yearly";
+
+interface AttendanceSummary {
+  total_sessions: number;
+  present_sessions: number;
+  late_sessions: number;
+  absent_sessions: number;
+  attendance_rate: number;
+}
+
+const VIEW_MODES: { value: ViewMode; label: string }[] = [
+  { value: "weekly", label: "Semanal" },
+  { value: "monthly", label: "Mensual" },
+  { value: "yearly", label: "Anual" },
+];
+
+const ACTIONS: { to: string; icon: LucideIcon; label: string; description: string }[] = [
+  {
+    to: "/dashboard/asistencia",
+    icon: ClipboardCheck,
+    label: "Asistencia",
+    description: "Mi asistencia",
+  },
+  {
+    to: "/dashboard/deportista/entrenamientos",
+    icon: Dumbbell,
+    label: "Entrenamientos",
+    description: "Próximas sesiones",
+  },
+  {
+    to: "/dashboard/reuniones",
+    icon: Calendar,
+    label: "Reuniones",
+    description: "Confirmar asistencia",
+  },
+  {
+    to: "/dashboard/evaluacion-tecnica",
+    icon: Camera,
+    label: "Evaluación técnica",
+    description: "Registrar patadas",
+  },
+];
 
 export default function AthleteDashboardPage() {
   const user = useAuthStore((s) => s.user);
@@ -24,212 +77,222 @@ export default function AthleteDashboardPage() {
   const [athlete, setAthlete] = useState<Athlete | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Attendance summary
   const [viewMode, setViewMode] = useState<ViewMode>("monthly");
-  const [summary, setSummary] = useState<{
-    total_sessions: number;
-    present_sessions: number;
-    late_sessions: number;
-    absent_sessions: number;
-    attendance_rate: number;
-  } | null>(null);
+  const [summary, setSummary] = useState<AttendanceSummary | null>(null);
 
-  // Load athlete data
   useEffect(() => {
     if (!authReady) return;
     setLoading(true);
-    athletesApi.getMe()
-      .then((data) => {
-        setAthlete(data);
-      })
-      .catch((err) => {
-        handleError(err);
-      })
+    athletesApi
+      .getMe()
+      .then(setAthlete)
+      .catch(handleError)
       .finally(() => setLoading(false));
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authReady]);
 
-  // Load attendance summary when athlete or date range changes
   const loadSummary = useCallback(() => {
     if (!athlete) return;
-    attendanceApi.summary({ athlete_id: athlete.id })
+    attendanceApi
+      .summary({ athlete_id: athlete.id })
       .then(setSummary)
-      .catch((err) => handleError(err));
+      .catch(handleError);
   }, [athlete, handleError]);
 
   useEffect(() => {
     if (athlete) loadSummary();
   }, [athlete, loadSummary]);
 
-  const updateRange = (mode: ViewMode) => {
-    setViewMode(mode);
-  };
-
   const attendanceRate = summary?.attendance_rate ?? 0;
-  const rateColor = attendanceRate >= 80 ? "text-green-600" : attendanceRate >= 60 ? "text-yellow-600" : "text-red-600";
+  const rateTone =
+    attendanceRate >= 80 ? "success" : attendanceRate >= 60 ? "warning" : "error";
+  const rateBarClass =
+    attendanceRate >= 80
+      ? "bg-success"
+      : attendanceRate >= 60
+        ? "bg-warning"
+        : "bg-error";
+
+  const firstName = user?.full_name?.split(" ")[0] ?? "";
 
   return (
     <div className="space-y-6">
-      {/* Welcome */}
-      <div>
-        <h1 className="text-3xl font-bold">Bienvenido, {user?.full_name?.split(" ")[0]}</h1>
-        <p className="text-muted-foreground">Tu panel de seguimiento como deportista</p>
-      </div>
+      <PageHeader
+        title={`Hola, ${firstName}`}
+        description="Tu panel de seguimiento como deportista."
+        eyebrow="Mi entrenamiento"
+      />
 
-      {/* Profile Card */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <User size={18} /> Mi Perfil Deportivo
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {loading ? (
-            <p>Cargando...</p>
-          ) : athlete ? (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div>
-                <p className="text-sm text-muted-foreground">Nombre</p>
-                <p className="font-medium">{athlete.full_name}</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Categoría</p>
-                <p className="font-medium">{athlete.categoria_competencia_name || "—"}</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Cinturón</p>
-                <p className="font-medium">{athlete.belt_actual_name || "—"}</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Fecha Nac.</p>
-                <p className="font-medium">
-                  {athlete.date_of_birth ? new Date(athlete.date_of_birth).toLocaleDateString() : "—"}
-                </p>
+      {/* Hero band */}
+      {loading ? (
+        <Skeleton className="h-32 w-full" />
+      ) : athlete ? (
+        <Card className="overflow-hidden border-primary/20 bg-gradient-to-br from-primary/8 via-surface to-surface-2">
+          <CardContent className="grid gap-4 p-6 sm:grid-cols-[1fr_auto] sm:items-center">
+            <div className="space-y-2">
+              <p className="font-display text-3xl font-semibold tracking-tight text-text">
+                {athlete.full_name}
+              </p>
+              <div className="flex flex-wrap items-center gap-2 text-sm">
+                {athlete.belt_actual_name && (
+                  <Badge variant="tonal">{athlete.belt_actual_name}</Badge>
+                )}
+                {athlete.categoria_competencia_name && (
+                  <Badge variant="outline">{athlete.categoria_competencia_name}</Badge>
+                )}
+                {athlete.date_of_birth && (
+                  <span className="text-muted">
+                    Nacido el {new Date(athlete.date_of_birth).toLocaleDateString()}
+                  </span>
+                )}
               </div>
             </div>
-          ) : (
-            <p className="text-muted-foreground">
-              No tienes un perfil de atleta vinculado. Contacta al administrador.
-            </p>
-          )}
-        </CardContent>
-      </Card>
+            <div className="hidden sm:grid h-20 w-20 place-items-center rounded-full bg-primary/10 text-primary">
+              <Trophy className="h-9 w-9" strokeWidth={1.75} />
+            </div>
+          </CardContent>
+        </Card>
+      ) : (
+        <Card>
+          <EmptyState
+            icon={Trophy}
+            title="Sin perfil deportivo vinculado"
+            description="Aún no tienes un perfil de atleta vinculado a tu cuenta. Contacta al administrador para completar tu inscripción."
+          />
+        </Card>
+      )}
 
-      {/* Quick Actions */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Link
-          to="/dashboard/asistencia"
-          className="flex flex-col items-center p-4 bg-white rounded-lg border hover:shadow-md transition"
-        >
-          <ClipboardCheck className="text-green-600 mb-2" size={32} />
-          <span className="text-sm font-medium">Asistencia</span>
-          <span className="text-xs text-muted-foreground">Ver mi asistencia</span>
-        </Link>
+      {/* Stats */}
+      {summary && (
+        <StatsRow
+          columns={4}
+          items={[
+            {
+              label: "Asistencia",
+              value: `${attendanceRate}%`,
+              icon: BarChart3,
+              tone: rateTone,
+              helper: `${summary.total_sessions} sesiones`,
+            },
+            {
+              label: "Presente",
+              value: summary.present_sessions,
+              icon: ClipboardCheck,
+              tone: "success",
+            },
+            {
+              label: "Tarde",
+              value: summary.late_sessions,
+              icon: Calendar,
+              tone: "warning",
+            },
+            {
+              label: "Ausente",
+              value: summary.absent_sessions,
+              icon: Calendar,
+              tone: "error",
+            },
+          ]}
+        />
+      )}
 
-        <Link
-          to="/dashboard/entrenamientos"
-          className="flex flex-col items-center p-4 bg-white rounded-lg border hover:shadow-md transition"
-        >
-          <Dumbbell className="text-blue-600 mb-2" size={32} />
-          <span className="text-sm font-medium">Entrenamientos</span>
-          <span className="text-xs text-muted-foreground">Ver sesiones</span>
-        </Link>
-
-        <Link
-          to="/dashboard/reuniones"
-          className="flex flex-col items-center p-4 bg-white rounded-lg border hover:shadow-md transition"
-        >
-          <Calendar className="text-purple-600 mb-2" size={32} />
-          <span className="text-sm font-medium">Reuniones</span>
-          <span className="text-xs text-muted-foreground">Confirmar asistencia</span>
-        </Link>
-
-        <Link
-          to="/dashboard/evaluacion-tecnica"
-          className="flex flex-col items-center p-4 bg-white rounded-lg border hover:shadow-md transition"
-        >
-          <Camera className="text-orange-600 mb-2" size={32} />
-          <span className="text-sm font-medium">Evaluación Técnica</span>
-          <span className="text-xs text-muted-foreground">Registrar patadas</span>
-        </Link>
-      </div>
-
-      {/* Attendance Summary */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <BarChart3 size={18} /> Resumen de Asistencia
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {/* View mode toggle */}
-          <div className="flex gap-2">
-            {(["weekly", "monthly", "yearly"] as ViewMode[]).map((mode) => (
-              <button
-                key={mode}
-                onClick={() => updateRange(mode)}
-                className={`px-3 py-1 rounded text-sm ${
-                  viewMode === mode
-                    ? "bg-green-600 text-white"
-                    : "bg-gray-100 hover:bg-gray-200"
-                }`}
+      {/* Quick actions */}
+      <ScrollReveal>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          {ACTIONS.map((action) => {
+            const Icon = action.icon;
+            return (
+              <Link
+                key={action.to}
+                to={action.to}
+                className="group flex flex-col items-start gap-3 rounded-lg border border-border bg-surface p-4 transition-interactive hover:border-primary/40 hover:bg-primary/5 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
               >
-                {mode === "weekly" ? "Semanal" : mode === "monthly" ? "Mensual" : "Anual"}
+                <span className="grid h-10 w-10 place-items-center rounded-md bg-primary/10 text-primary transition-interactive group-hover:bg-primary/15">
+                  <Icon className="h-4 w-4" />
+                </span>
+                <div className="min-w-0">
+                  <p className="font-medium text-text">{action.label}</p>
+                  <p className="text-xs text-muted">{action.description}</p>
+                </div>
+              </Link>
+            );
+          })}
+        </div>
+      </ScrollReveal>
+
+      {/* Attendance breakdown */}
+      <ScrollReveal>
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0">
+          <CardTitle className="font-display text-lg font-semibold tracking-tight">
+            Asistencia
+          </CardTitle>
+          <div className="flex gap-1 rounded-md bg-surface-2 p-1">
+            {VIEW_MODES.map((m) => (
+              <button
+                key={m.value}
+                type="button"
+                onClick={() => setViewMode(m.value)}
+                aria-pressed={viewMode === m.value}
+                className={cn(
+                  "rounded-sm px-3 py-1 text-xs font-medium transition-colors",
+                  viewMode === m.value
+                    ? "bg-surface text-text shadow-subtle"
+                    : "text-muted hover:text-text",
+                )}
+              >
+                {m.label}
               </button>
             ))}
           </div>
-
-          {/* Progress bar */}
+        </CardHeader>
+        <CardContent className="space-y-4">
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
-              <span>Tasa de Asistencia</span>
-              <span className={`font-bold ${rateColor}`}>{attendanceRate}%</span>
+              <span className="text-muted">Tasa de asistencia</span>
+              <span
+                className={cn(
+                  "font-display font-semibold tabular-nums",
+                  rateTone === "success" && "text-success",
+                  rateTone === "warning" && "text-warning",
+                  rateTone === "error" && "text-error",
+                )}
+              >
+                {attendanceRate}%
+              </span>
             </div>
-            <div className="h-4 bg-gray-200 rounded-full overflow-hidden">
+            <div className="h-2 overflow-hidden rounded-full bg-surface-2">
               <div
-                className={`h-full transition-all ${
-                  attendanceRate >= 80 ? "bg-green-500" : attendanceRate >= 60 ? "bg-yellow-500" : "bg-red-500"
-                }`}
+                className={cn("h-full transition-all duration-300", rateBarClass)}
                 style={{ width: `${attendanceRate}%` }}
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-valuenow={attendanceRate}
+                role="progressbar"
+                aria-label="Tasa de asistencia"
               />
             </div>
           </div>
-
-          {/* Stats */}
-          {summary && (
-            <div className="grid grid-cols-4 gap-4 text-center">
-              <div className="p-3 bg-green-50 rounded-lg">
-                <p className="text-2xl font-bold text-green-600">{summary.present_sessions}</p>
-                <p className="text-xs text-green-700">Presente</p>
-              </div>
-              <div className="p-3 bg-yellow-50 rounded-lg">
-                <p className="text-2xl font-bold text-yellow-600">{summary.late_sessions}</p>
-                <p className="text-xs text-yellow-700">Tarde</p>
-              </div>
-              <div className="p-3 bg-red-50 rounded-lg">
-                <p className="text-2xl font-bold text-red-600">{summary.absent_sessions}</p>
-                <p className="text-xs text-red-700">Ausente</p>
-              </div>
-              <div className="p-3 bg-gray-50 rounded-lg">
-                <p className="text-2xl font-bold">{summary.total_sessions}</p>
-                <p className="text-xs text-gray-700">Total Sesiones</p>
-              </div>
-            </div>
-          )}
+          {!summary && <Skeleton className="h-12 w-full" />}
         </CardContent>
       </Card>
+      </ScrollReveal>
 
-      {/* Help Link */}
-      <Link
-        to="/dashboard/ayuda"
-        className="flex items-center gap-2 p-4 bg-blue-50 rounded-lg border border-blue-100 hover:bg-blue-100 transition"
-      >
-        <FileText className="text-blue-600" size={20} />
-        <div>
-          <p className="font-medium text-blue-900">Manual de Usuario</p>
-          <p className="text-sm text-blue-700">Consulta guías y tutoriales</p>
-        </div>
-      </Link>
+      {/* Help link */}
+      <ScrollReveal>
+        <Link
+          to="/dashboard/ayuda"
+          className="group flex items-center gap-3 rounded-lg border border-border bg-surface p-4 transition-interactive hover:border-primary/30 hover:bg-primary/5 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
+        >
+          <span className="grid h-10 w-10 place-items-center rounded-md bg-primary/10 text-primary transition-interactive group-hover:bg-primary/15">
+            <FileText className="h-4 w-4" />
+          </span>
+          <div>
+            <p className="font-medium text-text">Manual de usuario</p>
+            <p className="text-sm text-muted">Guías rápidas y tutoriales</p>
+          </div>
+        </Link>
+      </ScrollReveal>
     </div>
   );
 }

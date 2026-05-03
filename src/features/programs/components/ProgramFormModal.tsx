@@ -69,7 +69,7 @@ export default function ProgramFormModal({
             <div className="space-y-1">
               <Label>Nombre</Label>
               <Field as={Input} name="name" />
-              <ErrorMessage name="name" component="p" className="text-sm text-red-500" />
+              <ErrorMessage name="name" component="p" className="text-sm text-error" />
             </div>
 
             <div className="space-y-1">
@@ -88,7 +88,7 @@ export default function ProgramFormModal({
             <div className="space-y-1">
               <Label>Capacidad</Label>
               <Field as={Input} type="number" name="capacity" min={1} max={999} />
-              <ErrorMessage name="capacity" component="p" className="text-sm text-red-500" />
+              <ErrorMessage name="capacity" component="p" className="text-sm text-error" />
             </div>
 
             <div className="flex items-center gap-2">
@@ -108,7 +108,7 @@ export default function ProgramFormModal({
               </Button>
               <Button
                 type="submit"
-                className="bg-green-600 hover:bg-green-700"
+               
                 disabled={isSubmitting}
               >
                 {isSubmitting ? "Guardando..." : isEdit ? "Actualizar" : "Crear"}

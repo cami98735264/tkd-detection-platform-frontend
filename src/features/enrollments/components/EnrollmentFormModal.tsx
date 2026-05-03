@@ -7,6 +7,13 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import FormModal from "@/components/common/FormModal";
 import AsyncSelectField from "@/components/common/AsyncSelectField";
+import { FormikSelect } from "@/components/common/FormSelect";
+
+const STATUS_OPTIONS = [
+  { value: "active", label: "Activo" },
+  { value: "completed", label: "Completado" },
+  { value: "dropped", label: "Retirado" },
+];
 import { athletesApi } from "@/features/athletes/api/athletesApi";
 import { programsApi } from "@/features/programs/api/programsApi";
 import type { Enrollment } from "@/types/entities";
@@ -100,7 +107,7 @@ export default function EnrollmentFormModal({
                 loadOptions={loadAthletes}
                 placeholder="Buscar deportista..."
               />
-              <ErrorMessage name="athlete" component="p" className="text-sm text-red-500" />
+              <ErrorMessage name="athlete" component="p" className="text-sm text-error" />
             </div>
 
             <div className="space-y-1">
@@ -112,14 +119,14 @@ export default function EnrollmentFormModal({
                 loadOptions={loadPrograms}
                 placeholder="Buscar programa..."
               />
-              <ErrorMessage name="program" component="p" className="text-sm text-red-500" />
+              <ErrorMessage name="program" component="p" className="text-sm text-error" />
             </div>
 
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-1">
                 <Label>Fecha inicio</Label>
                 <Field as={Input} type="date" name="start_date" />
-                <ErrorMessage name="start_date" component="p" className="text-sm text-red-500" />
+                <ErrorMessage name="start_date" component="p" className="text-sm text-error" />
               </div>
               <div className="space-y-1">
                 <Label>Fecha fin</Label>
@@ -129,15 +136,7 @@ export default function EnrollmentFormModal({
 
             <div className="space-y-1">
               <Label>Estado</Label>
-              <Field
-                as="select"
-                name="status"
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-              >
-                <option value="active">Activo</option>
-                <option value="completed">Completado</option>
-                <option value="dropped">Retirado</option>
-              </Field>
+              <FormikSelect name="status" options={STATUS_OPTIONS} />
             </div>
 
             <div className="space-y-1">
@@ -151,7 +150,7 @@ export default function EnrollmentFormModal({
               </Button>
               <Button
                 type="submit"
-                className="bg-green-600 hover:bg-green-700"
+               
                 disabled={isSubmitting}
               >
                 {isSubmitting ? "Guardando..." : isEdit ? "Actualizar" : "Crear"}

@@ -1,11 +1,20 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
+import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+
+function readPrimaryColor(): string {
+  if (typeof window === "undefined") return "#b94236";
+  const v = getComputedStyle(document.documentElement)
+    .getPropertyValue("--primary")
+    .trim();
+  return v || "#b94236";
+}
 
 export interface ScheduleEntry {
   days: string[];
@@ -44,6 +53,15 @@ export default function SchedulePicker({ value, onChange }: Props) {
   );
   const [startTime, setStartTime] = useState(value[0]?.startTime ?? "18:00");
   const [endTime, setEndTime] = useState(value[0]?.endTime ?? "19:30");
+  const [eventColor, setEventColor] = useState<string>(readPrimaryColor);
+
+  useEffect(() => {
+    setEventColor(readPrimaryColor());
+    if (typeof window === "undefined") return;
+    const observer = new MutationObserver(() => setEventColor(readPrimaryColor()));
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+    return () => observer.disconnect();
+  }, []);
 
   const toggleDay = (day: string) => {
     setSelectedDays(prev =>
@@ -63,7 +81,7 @@ export default function SchedulePicker({ value, onChange }: Props) {
       startTime: entry.startTime,
       endTime: entry.endTime,
       display: "time",
-      color: "#16a34a",
+      color: eventColor,
     }))
   );
 
@@ -77,9 +95,6 @@ export default function SchedulePicker({ value, onChange }: Props) {
             variant={selectedDays.includes(day) ? "default" : "outline"}
             size="sm"
             onClick={() => toggleDay(day)}
-            className={
-              selectedDays.includes(day) ? "bg-green-600 hover:bg-green-700" : ""
-            }
           >
             {DAY_LABELS[day]}
           </Button>
@@ -112,7 +127,7 @@ export default function SchedulePicker({ value, onChange }: Props) {
         </Button>
       </div>
       {value.length > 0 && (
-        <div className="border rounded-md p-3 space-y-2">
+        <div className="border border-border rounded-md p-3 space-y-2">
           {value.map((entry, idx) => (
             <div key={idx} className="flex justify-between items-center">
               <span className="text-sm">
@@ -122,16 +137,18 @@ export default function SchedulePicker({ value, onChange }: Props) {
               <Button
                 type="button"
                 variant="ghost"
-                size="sm"
+                size="icon"
+                aria-label="Eliminar horario"
+                className="h-8 w-8"
                 onClick={() => onChange(value.filter((_, i) => i !== idx))}
               >
-                ✕
+                <X className="h-4 w-4" />
               </Button>
             </div>
           ))}
         </div>
       )}
-      <div className="border rounded-md overflow-hidden">
+      <div className="border border-border rounded-md overflow-hidden">
         <FullCalendar
           plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
           initialView="timeGridWeek"

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -15,6 +15,8 @@ import { athletesApi } from "@/features/athletes/api/athletesApi";
 import type { Athlete } from "@/types/entities";
 
 type Step = "choose" | "consent" | "kick" | "record" | "results";
+
+const STEP_ORDER: Step[] = ["choose", "consent", "kick", "record", "results"];
 
 interface ConsentInfo {
   consent_granted: boolean;
@@ -38,6 +40,14 @@ export default function TechnicalEvaluationPage() {
   const isParent = user?.role === "parent";
 
   const [step, setStep] = useState<Step>("choose");
+  const prevStepRef = useRef<Step>(step);
+  const stepDirection: "right" | "left" =
+    STEP_ORDER.indexOf(step) >= STEP_ORDER.indexOf(prevStepRef.current)
+      ? "right"
+      : "left";
+  useEffect(() => {
+    prevStepRef.current = step;
+  }, [step]);
   const [myAthlete, setMyAthlete] = useState<Athlete | null>(null);
   const [kickType, setKickType] = useState<KickType | null>(null);
   const [sessionId, setSessionId] = useState<number | null>(null);
@@ -201,11 +211,11 @@ export default function TechnicalEvaluationPage() {
           <>
             <Card>
               <CardHeader>
-                <CardTitle>DeportistasVinculados</CardTitle>
+                <CardTitle className="font-display text-lg font-semibold tracking-tight">Deportistas vinculados</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 {linkedMinors.map((minor) => (
-                  <div key={minor.athlete_id} className="flex items-center justify-between border-b pb-3 last:border-0">
+                  <div key={minor.athlete_id} className="flex items-center justify-between border-b border-divider pb-3 last:border-0">
                     <div>
                       <p className="font-medium">{minor.athlete_name}</p>
                       <p className="text-xs text-muted-foreground">
@@ -217,7 +227,7 @@ export default function TechnicalEvaluationPage() {
                     <div>
                       {minor.consent_granted ? (
                         <div className="flex items-center gap-2">
-                          <Badge variant="default" className="bg-green-600">
+                          <Badge variant="success">
                             <CheckCircle size={12} className="mr-1" /> Autorizado
                           </Badge>
                           <Button
@@ -235,7 +245,7 @@ export default function TechnicalEvaluationPage() {
                           </Badge>
                           <Button
                             size="sm"
-                            className="bg-green-600 hover:bg-green-700"
+                           
                             onClick={() => handleGrantConsent(minor.athlete_id)}
                           >
                             Autorizar
@@ -267,7 +277,7 @@ export default function TechnicalEvaluationPage() {
                   {step === "results" && (
                     loadingSession ? (
                       <div className="py-12 flex flex-col items-center gap-4">
-                        <div className="animate-spin h-12 w-12 border-4 border-green-600 border-t-transparent rounded-full" />
+                        <div className="h-12 w-12 animate-spin rounded-full border-4 border-primary border-t-transparent" />
                         <p className="text-muted-foreground">Analizando patada...</p>
                       </div>
                     ) : session?.results ? (
@@ -289,7 +299,7 @@ export default function TechnicalEvaluationPage() {
                   {linkedMinors.filter(m => m.consent_granted).map((minor) => (
                     <div key={minor.athlete_id} className="flex justify-center gap-4">
                       <Button
-                        className="bg-green-600 hover:bg-green-700"
+                       
                         onClick={() => {
                           setSelectedChildId(minor.athlete_id);
                           setStep("kick");
@@ -332,7 +342,7 @@ export default function TechnicalEvaluationPage() {
         <h1 className="text-3xl font-bold">Evaluación Técnica</h1>
         <Card>
           <CardContent className="py-12 text-center">
-            <ShieldAlert className="mx-auto mb-4 text-yellow-500" size={48} />
+            <ShieldAlert className="mx-auto mb-4 text-warning" size={48} />
             <p className="text-muted-foreground">
               No tienes un perfil de deportista vinculado. Contacta al administrador.
             </p>
@@ -349,7 +359,7 @@ export default function TechnicalEvaluationPage() {
         <h1 className="text-3xl font-bold">Evaluación Técnica</h1>
         <Card>
           <CardContent className="py-12 flex flex-col items-center gap-4 text-center">
-            <ShieldAlert className="text-yellow-500" size={48} />
+            <ShieldAlert className="text-warning" size={48} />
             <div>
               <p className="font-medium text-lg mb-2">Consentimiento parental requerido</p>
               <p className="text-muted-foreground">
@@ -389,6 +399,16 @@ export default function TechnicalEvaluationPage() {
         )}
       </div>
 
+      {/* Stepped content — keyed wrapper restarts the directional slide
+       * keyframe on every step transition. */}
+      <div
+        key={step}
+        className={
+          stepDirection === "right"
+            ? "animate-slide-from-right"
+            : "animate-slide-from-left"
+        }
+      >
       {step === "consent" && (
         <ConsentStep onConsented={handleConsented} />
       )}
@@ -410,7 +430,7 @@ export default function TechnicalEvaluationPage() {
           {loadingSession ? (
             <Card>
               <CardContent className="py-12 flex flex-col items-center gap-4">
-                <div className="animate-spin h-12 w-12 border-4 border-green-600 border-t-transparent rounded-full" />
+                <div className="h-12 w-12 animate-spin rounded-full border-4 border-primary border-t-transparent" />
                 <div className="text-center">
                   <p className="font-medium">Analizando patada...</p>
                   <p className="text-sm text-muted-foreground">
@@ -424,7 +444,7 @@ export default function TechnicalEvaluationPage() {
           ) : session?.status === "failed" ? (
             <Card>
               <CardContent className="py-12 text-center">
-                <p className="text-red-500 font-medium mb-4">
+                <p className="text-error font-medium mb-4">
                   No se pudo procesar la evaluación.
                 </p>
                 <Button onClick={handleReset}>Intentar de nuevo</Button>
@@ -433,6 +453,7 @@ export default function TechnicalEvaluationPage() {
           ) : null}
         </>
       )}
+      </div>
     </div>
   );
 }

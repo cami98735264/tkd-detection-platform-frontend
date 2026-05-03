@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ClipboardCheck, Pencil, Plus, Trash2 } from "lucide-react";
+
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
-import DataTable, { type Column } from "@/components/common/DataTable";
-import Pagination from "@/components/common/Pagination";
+import type { Column, RowAction } from "@/components/common/DataTable";
+import { ListPageTemplate } from "@/components/common/ListPageTemplate";
 import EvaluationFormModal from "@/features/evaluations/components/EvaluationFormModal";
 import { evaluationsApi } from "@/features/evaluations/api/evaluationsApi";
 import { usePermissions } from "@/features/auth/hooks/usePermissions";
@@ -12,18 +13,37 @@ import { useFeedback } from "@/feedback/useFeedback";
 import type { Evaluation } from "@/types/entities";
 
 const columns: Column<Evaluation>[] = [
-  { key: "athlete_name", header: "Deportista" },
-  { key: "evaluator_name", header: "Evaluador" },
+  {
+    key: "athlete_name",
+    header: "Deportista",
+    render: (r) => <span className="font-medium text-text">{r.athlete_name}</span>,
+  },
+  {
+    key: "evaluator_name",
+    header: "Evaluador",
+    hideOnMobile: true,
+  },
   {
     key: "evaluated_at",
     header: "Fecha",
     render: (r) => new Date(r.evaluated_at).toLocaleDateString(),
   },
-  { key: "result_summary", header: "Resumen" },
+  {
+    key: "result_summary",
+    header: "Resumen",
+    hideOnMobile: true,
+    render: (r) => (
+      <span className="text-muted line-clamp-1">{r.result_summary || "—"}</span>
+    ),
+  },
   {
     key: "metrics",
     header: "Métricas",
-    render: (r) => `${r.metrics.length} métrica${r.metrics.length !== 1 ? "s" : ""}`,
+    render: (r) => (
+      <Badge variant="outline">
+        {r.metrics.length} métrica{r.metrics.length !== 1 ? "s" : ""}
+      </Badge>
+    ),
   },
 ];
 
@@ -41,21 +61,18 @@ export default function EvaluationsPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Evaluation | null>(null);
 
-  const fetchData = useCallback(
-    (p: number) => {
-      setLoading(true);
-      evaluationsApi
-        .list(p)
-        .then((res) => {
-          setData(res.results);
-          setCount(res.count);
-        })
-        .catch(handleError)
-        .finally(() => setLoading(false));
-    },
+  const fetchData = useCallback((p: number) => {
+    setLoading(true);
+    evaluationsApi
+      .list(p)
+      .then((res) => {
+        setData(res.results);
+        setCount(res.count);
+      })
+      .catch(handleError)
+      .finally(() => setLoading(false));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [page],
-  );
+  }, []);
 
   useEffect(() => {
     fetchData(page);
@@ -93,57 +110,94 @@ export default function EvaluationsPage() {
     }
   };
 
+  const actions: RowAction<Evaluation>[] = isAdminUser
+    ? [
+        {
+          id: "edit",
+          label: "Editar",
+          icon: Pencil,
+          variant: "ghost",
+          onClick: (row) => {
+            setEditing(row);
+            setModalOpen(true);
+          },
+        },
+        {
+          id: "delete",
+          label: "Eliminar",
+          icon: Trash2,
+          variant: "destructive",
+          onClick: handleDelete,
+        },
+      ]
+    : [];
+
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Evaluaciones</h1>
-        {isAdminUser && (
+    <ListPageTemplate
+      title="Evaluaciones"
+      description="Registro de evaluaciones técnicas y de desempeño de los deportistas."
+      eyebrow="Operación"
+      primaryAction={
+        isAdminUser ? (
           <Button
-            className="bg-green-600 hover:bg-green-700"
             onClick={() => {
               setEditing(null);
               setModalOpen(true);
             }}
           >
-            <Plus size={18} className="mr-2" /> Nueva
+            <Plus className="h-4 w-4" />
+            Nueva evaluación
           </Button>
-        )}
-      </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Lista de evaluaciones</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <DataTable
-            columns={columns}
-            data={data}
-            loading={loading}
-            onEdit={
-              isAdminUser
-                ? (row) => {
-                    setEditing(row);
-                    setModalOpen(true);
-                  }
-                : undefined
-            }
-            onDelete={isAdminUser ? handleDelete : undefined}
-          />
-          {!isParent && <Pagination count={count} page={page} onPageChange={setPage} />}
-        </CardContent>
-      </Card>
-
-      {isAdminUser && (
-        <EvaluationFormModal
-          open={modalOpen}
-          onOpenChange={(v) => {
-            setModalOpen(v);
-            if (!v) setEditing(null);
-          }}
-          evaluation={editing}
-          onSubmit={handleSubmit}
-        />
+        ) : undefined
+      }
+      columns={columns}
+      data={data}
+      loading={loading}
+      rowKey={(r) => r.id}
+      rowActions={actions}
+      mobileCard={(r) => (
+        <div className="space-y-1">
+          <p className="font-medium text-text">{r.athlete_name}</p>
+          <p className="text-xs text-muted">
+            {r.evaluator_name} · {new Date(r.evaluated_at).toLocaleDateString()}
+          </p>
+          {r.result_summary && (
+            <p className="text-xs text-faint line-clamp-2">{r.result_summary}</p>
+          )}
+        </div>
       )}
-    </div>
+      empty={{
+        icon: ClipboardCheck,
+        title: "Sin evaluaciones",
+        description: isAdminUser
+          ? "Crea la primera evaluación para registrar el desempeño de un deportista."
+          : "Las evaluaciones que recibas aparecerán aquí.",
+        action: isAdminUser ? (
+          <Button
+            onClick={() => {
+              setEditing(null);
+              setModalOpen(true);
+            }}
+          >
+            <Plus className="h-4 w-4" />
+            Crear evaluación
+          </Button>
+        ) : undefined,
+      }}
+      pagination={isParent ? undefined : { count, page, onChange: setPage }}
+      formSheet={
+        isAdminUser && (
+          <EvaluationFormModal
+            open={modalOpen}
+            onOpenChange={(v) => {
+              setModalOpen(v);
+              if (!v) setEditing(null);
+            }}
+            evaluation={editing}
+            onSubmit={handleSubmit}
+          />
+        )
+      }
+    />
   );
 }

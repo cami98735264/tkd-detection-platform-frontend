@@ -59,47 +59,47 @@ export default function CategoryFormModal({ open, onOpenChange, category, onSubm
               <div className="space-y-1">
                 <Label>Nombre</Label>
                 <Field as={Input} name="nombre" />
-                <ErrorMessage name="nombre" component="p" className="text-sm text-red-500" />
+                <ErrorMessage name="nombre" component="p" className="text-sm text-error" />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
                   <Label>Edad Mínima</Label>
                   <Field as={Input} type="number" name="edad_min" />
-                  <ErrorMessage name="edad_min" component="p" className="text-sm text-red-500" />
+                  <ErrorMessage name="edad_min" component="p" className="text-sm text-error" />
                 </div>
                 <div className="space-y-1">
                   <Label>Edad Máxima</Label>
                   <Field as={Input} type="number" name="edad_max" />
-                  <ErrorMessage name="edad_max" component="p" className="text-sm text-red-500" />
+                  <ErrorMessage name="edad_max" component="p" className="text-sm text-error" />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
                   <Label>Cinturón Desde</Label>
                   <Field as={Input} type="number" name="belt_from" />
-                  <ErrorMessage name="belt_from" component="p" className="text-sm text-red-500" />
+                  <ErrorMessage name="belt_from" component="p" className="text-sm text-error" />
                 </div>
                 <div className="space-y-1">
                   <Label>Cinturón Hasta</Label>
                   <Field as={Input} type="number" name="belt_to" />
-                  <ErrorMessage name="belt_to" component="p" className="text-sm text-red-500" />
+                  <ErrorMessage name="belt_to" component="p" className="text-sm text-error" />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
                   <Label>Peso Mínimo (kg)</Label>
                   <Field as={Input} type="number" name="peso_min" step="0.1" />
-                  <ErrorMessage name="peso_min" component="p" className="text-sm text-red-500" />
+                  <ErrorMessage name="peso_min" component="p" className="text-sm text-error" />
                 </div>
                 <div className="space-y-1">
                   <Label>Peso Máximo (kg)</Label>
                   <Field as={Input} type="number" name="peso_max" step="0.1" />
-                  <ErrorMessage name="peso_max" component="p" className="text-sm text-red-500" />
+                  <ErrorMessage name="peso_max" component="p" className="text-sm text-error" />
                 </div>
               </div>
               <div className="flex justify-end gap-3 pt-4">
                 <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
-                <Button type="submit" className="bg-green-600 hover:bg-green-700" disabled={isSubmitting}>
+                <Button type="submit" disabled={isSubmitting}>
                   {isSubmitting ? "Guardando..." : isEdit ? "Actualizar" : "Crear"}
                 </Button>
               </div>

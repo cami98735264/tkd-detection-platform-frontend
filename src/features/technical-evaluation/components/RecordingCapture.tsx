@@ -110,7 +110,7 @@ export default function RecordingCapture({ kickType, onComplete, onError }: Reco
           <CardTitle>Grabar Patada: {kickType}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          {camError && <p className="text-red-500 text-sm">{camError}</p>}
+          {camError && <p className="text-error text-sm">{camError}</p>}
 
           {!hasPermission ? (
             <div className="space-y-4">
@@ -167,15 +167,27 @@ export default function RecordingCapture({ kickType, onComplete, onError }: Reco
           </div>
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
-              <span className="text-red-500 font-medium">● REC</span>
-              <span>{secondsLeft}s / {RECORD_SECS}s</span>
+              <span className="inline-flex items-center gap-1.5 font-medium text-error">
+                <span className="h-2 w-2 rounded-full bg-error animate-pulse-soft" aria-hidden="true" />
+                REC
+              </span>
+              <span className="font-display tabular-nums text-text">
+                {secondsLeft}s <span className="text-faint">/ {RECORD_SECS}s</span>
+              </span>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
-                <div
-                  className="bg-red-500 h-2 transition-all duration-1000"
-                  style={{ width: `${progress}%` }}
-                />
-              </div>
+            <div
+              className="w-full bg-surface-2 rounded-full h-2 overflow-hidden"
+              role="progressbar"
+              aria-valuenow={progress}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-label="Progreso de grabación"
+            >
+              <div
+                className="bg-error h-2 transition-all duration-1000"
+                style={{ width: `${progress}%` }}
+              />
+            </div>
           </div>
           <p className="text-center text-muted-foreground text-sm">
             Ejecuta la patada con máxima fuerza y precisión
@@ -193,7 +205,7 @@ export default function RecordingCapture({ kickType, onComplete, onError }: Reco
       </CardHeader>
       <CardContent className="space-y-4 py-12">
         <div className="flex flex-col items-center gap-4">
-          <div className="animate-spin h-12 w-12 border-4 border-green-600 border-t-transparent rounded-full" />
+          <div className="h-12 w-12 animate-spin rounded-full border-4 border-primary border-t-transparent" />
           <p className="text-muted-foreground">Subiendo y analizando la patada...</p>
         </div>
       </CardContent>

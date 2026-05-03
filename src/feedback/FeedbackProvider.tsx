@@ -126,7 +126,24 @@ export function FeedbackProvider({
         />
       )}
 
-      <Toaster richColors position="top-right" />
+      <Toaster
+        position="top-right"
+        theme="system"
+        toastOptions={{
+          classNames: {
+            toast:
+              "bg-surface text-text border border-border shadow-overlay rounded-lg",
+            title: "font-medium text-text",
+            description: "text-muted text-sm",
+            actionButton: "bg-primary text-primary-foreground",
+            cancelButton: "bg-surface-2 text-text",
+            success: "[&_[data-icon]]:text-success",
+            error: "[&_[data-icon]]:text-error",
+            warning: "[&_[data-icon]]:text-warning",
+            info: "[&_[data-icon]]:text-primary",
+          },
+        }}
+      />
     </FeedbackContext.Provider>
   );
 }

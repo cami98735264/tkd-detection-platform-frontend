@@ -1,3 +1,5 @@
+import { CheckCircle2 } from "lucide-react";
+
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
@@ -10,13 +12,35 @@ interface KickTypeCardProps {
 export default function KickTypeCard({ name, selected, onClick }: KickTypeCardProps) {
   return (
     <Card
-      className={cn(
-        "p-4 cursor-pointer text-center transition-all hover:border-green-500",
-        selected ? "border-green-600 bg-green-50 ring-2 ring-green-500" : "border-border",
-      )}
+      role="button"
+      tabIndex={0}
       onClick={onClick}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onClick();
+        }
+      }}
+      className={cn(
+        "relative p-4 cursor-pointer text-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-bg",
+        selected
+          ? "border-primary bg-primary/5 ring-1 ring-primary"
+          : "border-border hover:border-primary/40 hover:bg-surface-2",
+      )}
+      aria-pressed={selected}
     >
-      <p className={cn("font-semibold text-lg", selected ? "text-green-700" : "text-foreground")}>
+      {selected && (
+        <CheckCircle2
+          className="absolute right-2 top-2 h-4 w-4 text-primary"
+          aria-hidden="true"
+        />
+      )}
+      <p
+        className={cn(
+          "font-display text-base font-semibold tracking-tight",
+          selected ? "text-primary" : "text-text",
+        )}
+      >
         {name}
       </p>
     </Card>

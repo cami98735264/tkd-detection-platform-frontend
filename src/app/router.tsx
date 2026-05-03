@@ -19,7 +19,6 @@ import SportsmanEvaluationsPage from "@/features/evaluations/pages/SportsmanEval
 import ParentEvaluationsPage from "@/features/evaluations/pages/ParentEvaluationsPage";
 import ReportsPage from "@/features/reports/pages/ReportsPage";
 import CompetitionCategoriesPage from "@/features/categories/pages/CategoriesPage";
-import RegistrationPage from "@/features/registration/pages/RegistrationPage";
 
 import UsersPage from "@/features/users/pages/UsersPage";
 import MeetingsPage from "@/features/meetings/pages/MeetingsPage";
@@ -121,10 +120,7 @@ export default function AppRouter() {
       </Route>
 
       {/* Default redirect */}
-      <Route path="/" element={<Navigate to="/dashboard/deportista" replace />} />
-
-      {/* Public registration */}
-      <Route path="/registro" element={<GuestRoute><RegistrationPage /></GuestRoute>} />
+      <Route path="/" element={<Navigate to="/dashboard" replace />} />
 
       {/* 404 global */}
       <Route path="*" element={<NotFound />} />

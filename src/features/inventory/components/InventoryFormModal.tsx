@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import FormModal from "@/components/common/FormModal";
+import { FormikSelect } from "@/components/common/FormSelect";
 import { itemTypesApi, type ItemType } from "../api/itemTypesApi";
 import type { InventoryItem } from "../api/inventoryApi";
 
@@ -70,23 +71,14 @@ export default function InventoryFormModal({ open, onOpenChange, item, onSubmit 
             <Form className="space-y-4">
               <div className="space-y-1">
                 <Label>Nombre del ítem</Label>
-                <Field
-                  as="select"
+                <FormikSelect
                   name="name"
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                  onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
-                    setFieldValue("name", e.target.value);
-                    if (e.target.value !== "Otro") {
-                      setCustomName("");
-                    }
+                  options={itemTypeOptions.map((t) => ({ value: t, label: t }))}
+                  onChangeExtra={(v) => {
+                    if (v !== "Otro") setCustomName("");
                   }}
-                >
-                  <option value="">Seleccionar...</option>
-                  {itemTypeOptions.map((t) => (
-                    <option key={t} value={t}>{t}</option>
-                  ))}
-                </Field>
-                <ErrorMessage name="name" component="p" className="text-sm text-red-500" />
+                />
+                <ErrorMessage name="name" component="p" className="text-sm text-error" />
               </div>
 
               {values.name === "Otro" && (
@@ -100,23 +92,23 @@ export default function InventoryFormModal({ open, onOpenChange, item, onSubmit 
                     }}
                     placeholder="Escribe el nombre del ítem"
                   />
-                  <ErrorMessage name="name" component="p" className="text-sm text-red-500" />
+                  <ErrorMessage name="name" component="p" className="text-sm text-error" />
                 </div>
               )}
 
               <div className="space-y-1">
                 <Label>Cantidad</Label>
                 <Field as={Input} type="number" name="quantity" min="0" />
-                <ErrorMessage name="quantity" component="p" className="text-sm text-red-500" />
+                <ErrorMessage name="quantity" component="p" className="text-sm text-error" />
               </div>
               <div className="space-y-1">
                 <Label>Descripción</Label>
                 <Field as={Input} name="description" />
-                <ErrorMessage name="description" component="p" className="text-sm text-red-500" />
+                <ErrorMessage name="description" component="p" className="text-sm text-error" />
               </div>
               <div className="flex justify-end gap-3 pt-4">
                 <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
-                <Button type="submit" className="bg-green-600 hover:bg-green-700" disabled={isSubmitting}>
+                <Button type="submit" disabled={isSubmitting}>
                   {isSubmitting ? "Guardando..." : isEdit ? "Actualizar" : "Crear"}
                 </Button>
               </div>

@@ -37,12 +37,13 @@ const columns: Column<ParentAthlete>[] = [
     render: (r) => (
       <div>
         <p className="font-medium">{r.athlete_full_name}</p>
-        <p className="text-xs text-muted-foreground">
-          {r.athlete_belt ? `Cin: ${r.athlete_belt}` : ""} |{" "}
+        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+          {r.athlete_belt ? <span>Cin: {r.athlete_belt}</span> : null}
+          {r.athlete_belt ? <span>|</span> : null}
           <Badge variant={r.athlete_status === "active" ? "default" : "secondary"} className="text-xs">
             {r.athlete_status === "active" ? "Activo" : r.athlete_status}
           </Badge>
-        </p>
+        </div>
       </div>
     ),
   },
@@ -146,7 +147,7 @@ export default function ParentAthletesPage() {
             Vincular deportistas a acudientes (padres/apoderados)
           </p>
         </div>
-        <Button className="bg-green-600 hover:bg-green-700" onClick={openAssignModal}>
+        <Button onClick={openAssignModal}>
           <UserPlus size={18} className="mr-2" /> Vincular Deportista
         </Button>
       </div>

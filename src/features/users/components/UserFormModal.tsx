@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import FormModal from "@/components/common/FormModal";
+import { FormikSelect } from "@/components/common/FormSelect";
 import type { User } from "../api/usersApi";
 
 const ROLES = [
@@ -73,7 +74,7 @@ export default function UserFormModal({
                 <ErrorMessage
                   name="full_name"
                   component="p"
-                  className="text-sm text-red-500"
+                  className="text-sm text-error"
                 />
               </div>
 
@@ -83,7 +84,7 @@ export default function UserFormModal({
                 <ErrorMessage
                   name="email"
                   component="p"
-                  className="text-sm text-red-500"
+                  className="text-sm text-error"
                 />
               </div>
 
@@ -94,28 +95,18 @@ export default function UserFormModal({
                   <ErrorMessage
                     name="password"
                     component="p"
-                    className="text-sm text-red-500"
+                    className="text-sm text-error"
                   />
                 </div>
               )}
 
               <div className="space-y-1">
                 <Label>Rol</Label>
-                <Field
-                  as="select"
-                  name="role"
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                >
-                  {ROLES.map((r) => (
-                    <option key={r.value} value={r.value}>
-                      {r.label}
-                    </option>
-                  ))}
-                </Field>
+                <FormikSelect name="role" options={ROLES} placeholder="Seleccionar rol" />
                 <ErrorMessage
                   name="role"
                   component="p"
-                  className="text-sm text-red-500"
+                  className="text-sm text-error"
                 />
               </div>
 
@@ -129,7 +120,7 @@ export default function UserFormModal({
                 </Button>
                 <Button
                   type="submit"
-                  className="bg-green-600 hover:bg-green-700"
+                 
                   disabled={isSubmitting}
                 >
                   {isSubmitting ? "Guardando..." : isEdit ? "Actualizar" : "Crear"}

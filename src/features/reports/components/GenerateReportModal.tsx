@@ -4,6 +4,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import FormModal from "@/components/common/FormModal";
+import { FormikSelect } from "@/components/common/FormSelect";
+
+const REPORT_TYPES = [
+  { value: "enrollment", label: "Inscripciones" },
+  { value: "performance", label: "Rendimiento" },
+  { value: "attendance", label: "Asistencia" },
+  { value: "custom", label: "Personalizado" },
+];
 
 const schema = Yup.object({
   title: Yup.string().required("El título es obligatorio"),
@@ -64,23 +72,13 @@ export default function GenerateReportModal({
             <div className="space-y-1">
               <Label>Título</Label>
               <Field as={Input} name="title" />
-              <ErrorMessage name="title" component="p" className="text-sm text-red-500" />
+              <ErrorMessage name="title" component="p" className="text-sm text-error" />
             </div>
 
             <div className="space-y-1">
               <Label>Tipo de reporte</Label>
-              <Field
-                as="select"
-                name="report_type"
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-              >
-                <option value="">Seleccionar...</option>
-                <option value="enrollment">Inscripciones</option>
-                <option value="performance">Rendimiento</option>
-                <option value="attendance">Asistencia</option>
-                <option value="custom">Personalizado</option>
-              </Field>
-              <ErrorMessage name="report_type" component="p" className="text-sm text-red-500" />
+              <FormikSelect name="report_type" options={REPORT_TYPES} />
+              <ErrorMessage name="report_type" component="p" className="text-sm text-error" />
             </div>
 
             <div className="grid gap-4 md:grid-cols-2">
@@ -100,7 +98,7 @@ export default function GenerateReportModal({
               </Button>
               <Button
                 type="submit"
-                className="bg-green-600 hover:bg-green-700"
+               
                 disabled={isSubmitting}
               >
                 {isSubmitting ? "Generando..." : "Generar"}

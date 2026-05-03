@@ -1,10 +1,36 @@
 import { useEffect, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  CheckCircle2,
+  Circle,
+  ClipboardCheck,
+  Clock,
+  RefreshCw,
+  Users,
+  XCircle,
+} from "lucide-react";
+
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { EmptyState } from "@/components/common/EmptyState";
+import { PageHeader } from "@/components/common/PageHeader";
+import { cn } from "@/lib/utils";
 import { axiosInstance } from "@/lib/http";
-import { attendanceApi, type AttendanceStatus } from "@/features/attendance/api/attendanceApi";
+import {
+  attendanceApi,
+  type AttendanceStatus,
+} from "@/features/attendance/api/attendanceApi";
+import { useApiErrorHandler } from "@/feedback/useApiErrorHandler";
+import { useFeedback } from "@/feedback/useFeedback";
 import type { Program } from "@/types/entities";
 
 interface AthleteOption {
@@ -19,7 +45,27 @@ interface StudentAttendance {
   observaciones: string;
 }
 
+const STATUS_BUTTONS: {
+  status: AttendanceStatus;
+  label: string;
+  icon: typeof CheckCircle2;
+}[] = [
+  { status: "present", label: "Presente", icon: CheckCircle2 },
+  { status: "late", label: "Tarde", icon: Clock },
+  { status: "absent", label: "Ausente", icon: XCircle },
+];
+
+function rowToneFor(status: AttendanceStatus): string {
+  if (status === "present") return "border-success/40 bg-success/8";
+  if (status === "late") return "border-warning/40 bg-warning/12";
+  if (status === "absent") return "border-error/30 bg-error/5";
+  return "border-border bg-surface";
+}
+
 export default function AttendanceRegisterPage() {
+  const { handleError } = useApiErrorHandler();
+  const { showToast, confirm } = useFeedback();
+
   const [programs, setPrograms] = useState<Program[]>([]);
   const [selectedProgramId, setSelectedProgramId] = useState<number | null>(null);
   const [athletes, setAthletes] = useState<AthleteOption[]>([]);
@@ -27,63 +73,66 @@ export default function AttendanceRegisterPage() {
   const [loadingAthletes, setLoadingAthletes] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
-  // View mode: "register" or "results"
   const [viewMode, setViewMode] = useState<"register" | "results">("register");
-  const [submitResult, setSubmitResult] = useState<{ created: number; fecha: string; hora: string } | null>(null);
+  const [submitResult, setSubmitResult] = useState<{
+    created: number;
+    fecha: string;
+    hora: string;
+  } | null>(null);
 
-  // Load active programs - runs once on mount
   useEffect(() => {
-    axiosInstance.get('/programs/?page=1')
+    axiosInstance
+      .get("/programs/?page=1")
       .then((res) => {
-        const programsData = res.data as { count?: number; results?: Program[] };
-        setPrograms((programsData.results || []).filter((p: Program) => p.active));
+        const data = res.data as { count?: number; results?: Program[] };
+        setPrograms((data.results || []).filter((p: Program) => p.active));
       })
       .catch((err) => {
-        console.error('[Attendance] Error loading programs:', err);
-        window.alert("Error cargando programas");
+        handleError(err);
       });
-  }, []);
+  }, [handleError]);
 
-  // Load enrolled athletes when program is selected
   useEffect(() => {
     if (!selectedProgramId) {
       setAthletes([]);
       setAttendance([]);
       return;
     }
-
     setLoadingAthletes(true);
-    axiosInstance.get(`/enrollments/?program_id=${selectedProgramId}&page=1`)
+    axiosInstance
+      .get(`/enrollments/?program_id=${selectedProgramId}&page=1`)
       .then((res) => {
-        const data = res.data as { count?: number; results?: { athlete: number; athlete_name?: string }[] };
-        const athleteOptions: AthleteOption[] = (data.results || []).map((enrollment) => ({
-          athlete_id: enrollment.athlete,
-          athlete_name: enrollment.athlete_name || `Athlete #${enrollment.athlete}`,
+        const data = res.data as {
+          count?: number;
+          results?: { athlete: number; athlete_name?: string }[];
+        };
+        const opts: AthleteOption[] = (data.results || []).map((e) => ({
+          athlete_id: e.athlete,
+          athlete_name: e.athlete_name || `Athlete #${e.athlete}`,
         }));
-        setAthletes(athleteOptions);
-        setAttendance(athleteOptions.map((a) => ({
-          athlete_id: a.athlete_id,
-          athlete_name: a.athlete_name,
-          status: "absent" as AttendanceStatus,
-          observaciones: "",
-        })));
+        setAthletes(opts);
+        setAttendance(
+          opts.map((a) => ({
+            athlete_id: a.athlete_id,
+            athlete_name: a.athlete_name,
+            status: "absent" as AttendanceStatus,
+            observaciones: "",
+          })),
+        );
       })
-      .catch((err) => {
-        console.error('[Attendance] Load error:', err);
-        window.alert(`Error cargando deportistas: ${err.message}`);
-      })
+      .catch(handleError)
       .finally(() => setLoadingAthletes(false));
-  }, [selectedProgramId]);
+  }, [selectedProgramId, handleError]);
 
   const handleStatusChange = (athleteId: number, status: AttendanceStatus) => {
     setAttendance((prev) =>
-      prev.map((a) => (a.athlete_id === athleteId ? { ...a, status } : a))
+      prev.map((a) => (a.athlete_id === athleteId ? { ...a, status } : a)),
     );
   };
 
   const handleObservacionesChange = (athleteId: number, observaciones: string) => {
     setAttendance((prev) =>
-      prev.map((a) => (a.athlete_id === athleteId ? { ...a, observaciones } : a))
+      prev.map((a) => (a.athlete_id === athleteId ? { ...a, observaciones } : a)),
     );
   };
 
@@ -93,15 +142,18 @@ export default function AttendanceRegisterPage() {
 
   const handleSubmit = async () => {
     if (!selectedProgramId) {
-      window.alert("Selecciona un programa");
+      showToast({ title: "Selecciona un programa", variant: "warning" });
       return;
     }
     if (attendance.length === 0) {
-      window.alert("No hay estudiantes para registrar");
+      showToast({ title: "No hay deportistas para registrar", variant: "warning" });
       return;
     }
 
-    const ok = window.confirm(`¿Registrar asistencia para ${attendance.length} estudiantes?`);
+    const ok = await confirm({
+      title: "Registrar asistencia",
+      description: `¿Registrar asistencia para ${attendance.length} deportista${attendance.length !== 1 ? "s" : ""}?`,
+    });
     if (!ok) return;
 
     setSubmitting(true);
@@ -116,177 +168,246 @@ export default function AttendanceRegisterPage() {
       });
 
       if (result.errors && result.errors.length > 0) {
-        window.alert(`Errores: ${result.errors.map((e) => `Atleta ${e.athlete_id}: ${e.error}`).join(", ")}`);
+        showToast({
+          title: "Errores al registrar",
+          description: result.errors
+            .map((e) => `Atleta ${e.athlete_id}: ${e.error}`)
+            .join("; "),
+          variant: "error",
+          duration: 6000,
+        });
       } else {
-        setSubmitResult({ created: result.created, fecha: result.fecha || "", hora: result.hora || "" });
+        setSubmitResult({
+          created: result.created,
+          fecha: result.fecha || "",
+          hora: result.hora || "",
+        });
         setViewMode("results");
         setSelectedProgramId(null);
         setAthletes([]);
         setAttendance([]);
       }
     } catch (err) {
-      window.alert(`Error: ${err instanceof Error ? err.message : "Unknown error"}`);
+      handleError(err);
     } finally {
       setSubmitting(false);
     }
   };
 
-  return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Registrar Asistencia</h1>
-      </div>
+  const counts = {
+    present: attendance.filter((a) => a.status === "present").length,
+    late: attendance.filter((a) => a.status === "late").length,
+    absent: attendance.filter((a) => a.status === "absent").length,
+  };
 
-      {/* Registration Form - only show when in register mode */}
-      {viewMode === "register" && (
-        <>
-          <Card>
-            <CardHeader>
-              <CardTitle>Configuración</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="program-select">Programa</Label>
-                <select
-                  id="program-select"
-                  className="w-full h-10 px-3 border border-input bg-background rounded-md text-sm"
-                  value={selectedProgramId ?? ""}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    setSelectedProgramId(val ? Number(val) : null);
-                  }}
-                >
-                  <option value="">Seleccionar programa</option>
-                  {programs.map((p) => (
-                    <option key={p.id} value={String(p.id)}>
-                      {p.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <p className="text-sm text-muted-foreground">
-                La fecha y hora se registran automáticamente al guardar.
-              </p>
-            </CardContent>
-          </Card>
-
-          {selectedProgramId && (
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle>Estudiantes Inscritos ({athletes.length})</CardTitle>
-                  <div className="flex gap-2">
-                    <Button size="sm" variant="outline" onClick={() => handleSelectAll("present")}>
-                      Todos Presentes
-                    </Button>
-                    <Button size="sm" variant="outline" onClick={() => handleSelectAll("absent")}>
-                      Todos Ausentes
-                    </Button>
-                    <Button size="sm" variant="outline" onClick={() => handleSelectAll("late")}>
-                      Todos Tardes
-                    </Button>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                {loadingAthletes ? (
-                  <p>Cargando estudiantes...</p>
-                ) : athletes.length === 0 ? (
-                  <p className="text-muted-foreground">
-                    No hay deportistas inscritos en este programa.
-                  </p>
-                ) : (
-                  <div className="space-y-3">
-                    {athletes.map((athlete) => {
-                      const existing = attendance.find((a) => a.athlete_id === athlete.athlete_id);
-                      const currentStatus = existing?.status || "absent";
-
-                      return (
-                        <div
-                          key={athlete.athlete_id}
-                          className="flex items-center gap-4 p-3 border rounded-lg hover:bg-gray-50"
-                        >
-                          <div className="flex-1">
-                            <p className="font-medium">{athlete.athlete_name}</p>
-                          </div>
-
-                          <div className="flex items-center gap-2">
-                            <Button
-                              size="sm"
-                              variant={currentStatus === "present" ? "default" : "outline"}
-                              className={currentStatus === "present" ? "bg-green-600 hover:bg-green-700" : ""}
-                              onClick={() => handleStatusChange(athlete.athlete_id, "present")}
-                            >
-                              Presente
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant={currentStatus === "late" ? "default" : "outline"}
-                              className={currentStatus === "late" ? "bg-yellow-500 hover:bg-yellow-600" : ""}
-                              onClick={() => handleStatusChange(athlete.athlete_id, "late")}
-                            >
-                              Tarde
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant={currentStatus === "absent" ? "default" : "outline"}
-                              className={currentStatus === "absent" ? "bg-red-600 hover:bg-red-700" : ""}
-                              onClick={() => handleStatusChange(athlete.athlete_id, "absent")}
-                            >
-                              Ausente
-                            </Button>
-                          </div>
-
-                          <Input
-                            placeholder="Observaciones..."
-                            className="w-48"
-                            value={existing?.observaciones || ""}
-                            onChange={(e) => handleObservacionesChange(athlete.athlete_id, e.target.value)}
-                          />
-                        </div>
-                      );
-                    })}
-
-                    <div className="pt-4 border-t">
-                      <Button
-                        onClick={handleSubmit}
-                        disabled={submitting || attendance.length === 0}
-                        className="bg-green-600 hover:bg-green-700"
-                      >
-                        {submitting ? "Registrando..." : `Registrar Asistencia (${attendance.length})`}
-                      </Button>
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          )}
-        </>
-      )}
-
-      {/* Results View - show after successful registration */}
-      {viewMode === "results" && submitResult && (
+  if (viewMode === "results" && submitResult) {
+    return (
+      <div className="space-y-6">
+        <PageHeader
+          title="Asistencia registrada"
+          description="Los registros se guardaron correctamente."
+          eyebrow="Asistencia"
+        />
         <Card>
-          <CardHeader>
-            <CardTitle>Asistencia Registrada</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-              <p className="font-medium text-green-800">
-                {submitResult.created} registros creados exitosamente
+          <CardContent className="flex flex-col items-center gap-5 py-10 text-center">
+            <span className="grid h-14 w-14 place-items-center rounded-full bg-success/15 text-success">
+              <CheckCircle2 className="h-6 w-6" strokeWidth={1.75} />
+            </span>
+            <div>
+              <p className="font-display text-2xl font-semibold tracking-tight text-text">
+                {submitResult.created} registros creados
               </p>
-              <p className="text-sm text-green-600 mt-1">
-                Fecha: {submitResult.fecha} — Hora: {submitResult.hora}
+              <p className="mt-1 text-sm text-muted">
+                {submitResult.fecha} · {submitResult.hora}
               </p>
             </div>
-            <Button
-              onClick={() => setViewMode("register")}
-              className="bg-blue-600 hover:bg-blue-700"
-            >
-              Registrar Nueva Asistencia
+            <Button onClick={() => setViewMode("register")}>
+              <RefreshCw className="h-4 w-4" />
+              Registrar nueva asistencia
             </Button>
           </CardContent>
         </Card>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6 pb-32 sm:pb-0">
+      <PageHeader
+        title="Registrar asistencia"
+        description="Marca la asistencia de los deportistas inscritos en un programa."
+        eyebrow="Asistencia"
+      />
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="font-display text-lg font-semibold tracking-tight">
+            Configuración
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-1.5">
+            <Label htmlFor="program-select">Programa</Label>
+            <Select
+              value={selectedProgramId ? String(selectedProgramId) : ""}
+              onValueChange={(v) => setSelectedProgramId(v ? Number(v) : null)}
+            >
+              <SelectTrigger id="program-select">
+                <SelectValue placeholder="Seleccionar programa" />
+              </SelectTrigger>
+              <SelectContent>
+                {programs.map((p) => (
+                  <SelectItem key={p.id} value={String(p.id)}>
+                    {p.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <p className="text-xs text-faint">
+            La fecha y hora se registran automáticamente al guardar.
+          </p>
+        </CardContent>
+      </Card>
+
+      {selectedProgramId && (
+        <Card>
+          <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <CardTitle className="font-display text-lg font-semibold tracking-tight">
+              Deportistas inscritos
+              <span className="ml-2 text-sm font-normal text-muted">
+                ({athletes.length})
+              </span>
+            </CardTitle>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => handleSelectAll("present")}
+              >
+                <CheckCircle2 className="h-3.5 w-3.5" />
+                Todos presentes
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => handleSelectAll("absent")}
+              >
+                <XCircle className="h-3.5 w-3.5" />
+                Todos ausentes
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {loadingAthletes ? (
+              <div className="space-y-2.5">
+                {[0, 1, 2, 3, 4].map((i) => (
+                  <Skeleton key={i} className="h-16 w-full" />
+                ))}
+              </div>
+            ) : athletes.length === 0 ? (
+              <EmptyState
+                icon={Users}
+                title="Sin deportistas inscritos"
+                description="No hay deportistas inscritos en este programa."
+              />
+            ) : (
+              <div className="space-y-2.5">
+                {athletes.map((athlete) => {
+                  const existing = attendance.find(
+                    (a) => a.athlete_id === athlete.athlete_id,
+                  );
+                  const currentStatus = existing?.status || "absent";
+                  return (
+                    <div
+                      key={athlete.athlete_id}
+                      className={cn(
+                        "flex flex-col gap-3 rounded-lg border p-3 transition-colors sm:flex-row sm:items-center",
+                        rowToneFor(currentStatus),
+                      )}
+                    >
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-text">{athlete.athlete_name}</p>
+                      </div>
+
+                      <div className="flex flex-wrap gap-1.5">
+                        {STATUS_BUTTONS.map(({ status, label, icon: Icon }) => {
+                          const isActive = currentStatus === status;
+                          return (
+                            <Button
+                              key={status}
+                              size="sm"
+                              variant={isActive ? "default" : "outline"}
+                              onClick={() =>
+                                handleStatusChange(athlete.athlete_id, status)
+                              }
+                              aria-pressed={isActive}
+                            >
+                              {isActive ? (
+                                <Icon className="h-3.5 w-3.5" />
+                              ) : (
+                                <Circle className="h-3.5 w-3.5" />
+                              )}
+                              {label}
+                            </Button>
+                          );
+                        })}
+                      </div>
+
+                      <Input
+                        placeholder="Observaciones..."
+                        className="w-full sm:w-56"
+                        value={existing?.observaciones || ""}
+                        onChange={(e) =>
+                          handleObservacionesChange(
+                            athlete.athlete_id,
+                            e.target.value,
+                          )
+                        }
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {selectedProgramId && athletes.length > 0 && (
+        <>
+          {/* Inline submit area on desktop */}
+          <div className="hidden sm:flex items-center justify-between rounded-lg border border-border bg-surface px-4 py-3">
+            <p className="text-sm text-muted">
+              <span className="font-medium text-text">{counts.present}</span> presentes ·{" "}
+              <span className="font-medium text-text">{counts.late}</span> tarde ·{" "}
+              <span className="font-medium text-text">{counts.absent}</span> ausentes
+            </p>
+            <Button onClick={handleSubmit} disabled={submitting} size="lg">
+              <ClipboardCheck className="h-4 w-4" />
+              {submitting ? "Registrando..." : `Registrar ${attendance.length}`}
+            </Button>
+          </div>
+
+          {/* Mobile fixed bottom bar */}
+          <div className="fixed inset-x-0 bottom-0 z-30 border-t border-divider bg-surface/95 backdrop-blur p-4 sm:hidden">
+            <div className="mx-auto flex max-w-3xl items-center gap-3">
+              <p className="flex-1 text-xs text-muted">
+                <span className="font-medium text-text">{counts.present}</span>P{" · "}
+                <span className="font-medium text-text">{counts.late}</span>T{" · "}
+                <span className="font-medium text-text">{counts.absent}</span>A
+              </p>
+              <Button
+                onClick={handleSubmit}
+                disabled={submitting}
+                className="flex-1"
+              >
+                <ClipboardCheck className="h-4 w-4" />
+                {submitting ? "Guardando..." : "Registrar"}
+              </Button>
+            </div>
+          </div>
+        </>
       )}
     </div>
   );

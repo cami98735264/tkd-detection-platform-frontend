@@ -1,36 +1,38 @@
-import { useState } from "react";
-import { Link, Outlet, useNavigate } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
+import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { ChevronRight, LogOut, Menu, User } from "lucide-react";
+
 import { authApi } from "@/features/auth/api/authApi";
 import { useAuthStore } from "@/features/auth/store/authStore";
 import { usePermissions } from "@/features/auth/hooks/usePermissions";
 import { useApiErrorHandler } from "@/feedback/useApiErrorHandler";
 import { useFeedback } from "@/feedback/useFeedback";
-import {
-  Menu,
-  X,
-  Users,
-  ClipboardList,
-  CheckCircle,
-  BarChart3,
-  User,
-  Bell,
-  Shield,
-  BookOpen,
-  Trophy,
-  Settings,
-  Calendar,
-  Package,
-  Dumbbell,
-  HelpCircle,
-  ClipboardCheck,
-  Camera,
-  Home,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
+import type { RoleName } from "@/config/permissions";
 
-function getInitials(name: string): string {
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Sheet,
+  SheetContent,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import { Logo } from "@/components/common/Logo";
+import { ThemeToggle } from "@/components/common/ThemeToggle";
+
+import { navConfig, buildLabelMap, type NavGroup, type NavItem } from "./navConfig";
+
+function getInitials(name: string | undefined): string {
+  if (!name) return "??";
   return name
     .split(" ")
+    .filter(Boolean)
     .map((w) => w[0])
     .join("")
     .toUpperCase()
@@ -39,11 +41,19 @@ function getInitials(name: string): string {
 
 export default function DashboardLayout() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { handleError } = useApiErrorHandler();
   const { confirm } = useFeedback();
-  const { isAdmin, hasRole } = usePermissions();
-  const user = useAuthStore((s) => s.user);
+  const { user } = usePermissions();
   const [open, setOpen] = useState(false);
+
+  const role = (user?.role ?? "sportsman") as RoleName;
+  const groups = navConfig[role] ?? [];
+
+  // Close mobile drawer on route change
+  useEffect(() => {
+    setOpen(false);
+  }, [location.pathname]);
 
   const handleLogout = async () => {
     const ok = await confirm({
@@ -56,205 +66,256 @@ export default function DashboardLayout() {
     } catch (err) {
       handleError(err);
     } finally {
+      useAuthStore.getState().clearSession();
       navigate("/login");
     }
   };
 
-  const initials = user ? getInitials(user.full_name) : "??";
-
   return (
-    <div className="flex min-h-screen bg-gray-100 relative">
-      {/* OVERLAY MOBILE */}
-      {open && (
-        <div
-          className="fixed inset-0 bg-black/40 z-40 lg:hidden"
-          onClick={() => setOpen(false)}
-        />
-      )}
+    <div className="flex min-h-screen bg-bg text-text">
+      <a href="#main-content" className="skip-link">
+        Saltar al contenido
+      </a>
 
-      {/* SIDEBAR */}
-      <aside
-        className={`
-          bg-green-900 text-white w-64 flex flex-col flex-shrink-0
-          fixed inset-y-0 left-0 z-50 transform transition-transform duration-300
-          ${open ? "translate-x-0" : "-translate-x-full"}
-          lg:static lg:translate-x-0
-        `}
-      >
-        {/* LOGO */}
-        <div className="flex items-center justify-between px-4 py-4 border-b border-green-800">
-          <div className="flex items-center gap-2">
-            <Shield className="text-yellow-400" />
-            <div>
-              <p className="font-semibold">Warriors TKD</p>
-              <span className="text-xs text-green-200">Espinal</span>
-            </div>
-          </div>
-
-          <button className="lg:hidden" onClick={() => setOpen(false)}>
-            <X />
-          </button>
-        </div>
-
-        {/* MENU */}
-        <nav className="p-4 space-y-2">
-          {/* Only show for admin role */}
-          {isAdmin() && (
-            <>
-              <SidebarItem to="/dashboard/deportistas" icon={Users} label="Deportistas" />
-              <SidebarItem to="/dashboard/programas" icon={BookOpen} label="Programas" />
-              <SidebarItem to="/dashboard/inscripcion" icon={ClipboardList} label="Inscripción" />
-              <SidebarItem to="/dashboard/evaluacion" icon={CheckCircle} label="Evaluación" />
-              <SidebarItem to="/dashboard/entrenamientos" icon={Dumbbell} label="Entrenamientos" />
-              <SidebarItem to="/dashboard/reuniones" icon={Calendar} label="Reuniones" />
-            </>
-          )}
-
-          {/* Admin-only sections */}
-          {isAdmin() && (
-            <>
-              <div className="pt-4 pb-2">
-                <span className="text-xs text-green-400 uppercase tracking-wider">Administración</span>
-              </div>
-              <SidebarItem to="/dashboard/usuarios" icon={Settings} label="Usuarios" />
-              <SidebarItem to="/dashboard/acudientes" icon={Users} label="Acudientes" />
-              <SidebarItem to="/dashboard/inventario" icon={Package} label="Inventario" />
-              <SidebarItem to="/dashboard/inventario/tipos" icon={Package} label="Ítems" />
-              <SidebarItem to="/dashboard/asistencia" icon={ClipboardCheck} label="Asistencia" />
-              <SidebarItem to="/dashboard/asistencia/registrar" icon={ClipboardCheck} label="Registrar Asistencia" />
-              <SidebarItem to="/dashboard/reportes" icon={BarChart3} label="Reportes" />
-              <SidebarItem to="/dashboard/categorias-competencia" icon={Trophy} label="Categorías" />
-            </>
-          )}
-
-          {/* Sportsman-only sections */}
-          {hasRole(["sportsman"]) && (
-            <>
-              <div className="pt-4 pb-2">
-                <span className="text-xs text-green-400 uppercase tracking-wider">Deportista</span>
-              </div>
-              <SidebarItem to="/dashboard/deportista" icon={Users} label="Mi Dashboard" />
-              <SidebarItem to="/dashboard/deportista/mis-programas" icon={BookOpen} label="Mis Programas" />
-              <SidebarItem to="/dashboard/deportista/mi-inscripcion" icon={ClipboardList} label="Mi Inscripción" />
-              <SidebarItem to="/dashboard/deportista/entrenamientos" icon={Dumbbell} label="Entrenamientos" />
-              <SidebarItem to="/dashboard/deportista/mis-evaluaciones" icon={CheckCircle} label="Mis Evaluaciones" />
-              <SidebarItem to="/dashboard/asistencia" icon={ClipboardCheck} label="Mi Asistencia" />
-              <SidebarItem to="/dashboard/reuniones" icon={Calendar} label="Reuniones" />
-              <SidebarItem to="/dashboard/evaluacion-tecnica" icon={Camera} label="Evaluación Técnica" />
-            </>
-          )}
-
-          {/* Parent-only sections */}
-          {hasRole(["parent"]) && (
-            <>
-              <div className="pt-4 pb-2">
-                <span className="text-xs text-green-400 uppercase tracking-wider">Hijo/A</span>
-              </div>
-              <SidebarItem to="/dashboard/deportistas" icon={Users} label="Deportistas" />
-              <SidebarItem to="/dashboard/programas" icon={BookOpen} label="Programas" />
-              <SidebarItem to="/dashboard/inscripcion" icon={ClipboardList} label="Inscripciones" />
-              <div className="pt-4 pb-2">
-                <span className="text-xs text-green-400 uppercase tracking-wider">Mi Hijo/A</span>
-              </div>
-              <SidebarItem to="/dashboard/acudiente/mis-hijos/evaluaciones" icon={CheckCircle} label="Evaluaciones" />
-              <SidebarItem to="/dashboard/reuniones" icon={Calendar} label="Confirmar Reuniones" />
-              <SidebarItem to="/dashboard/asistencia" icon={ClipboardCheck} label="Asistencia" />
-              <SidebarItem to="/dashboard/evaluacion-tecnica" icon={Camera} label="Evaluación Técnica" />
-            </>
-          )}
-
-          <div className="pt-4">
-            <SidebarItem to="/dashboard/ayuda" icon={HelpCircle} label="Ayuda" />
-          </div>
-          <SidebarItem to="/dashboard/profile" icon={User} label="Perfil" />
-        </nav>
-
-        {/* USER FOOTER */}
-        <div className="mt-auto p-4 space-y-4">
-          <Button
-            variant="destructive"
-            className="w-full"
-            onClick={handleLogout}
-          >
-            Cerrar sesión
-          </Button>
-          <div className="pt-4 border-t border-green-800">
-            <div className="flex items-center gap-3">
-              <div className="h-9 w-9 rounded-full bg-green-700 flex items-center justify-center text-sm font-bold">
-                {initials}
-              </div>
-
-              <div className="text-sm">
-                <p className="font-medium">{user?.full_name ?? "—"}</p>
-                <p className="text-green-200 text-xs">{user?.email ?? ""}</p>
-              </div>
-            </div>
-          </div>
-        </div>
+      {/* Desktop sidebar */}
+      <aside className="hidden lg:flex w-64 shrink-0 flex-col border-r border-divider bg-surface">
+        <SidebarContents groups={groups} />
       </aside>
 
-      {/* RIGHT CONTAINER */}
-      <div className="flex flex-col flex-1">
-        {/* NAVBAR */}
-        <header className="h-16 bg-white border-b flex items-center justify-between px-4">
-          <div className="flex items-center gap-3">
-            <button className="lg:hidden" onClick={() => setOpen(true)}>
-              <Menu />
-            </button>
+      {/* Mobile sidebar (Sheet) */}
+      <Sheet open={open} onOpenChange={setOpen}>
+        <SheetContent side="left" className="w-70 p-0 border-r border-divider">
+          <SheetTitle className="sr-only">Navegación</SheetTitle>
+          <SidebarContents groups={groups} />
+        </SheetContent>
+      </Sheet>
 
-            <Link to="/dashboard/" className="flex items-center gap-2 hover:text-green-600 transition">
-              <Home size={20} />
-            </Link>
-
-            <div className="flex items-center gap-2">
-              <div className="h-8 w-8 bg-green-600 rounded-full flex items-center justify-center text-white font-bold">
-                W
-              </div>
-              <span className="font-semibold">Warriors TKD</span>
-            </div>
+      {/* Main column */}
+      <div className="flex min-w-0 flex-1 flex-col">
+        <Topbar
+          onOpenMobileNav={() => setOpen(true)}
+          user={user}
+          role={role}
+          onLogout={handleLogout}
+        />
+        <main
+          id="main-content"
+          tabIndex={-1}
+          className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 outline-none"
+        >
+          {/* Keyed wrapper restarts the slide-up-fade keyframe on every route
+           * change without unmounting the scroll container itself. */}
+          <div key={location.pathname} className="animate-slide-up-fade">
+            <Outlet />
           </div>
-
-          <div className="flex items-center gap-4">
-            <Bell className="text-gray-600" />
-
-            <div className="flex items-center gap-2">
-              <div className="h-8 w-8 bg-green-600 rounded-full flex items-center justify-center text-white text-sm">
-                {initials}
-              </div>
-              <span className="hidden sm:block">
-                {user?.full_name?.split(" ")[0] ?? ""}
-              </span>
-            </div>
-          </div>
-        </header>
-
-        {/* CONTENT */}
-        <main className="flex-1 p-6 overflow-y-auto">
-          <Outlet />
         </main>
       </div>
     </div>
   );
 }
 
-/* ---------- SIDEBAR ITEM ---------- */
-
-function SidebarItem({
-  to,
-  icon: Icon,
-  label,
-}: {
-  to: string;
-  icon: any;
-  label: string;
-}) {
+/* -------------------------------------------------------------------------- */
+/* Sidebar — shared across desktop and mobile                                 */
+/* -------------------------------------------------------------------------- */
+function SidebarContents({ groups }: { groups: NavGroup[] }) {
   return (
-    <Link
-      to={to}
-      className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-green-800 transition"
+    <div className="flex h-full flex-col">
+      {/* Brand */}
+      <div className="flex items-center justify-center px-5 py-6 border-b border-divider">
+        <Logo className="h-24 w-auto" alt="Warriors TKD" eager />
+      </div>
+
+      {/* Nav groups */}
+      <nav className="flex-1 overflow-y-auto px-3 py-5 space-y-6">
+        {groups.map((group, i) => (
+          <NavGroupBlock key={group.heading ?? `group-${i}`} group={group} />
+        ))}
+      </nav>
+    </div>
+  );
+}
+
+function NavGroupBlock({ group }: { group: NavGroup }) {
+  return (
+    <div>
+      {group.heading && (
+        <p className="px-3 mb-2 text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-faint">
+          {group.heading}
+        </p>
+      )}
+      <ul className="space-y-0.5">
+        {group.items.map((item) => (
+          <li key={item.to}>
+            <SidebarLink item={item} />
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function SidebarLink({ item }: { item: NavItem }) {
+  const Icon = item.icon;
+  return (
+    <NavLink
+      to={item.to}
+      end={item.end}
+      className={({ isActive }) =>
+        [
+          "group relative flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-interactive",
+          isActive
+            ? "bg-primary/10 text-primary font-medium"
+            : "text-muted hover:bg-surface-2 hover:text-text",
+        ].join(" ")
+      }
     >
-      <Icon size={18} />
-      <span>{label}</span>
-    </Link>
+      {({ isActive }) => (
+        <>
+          {/* Active indicator stays mounted on every row; opacity + translate
+           * animate together so switching active row crossfades the pills. */}
+          <span
+            aria-hidden="true"
+            className={[
+              "absolute left-0 top-1/2 h-5 w-0.5 -translate-y-1/2 rounded-r bg-primary",
+              "transition-[opacity,transform] duration-(--duration-normal) ease-(--ease-spring)",
+              isActive
+                ? "opacity-100 translate-x-0"
+                : "opacity-0 -translate-x-1",
+            ].join(" ")}
+          />
+          <Icon className="h-4 w-4 shrink-0" />
+          <span className="truncate">{item.label}</span>
+        </>
+      )}
+    </NavLink>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/* Topbar                                                                     */
+/* -------------------------------------------------------------------------- */
+interface TopbarProps {
+  onOpenMobileNav: () => void;
+  onLogout: () => void;
+  role: RoleName;
+  user: ReturnType<typeof usePermissions>["user"];
+}
+
+function Topbar({ onOpenMobileNav, onLogout, role, user }: TopbarProps) {
+  const initials = getInitials(user?.full_name);
+  const firstName = user?.full_name?.split(" ")[0] ?? "";
+
+  return (
+    <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-divider bg-bg/85 backdrop-blur px-4 sm:px-6">
+      <Button
+        variant="ghost"
+        size="icon"
+        className="lg:hidden text-muted hover:text-text"
+        onClick={onOpenMobileNav}
+        aria-label="Abrir navegación"
+      >
+        <Menu className="h-5 w-5" />
+      </Button>
+
+      {/* Mobile brand mark — visible only when sidebar is collapsed */}
+      <Link
+        to="/dashboard"
+        className="flex items-center gap-1.5 lg:hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-bg rounded-md"
+        aria-label="Warriors TKD — Inicio"
+      >
+        <Logo className="h-10 w-10 -my-1" alt="" />
+        <span className="font-display text-sm font-semibold tracking-tight text-text hidden sm:inline">
+          Warriors TKD
+        </span>
+      </Link>
+
+      <Breadcrumbs role={role} />
+
+      <div className="ml-auto flex items-center gap-2">
+        <ThemeToggle />
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button
+              type="button"
+              aria-label="Menú de usuario"
+              className="flex items-center gap-2 rounded-md py-1 pl-1 pr-2 hover:bg-surface-2 transition-interactive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
+            >
+              <span className="grid h-8 w-8 place-items-center rounded-full bg-primary text-primary-foreground text-xs font-semibold">
+                {initials}
+              </span>
+              <span className="hidden sm:inline text-sm font-medium text-text">
+                {firstName}
+              </span>
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuLabel>
+              <p className="text-sm font-semibold text-text">{user?.full_name ?? "—"}</p>
+              <p className="truncate text-xs font-normal text-muted">{user?.email ?? ""}</p>
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem asChild>
+              <Link to="/dashboard/profile">
+                <User className="h-4 w-4" />
+                Mi perfil
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onSelect={onLogout}
+              className="text-error focus:text-error"
+            >
+              <LogOut className="h-4 w-4" />
+              Cerrar sesión
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+    </header>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/* Breadcrumbs derived from URL + nav labels                                  */
+/* -------------------------------------------------------------------------- */
+function Breadcrumbs({ role }: { role: RoleName }) {
+  const location = useLocation();
+  const labelMap = useMemo(() => buildLabelMap(role), [role]);
+
+  const segments = location.pathname.split("/").filter(Boolean);
+  const trail: { to: string; label: string }[] = [];
+  let acc = "";
+  for (const seg of segments) {
+    acc += `/${seg}`;
+    const label = labelMap.get(acc);
+    if (label) trail.push({ to: acc, label });
+  }
+
+  // If we're on /dashboard exactly, show single "Inicio" label
+  if (trail.length === 0) trail.push({ to: "/dashboard", label: "Inicio" });
+
+  return (
+    <nav aria-label="Migas de pan" className="hidden md:flex items-center gap-1.5 text-sm min-w-0">
+      {trail.map((crumb, idx) => {
+        const isLast = idx === trail.length - 1;
+        return (
+          <span key={crumb.to} className="flex items-center gap-1.5 min-w-0">
+            {idx > 0 && (
+              <ChevronRight className="h-3.5 w-3.5 shrink-0 text-faint" aria-hidden="true" />
+            )}
+            {isLast ? (
+              <span className="font-medium text-text truncate">{crumb.label}</span>
+            ) : (
+              <Link
+                to={crumb.to}
+                className="text-muted hover:text-text transition-interactive truncate"
+              >
+                {crumb.label}
+              </Link>
+            )}
+          </span>
+        );
+      })}
+    </nav>
   );
 }

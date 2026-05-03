@@ -1,9 +1,9 @@
-import { Formik, Form, Field, ErrorMessage } from "formik";
+import { Formik, Form, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import FormModal from "@/components/common/FormModal";
+import { FormikSelect } from "@/components/common/FormSelect";
 import type { Athlete } from "@/types/entities";
 import type { User } from "@/features/users/api/usersApi";
 
@@ -66,52 +66,45 @@ export default function AssignAthleteModal({
             <Form className="space-y-4">
               <div className="space-y-1">
                 <Label>Acudiente</Label>
-                <Field as="select" name="parent_id" className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
-                  <option value="">Seleccionar acudiente</option>
-                  {parents.map((p) => (
-                    <option key={p.id} value={String(p.id)}>
-                      {p.full_name} ({p.email})
-                    </option>
-                  ))}
-                </Field>
-                <ErrorMessage name="parent_id" component="p" className="text-sm text-red-500" />
+                <FormikSelect
+                  name="parent_id"
+                  placeholder="Seleccionar acudiente"
+                  options={parents.map((p) => ({
+                    value: String(p.id),
+                    label: `${p.full_name} (${p.email})`,
+                  }))}
+                />
+                <ErrorMessage name="parent_id" component="p" className="text-sm text-error" />
               </div>
 
               <div className="space-y-1">
                 <Label>Deportista</Label>
-                <Field as="select" name="athlete_id" className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
-                  <option value="">Seleccionar deportista</option>
-                  {athletes.map((a) => (
-                    <option key={a.id} value={String(a.id)}>
-                      {a.full_name} {a.belt_actual_name ? `(${a.belt_actual_name})` : ""}
-                    </option>
-                  ))}
-                </Field>
-                <ErrorMessage name="athlete_id" component="p" className="text-sm text-red-500" />
+                <FormikSelect
+                  name="athlete_id"
+                  placeholder="Seleccionar deportista"
+                  options={athletes.map((a) => ({
+                    value: String(a.id),
+                    label: `${a.full_name}${a.belt_actual_name ? ` (${a.belt_actual_name})` : ""}`,
+                  }))}
+                />
+                <ErrorMessage name="athlete_id" component="p" className="text-sm text-error" />
               </div>
 
               <div className="space-y-1">
                 <Label>Parentesco</Label>
-                <Field
-                  as="select"
+                <FormikSelect
                   name="relationship"
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                >
-                  <option value="">Seleccionar parentesco</option>
-                  {RELATIONSHIP_OPTIONS.map((r) => (
-                    <option key={r.value} value={r.value}>
-                      {r.label}
-                    </option>
-                  ))}
-                </Field>
-                <ErrorMessage name="relationship" component="p" className="text-sm text-red-500" />
+                  placeholder="Seleccionar parentesco"
+                  options={RELATIONSHIP_OPTIONS}
+                />
+                <ErrorMessage name="relationship" component="p" className="text-sm text-error" />
               </div>
 
               <div className="flex justify-end gap-3 pt-4">
                 <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                   Cancelar
                 </Button>
-                <Button type="submit" className="bg-green-600 hover:bg-green-700" disabled={isSubmitting}>
+                <Button type="submit" disabled={isSubmitting}>
                   {isSubmitting ? "Guardando..." : "Vincular"}
                 </Button>
               </div>

@@ -1,18 +1,26 @@
 import { useCallback, useEffect, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
+import { BookOpen, CalendarDays, Pencil, Plus, Trash2 } from "lucide-react";
+
 import { Badge } from "@/components/ui/badge";
-import { Plus, Calendar } from "lucide-react";
-import DataTable, { type Column } from "@/components/common/DataTable";
-import Pagination from "@/components/common/Pagination";
+import { Button } from "@/components/ui/button";
+import type { Column, RowAction } from "@/components/common/DataTable";
+import { ListPageTemplate } from "@/components/common/ListPageTemplate";
 import ProgramFormModal from "@/features/programs/components/ProgramFormModal";
 import { programsApi } from "@/features/programs/api/programsApi";
 import { enrollmentsApi } from "@/features/enrollments/api/enrollmentsApi";
 import { usePermissions } from "@/features/auth/hooks/usePermissions";
 import { useApiErrorHandler } from "@/feedback/useApiErrorHandler";
 import { useFeedback } from "@/feedback/useFeedback";
-import { useNavigate } from "react-router-dom";
 import type { Program } from "@/types/entities";
+
+function StatusBadge({ active }: { active: boolean }) {
+  return active ? (
+    <Badge variant="success">Activo</Badge>
+  ) : (
+    <Badge variant="outline-muted">Inactivo</Badge>
+  );
+}
 
 export default function ProgramsPage() {
   const navigate = useNavigate();
@@ -29,25 +37,23 @@ export default function ProgramsPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Program | null>(null);
 
-  const fetchData = useCallback(
-    (p: number) => {
-      setLoading(true);
-      programsApi
-        .list(p)
-        .then((res) => {
-          setData(res.results);
-          setCount(res.count);
-        })
-        .catch(handleError)
-        .finally(() => setLoading(false));
-    },
+  const fetchData = useCallback((p: number) => {
+    setLoading(true);
+    programsApi
+      .list(p)
+      .then((res) => {
+        setData(res.results);
+        setCount(res.count);
+      })
+      .catch(handleError)
+      .finally(() => setLoading(false));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [page],
-  );
+  }, []);
 
   const loadParentPrograms = useCallback(() => {
     setLoading(true);
-    enrollmentsApi.getMyEnrollments()
+    enrollmentsApi
+      .getMyEnrollments()
       .then((enrollments) => {
         const programIds = new Set(enrollments.map((e) => e.program));
         return programsApi.list(1).then((res) => ({
@@ -61,41 +67,31 @@ export default function ProgramsPage() {
       })
       .catch(handleError)
       .finally(() => setLoading(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
-    if (isParent) {
-      loadParentPrograms();
-    } else {
-      fetchData(page);
-    }
+    if (isParent) loadParentPrograms();
+    else fetchData(page);
   }, [isParent, page, fetchData, loadParentPrograms]);
 
   const columns: Column<Program>[] = [
-    { key: "name", header: "Nombre" },
-    { key: "capacity", header: "Capacidad", render: (r) => r.capacity ?? "—" },
+    {
+      key: "name",
+      header: "Nombre",
+      render: (r) => <span className="font-medium text-text">{r.name}</span>,
+    },
+    {
+      key: "capacity",
+      header: "Capacidad",
+      hideOnMobile: true,
+      render: (r) => (r.capacity != null ? r.capacity : <span className="text-faint">Sin límite</span>),
+    },
     {
       key: "active",
       header: "Estado",
-      render: (r) => (
-        <Badge variant={r.active ? "default" : "secondary"}>
-          {r.active ? "Activo" : "Inactivo"}
-        </Badge>
-      ),
+      render: (r) => <StatusBadge active={r.active} />,
     },
-    ...(isAdminUser ? [{
-      key: "editions",
-      header: "Ediciones",
-      render: (r: Program) => (
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => navigate(`/dashboard/programas/${r.id}/ediciones`)}
-        >
-          <Calendar size={14} className="mr-1" /> Ver
-        </Button>
-      ),
-    }] : []),
   ];
 
   const handleSubmit = async (values: {
@@ -136,55 +132,104 @@ export default function ProgramsPage() {
     }
   };
 
+  const actions: RowAction<Program>[] = [];
+  if (isAdminUser) {
+    actions.push({
+      id: "editions",
+      label: "Ver ediciones",
+      icon: CalendarDays,
+      variant: "ghost",
+      onClick: (row) => navigate(`/dashboard/programas/${row.id}/ediciones`),
+    });
+    actions.push({
+      id: "edit",
+      label: "Editar",
+      icon: Pencil,
+      variant: "ghost",
+      onClick: (row) => {
+        setEditing(row);
+        setModalOpen(true);
+      },
+    });
+    actions.push({
+      id: "delete",
+      label: "Eliminar",
+      icon: Trash2,
+      variant: "destructive",
+      onClick: handleDelete,
+    });
+  }
+
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Programas</h1>
-        {isAdminUser && (
+    <ListPageTemplate
+      title="Programas"
+      description={
+        isParent
+          ? "Programas a los que están vinculados tus deportistas."
+          : "Catálogo de programas y modalidades de entrenamiento."
+      }
+      eyebrow={isParent ? "Acudiente" : "Operación"}
+      primaryAction={
+        isAdminUser ? (
           <Button
-            className="bg-green-600 hover:bg-green-700"
             onClick={() => {
               setEditing(null);
               setModalOpen(true);
             }}
           >
-            <Plus size={18} className="mr-2" /> Nuevo
+            <Plus className="h-4 w-4" />
+            Nuevo programa
           </Button>
-        )}
-      </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Lista de programas</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <DataTable
-            columns={columns}
-            data={data}
-            loading={loading}
-            onEdit={
-              isAdminUser
-                ? (row) => {
-                    setEditing(row);
-                    setModalOpen(true);
-                  }
-                : undefined
-            }
-            onDelete={isAdminUser ? handleDelete : undefined}
+        ) : undefined
+      }
+      columns={columns}
+      data={data}
+      loading={loading}
+      rowKey={(r) => r.id}
+      rowActions={actions}
+      mobileCard={(r) => (
+        <div className="space-y-1">
+          <div className="flex items-center justify-between gap-2">
+            <p className="font-medium text-text">{r.name}</p>
+            <StatusBadge active={r.active} />
+          </div>
+          <p className="text-xs text-muted">
+            Capacidad: {r.capacity != null ? r.capacity : "Sin límite"}
+          </p>
+        </div>
+      )}
+      empty={{
+        icon: BookOpen,
+        title: "Sin programas",
+        description: isAdminUser
+          ? "Crea el primer programa para empezar a recibir inscripciones."
+          : "Cuando estés inscrito en programas activos aparecerán aquí.",
+        action: isAdminUser ? (
+          <Button
+            onClick={() => {
+              setEditing(null);
+              setModalOpen(true);
+            }}
+          >
+            <Plus className="h-4 w-4" />
+            Crear programa
+          </Button>
+        ) : undefined,
+      }}
+      pagination={isParent ? undefined : { count, page, onChange: setPage }}
+      formSheet={
+        isAdminUser && (
+          <ProgramFormModal
+            open={modalOpen}
+            onOpenChange={(v) => {
+              setModalOpen(v);
+              if (!v) setEditing(null);
+            }}
+            program={editing}
+            onSubmit={handleSubmit}
           />
-          {!isParent && <Pagination count={count} page={page} onPageChange={setPage} />}
-        </CardContent>
-      </Card>
-
-      <ProgramFormModal
-        open={modalOpen}
-        onOpenChange={(v) => {
-          setModalOpen(v);
-          if (!v) setEditing(null);
-        }}
-        program={editing}
-        onSubmit={handleSubmit}
-      />
-    </div>
+        )
+      }
+    />
   );
 }

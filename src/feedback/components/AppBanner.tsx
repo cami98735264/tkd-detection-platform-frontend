@@ -1,8 +1,19 @@
+import { AlertCircle, CheckCircle2, Info, TriangleAlert, X } from "lucide-react";
+
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 import { BannerOptions } from "../types";
 
 interface Props extends BannerOptions {
   onClose: () => void;
 }
+
+const VARIANT_ICON = {
+  success: CheckCircle2,
+  error: AlertCircle,
+  warning: TriangleAlert,
+  info: Info,
+} as const;
 
 export default function AppBanner({
   title,
@@ -10,20 +21,25 @@ export default function AppBanner({
   variant = "info",
   onClose,
 }: Props) {
-  const variantStyles = {
-    success: "bg-green-100 text-green-800",
-    error: "bg-red-100 text-red-800",
-    warning: "bg-yellow-100 text-yellow-800",
-    info: "bg-blue-100 text-blue-800",
-  };
+  const Icon = VARIANT_ICON[variant];
 
   return (
-    <div className={`p-4 ${variantStyles[variant]} flex justify-between`}>
-      <div>
-        <p className="font-semibold">{title}</p>
-        {description && <p className="text-sm">{description}</p>}
-      </div>
-      <button onClick={onClose}>✕</button>
+    <div className="sticky top-0 z-40 px-4 pt-4 sm:px-6">
+      <Alert variant={variant} className="relative pr-12">
+        <Icon className="h-4 w-4" />
+        <AlertTitle>{title}</AlertTitle>
+        {description && <AlertDescription>{description}</AlertDescription>}
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          onClick={onClose}
+          aria-label="Cerrar aviso"
+          className="absolute right-2 top-2 h-7 w-7 text-muted hover:text-text"
+        >
+          <X className="h-4 w-4" />
+        </Button>
+      </Alert>
     </div>
   );
 }

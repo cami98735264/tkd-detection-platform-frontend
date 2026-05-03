@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import FormModal from "@/components/common/FormModal";
+import { FormikSelect } from "@/components/common/FormSelect";
 import { athletesApi } from "@/features/athletes/api/athletesApi";
 import { programsApi } from "@/features/programs/api/programsApi";
 import { Plus, Trash2 } from "lucide-react";
@@ -91,7 +92,7 @@ export default function EvaluationFormModal({
                 <ErrorMessage
                   name="result_summary"
                   component="p"
-                  className="text-sm text-red-500"
+                  className="text-sm text-error"
                 />
               </div>
               <div className="space-y-1">
@@ -107,7 +108,7 @@ export default function EvaluationFormModal({
                 </Button>
                 <Button
                   type="submit"
-                  className="bg-green-600 hover:bg-green-700"
+                 
                   disabled={isSubmitting}
                 >
                   {isSubmitting ? "Guardando..." : "Actualizar"}
@@ -149,42 +150,33 @@ export default function EvaluationFormModal({
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-1">
                   <Label>Deportista</Label>
-                  <Field
-                    as="select"
+                  <FormikSelect
                     name="athlete"
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                  >
-                    <option value="">Seleccionar...</option>
-                    {athletes.map((a) => (
-                      <option key={a.id} value={a.id}>
-                        {a.full_name}
-                      </option>
-                    ))}
-                  </Field>
-                  <ErrorMessage name="athlete" component="p" className="text-sm text-red-500" />
+                    options={athletes.map((a) => ({
+                      value: String(a.id),
+                      label: a.full_name,
+                    }))}
+                  />
+                  <ErrorMessage name="athlete" component="p" className="text-sm text-error" />
                 </div>
 
                 <div className="space-y-1">
                   <Label>Programa (opcional)</Label>
-                  <Field
-                    as="select"
+                  <FormikSelect
                     name="program"
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                  >
-                    <option value="">Ninguno</option>
-                    {programs.map((p) => (
-                      <option key={p.id} value={p.id}>
-                        {p.name}
-                      </option>
-                    ))}
-                  </Field>
+                    placeholder="Ninguno"
+                    options={programs.map((p) => ({
+                      value: String(p.id),
+                      label: p.name,
+                    }))}
+                  />
                 </div>
               </div>
 
               <div className="space-y-1">
                 <Label>Fecha de evaluación</Label>
                 <Field as={Input} type="datetime-local" name="evaluated_at" />
-                <ErrorMessage name="evaluated_at" component="p" className="text-sm text-red-500" />
+                <ErrorMessage name="evaluated_at" component="p" className="text-sm text-error" />
               </div>
 
               <div className="space-y-1">
@@ -193,7 +185,7 @@ export default function EvaluationFormModal({
                 <ErrorMessage
                   name="result_summary"
                   component="p"
-                  className="text-sm text-red-500"
+                  className="text-sm text-error"
                 />
               </div>
 
@@ -219,16 +211,16 @@ export default function EvaluationFormModal({
                         <Plus size={14} className="mr-1" /> Agregar
                       </Button>
                     </div>
-                    <ErrorMessage name="metrics">{(msg) => typeof msg === "string" ? <p className="text-sm text-red-500">{msg}</p> : null}</ErrorMessage>
+                    <ErrorMessage name="metrics">{(msg) => typeof msg === "string" ? <p className="text-sm text-error">{msg}</p> : null}</ErrorMessage>
                     {(values.metrics ?? []).map((_, idx) => (
                       <div
                         key={idx}
-                        className="grid gap-2 md:grid-cols-[1fr_80px_1fr_auto] items-start border p-3 rounded-md"
+                        className="grid gap-2 md:grid-cols-[1fr_80px_1fr_auto] items-start border border-border p-3 rounded-md"
                       >
                         <div>
                           <Label className="text-xs">Nombre</Label>
                           <Field as={Input} name={`metrics.${idx}.metric_name`} />
-                          <p className="text-xs text-red-500 min-h-[1rem]">
+                          <p className="text-xs text-error min-h-[1rem]">
                             <ErrorMessage name={`metrics.${idx}.metric_name`} />
                           </p>
                         </div>
@@ -241,7 +233,7 @@ export default function EvaluationFormModal({
                             min={0}
                             max={100}
                           />
-                          <p className="text-xs text-red-500 min-h-[1rem]">
+                          <p className="text-xs text-error min-h-[1rem]">
                             <ErrorMessage name={`metrics.${idx}.score`} />
                           </p>
                         </div>
@@ -273,7 +265,7 @@ export default function EvaluationFormModal({
                 </Button>
                 <Button
                   type="submit"
-                  className="bg-green-600 hover:bg-green-700"
+                 
                   disabled={isSubmitting}
                 >
                   {isSubmitting ? "Guardando..." : "Crear"}

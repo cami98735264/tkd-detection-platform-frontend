@@ -1,31 +1,49 @@
 import { useCallback, useEffect, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CalendarCheck, CheckCircle, Eye, Pencil, Plus, Trash2, XCircle } from "lucide-react";
+
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
-import DataTable, { type Column } from "@/components/common/DataTable";
-import Pagination from "@/components/common/Pagination";
+import type { Column, RowAction } from "@/components/common/DataTable";
 import FormModal from "@/components/common/FormModal";
+import { ListPageTemplate } from "@/components/common/ListPageTemplate";
 import MeetingFormModal from "@/features/meetings/components/MeetingFormModal";
 import { meetingsApi, type Meeting } from "@/features/meetings/api/meetingsApi";
+import { useAuthStore } from "@/features/auth/store/authStore";
 import { useApiErrorHandler } from "@/feedback/useApiErrorHandler";
 import { useFeedback } from "@/feedback/useFeedback";
-import { useAuthStore } from "@/features/auth/store/authStore";
 
-const getColumns = (isAdmin: boolean): Column<Meeting>[] => [
-  { key: "title", header: "Título" },
-  { key: "description", header: "Descripción" },
-  { key: "date", header: "Fecha", render: (r) => new Date(r.date).toLocaleDateString() },
-  { key: "time", header: "Hora" },
-  ...(isAdmin ? [] : [{
+function ConfirmationBadge({ confirmed }: { confirmed: boolean }) {
+  return confirmed ? (
+    <Badge variant="success">Confirmado</Badge>
+  ) : (
+    <Badge variant="outline-muted">Sin confirmar</Badge>
+  );
+}
+
+function formatDate(value: string): string {
+  const d = new Date(value);
+  return Number.isNaN(d.getTime()) ? "—" : d.toLocaleDateString();
+}
+
+const baseColumns: Column<Meeting>[] = [
+  { key: "title", header: "Título", render: (r) => <span className="font-medium text-text">{r.title}</span> },
+  {
+    key: "description",
+    header: "Descripción",
+    hideOnMobile: true,
+    render: (r) => <span className="text-muted line-clamp-1">{r.description || "—"}</span>,
+  },
+  { key: "date", header: "Fecha", render: (r) => formatDate(r.date) },
+  { key: "time", header: "Hora", hideOnMobile: true },
+];
+
+const guestColumns: Column<Meeting>[] = [
+  ...baseColumns,
+  {
     key: "is_confirmed",
     header: "Estado",
-    render: (r: Meeting) =>
-      r.is_confirmed ? (
-        <span className="px-2 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800 border border-green-300">Confirmado</span>
-      ) : (
-        <span className="px-2 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-600 border border-gray-300">Sin confirmar</span>
-      ),
-  }]),
+    render: (r) => <ConfirmationBadge confirmed={r.is_confirmed ?? false} />,
+  },
 ];
 
 export default function MeetingsPage() {
@@ -44,7 +62,9 @@ export default function MeetingsPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Meeting | null>(null);
   const [confirmationsModal, setConfirmationsModal] = useState<Meeting | null>(null);
-  const [confirmations, setConfirmations] = useState<{ id: number; parent_name: string; parent_email: string; confirmed_at: string }[]>([]);
+  const [confirmations, setConfirmations] = useState<
+    { id: number; parent_name: string; parent_email: string; confirmed_at: string }[]
+  >([]);
 
   const fetchData = useCallback(
     (p: number) => {
@@ -59,14 +79,19 @@ export default function MeetingsPage() {
         .finally(() => setLoading(false));
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [page],
+    [],
   );
 
   useEffect(() => {
     fetchData(page);
   }, [page, fetchData]);
 
-  const handleSubmit = async (values: { title: string; description: string; date: string; time: string }) => {
+  const handleSubmit = async (values: {
+    title: string;
+    description: string;
+    date: string;
+    time: string;
+  }) => {
     try {
       if (editing) {
         await meetingsApi.update(editing.id, values);
@@ -84,7 +109,10 @@ export default function MeetingsPage() {
   };
 
   const handleDelete = async (meeting: Meeting) => {
-    const ok = await confirm({ title: "Eliminar reunión", description: `¿Eliminar "${meeting.title}"?` });
+    const ok = await confirm({
+      title: "Eliminar reunión",
+      description: `¿Eliminar "${meeting.title}"?`,
+    });
     if (!ok) return;
     try {
       await meetingsApi.delete(meeting.id);
@@ -96,8 +124,12 @@ export default function MeetingsPage() {
   };
 
   const handleToggleConfirmation = async (meeting: Meeting) => {
-    const action = meeting.is_confirmed ? "cancelar la confirmación de" : "confirmar asistencia a";
-    const ok = await confirm({ title: meeting.is_confirmed ? "Cancelar asistencia" : "Confirmar asistencia", description: `¿${meeting.is_confirmed ? "Cancelar" : "Confirmar"} ${action} "${meeting.title}"?` });
+    const ok = await confirm({
+      title: meeting.is_confirmed ? "Cancelar asistencia" : "Confirmar asistencia",
+      description: meeting.is_confirmed
+        ? `¿Cancelar tu confirmación a "${meeting.title}"?`
+        : `¿Confirmar tu asistencia a "${meeting.title}"?`,
+    });
     if (!ok) return;
     try {
       if (meeting.is_confirmed) {
@@ -124,65 +156,147 @@ export default function MeetingsPage() {
     }
   };
 
+  const actions: RowAction<Meeting>[] = [];
+  if (canWrite) {
+    actions.push({
+      id: "view-confirmations",
+      label: "Ver confirmaciones",
+      icon: Eye,
+      variant: "ghost",
+      onClick: handleViewConfirmations,
+    });
+    actions.push({
+      id: "edit",
+      label: "Editar",
+      icon: Pencil,
+      variant: "ghost",
+      onClick: (row) => {
+        setEditing(row);
+        setModalOpen(true);
+      },
+    });
+    actions.push({
+      id: "delete",
+      label: "Eliminar",
+      icon: Trash2,
+      variant: "destructive",
+      onClick: handleDelete,
+    });
+  }
+  if ((isParent || isSportsman) && !canWrite) {
+    actions.push({
+      id: "confirm",
+      label: "Confirmar / cancelar",
+      icon: CheckCircle,
+      variant: "tonal",
+      onClick: handleToggleConfirmation,
+    });
+  }
+
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Reuniones</h1>
-        {canWrite && (
-          <Button className="bg-green-600 hover:bg-green-700" onClick={() => { setEditing(null); setModalOpen(true); }}>
-            <Plus size={18} className="mr-2" /> Nueva
-          </Button>
+    <>
+      <ListPageTemplate
+        title="Reuniones"
+        description="Convocatorias y confirmaciones de asistencia."
+        eyebrow="Comunicaciones"
+        primaryAction={
+          canWrite ? (
+            <Button
+              onClick={() => {
+                setEditing(null);
+                setModalOpen(true);
+              }}
+            >
+              <Plus className="h-4 w-4" />
+              Nueva reunión
+            </Button>
+          ) : undefined
+        }
+        columns={canWrite ? baseColumns : guestColumns}
+        data={data}
+        loading={loading}
+        rowActions={actions}
+        rowKey={(r) => r.id}
+        mobileCard={(r) => (
+          <div className="space-y-1">
+            <div className="flex items-center justify-between gap-2">
+              <p className="font-medium text-text">{r.title}</p>
+              {!canWrite && <ConfirmationBadge confirmed={r.is_confirmed ?? false} />}
+            </div>
+            <p className="text-xs text-muted">
+              {formatDate(r.date)} · {r.time}
+            </p>
+            {r.description && (
+              <p className="text-xs text-faint line-clamp-2">{r.description}</p>
+            )}
+          </div>
         )}
-      </div>
-      <Card>
-        <CardHeader><CardTitle>Reuniones Programadas</CardTitle></CardHeader>
-        <CardContent>
-          <DataTable
-            columns={getColumns(!isParent)}
-            data={data}
-            loading={loading}
-            onEdit={canWrite ? (row) => { setEditing(row); setModalOpen(true); } : undefined}
-            onDelete={canWrite ? handleDelete : undefined}
-            onConfirm={isParent || isSportsman ? handleToggleConfirmation : undefined}
-            onViewConfirmations={canWrite ? handleViewConfirmations : undefined}
-            confirmLabel={(row: Meeting) => row.is_confirmed ? "Cancelar" : "Confirmar"}
-            viewConfirmationsLabel="Confirmaciones"
+        empty={{
+          icon: CalendarCheck,
+          title: "Sin reuniones agendadas",
+          description: canWrite
+            ? "Crea la primera reunión para que los acudientes puedan confirmar asistencia."
+            : "Cuando la academia agende una reunión aparecerá aquí.",
+          action: canWrite ? (
+            <Button
+              onClick={() => {
+                setEditing(null);
+                setModalOpen(true);
+              }}
+            >
+              <Plus className="h-4 w-4" />
+              Crear reunión
+            </Button>
+          ) : undefined,
+        }}
+        pagination={{ count, page, onChange: setPage }}
+        formSheet={
+          <MeetingFormModal
+            open={modalOpen}
+            onOpenChange={(v) => {
+              setModalOpen(v);
+              if (!v) setEditing(null);
+            }}
+            meeting={editing}
+            onSubmit={handleSubmit}
           />
-          <Pagination count={count} page={page} onPageChange={setPage} />
-        </CardContent>
-      </Card>
-      <MeetingFormModal
-        open={modalOpen}
-        onOpenChange={(v) => { setModalOpen(v); if (!v) setEditing(null); }}
-        meeting={editing}
-        onSubmit={handleSubmit}
+        }
       />
+
       <FormModal
         open={!!confirmationsModal}
-        onOpenChange={(v) => { if (!v) setConfirmationsModal(null); }}
+        onOpenChange={(v) => {
+          if (!v) setConfirmationsModal(null);
+        }}
         title={`Confirmaciones: ${confirmationsModal?.title ?? ""}`}
       >
         {confirmations.length === 0 ? (
-          <p className="text-muted-foreground text-center py-8">Sin confirmaciones aún.</p>
+          <div className="flex flex-col items-center gap-3 py-10 text-center">
+            <XCircle className="h-8 w-8 text-faint" />
+            <p className="text-sm text-muted">Sin confirmaciones aún.</p>
+          </div>
         ) : (
-          <div className="space-y-3">
+          <ul className="divide-y divide-divider">
             {confirmations.map((c) => (
-              <div key={c.id} className="flex items-center justify-between border-b pb-2 last:border-0">
-                <div>
-                  <p className="font-medium">{c.parent_name}</p>
-                  <p className="text-sm text-muted-foreground">{c.parent_email}</p>
+              <li
+                key={c.id}
+                className="flex items-center justify-between gap-4 py-3"
+              >
+                <div className="min-w-0">
+                  <p className="font-medium text-text truncate">{c.parent_name}</p>
+                  <p className="text-sm text-muted truncate">{c.parent_email}</p>
                 </div>
-                <div className="text-right">
-                  <span className="px-2 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800 border border-green-300">Confirmado</span>
-                  <p className="text-xs text-muted-foreground mt-1">
+                <div className="text-right shrink-0">
+                  <Badge variant="success">Confirmado</Badge>
+                  <p className="mt-1 text-xs text-faint">
                     {new Date(c.confirmed_at).toLocaleString()}
                   </p>
                 </div>
-              </div>
+              </li>
             ))}
-          </div>
+          </ul>
         )}
       </FormModal>
-    </div>
+    </>
   );
 }

@@ -1,11 +1,52 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import AsyncSelect from "react-select";
-import type { ActionMeta, SingleValue } from "react-select";
+import type { ActionMeta, SingleValue, StylesConfig } from "react-select";
 
 interface Option {
   value: number;
   label: string;
 }
+
+const selectStyles: StylesConfig<Option, false> = {
+  control: (base, state) => ({
+    ...base,
+    backgroundColor: "var(--surface)",
+    borderColor: state.isFocused ? "var(--primary)" : "var(--border)",
+    boxShadow: state.isFocused ? "0 0 0 2px var(--ring)" : "none",
+    minHeight: "2.5rem",
+    "&:hover": { borderColor: "var(--border)" },
+  }),
+  valueContainer: (base) => ({ ...base, padding: "0 0.5rem" }),
+  input: (base) => ({ ...base, color: "var(--text)", margin: 0, padding: 0 }),
+  singleValue: (base) => ({ ...base, color: "var(--text)" }),
+  placeholder: (base) => ({ ...base, color: "var(--text-faint)" }),
+  indicatorSeparator: (base) => ({ ...base, backgroundColor: "var(--border)" }),
+  dropdownIndicator: (base) => ({ ...base, color: "var(--text-muted)" }),
+  clearIndicator: (base) => ({ ...base, color: "var(--text-muted)" }),
+  loadingIndicator: (base) => ({ ...base, color: "var(--text-muted)" }),
+  menu: (base) => ({
+    ...base,
+    backgroundColor: "var(--surface)",
+    border: "1px solid var(--border)",
+    boxShadow: "var(--shadow-overlay, 0 8px 24px rgba(0,0,0,0.18))",
+    zIndex: 60,
+  }),
+  menuList: (base) => ({ ...base, backgroundColor: "var(--surface)" }),
+  menuPortal: (base) => ({ ...base, zIndex: 60, pointerEvents: "auto" }),
+  option: (base, state) => ({
+    ...base,
+    backgroundColor: state.isSelected
+      ? "var(--primary)"
+      : state.isFocused
+        ? "var(--surface-2)"
+        : "transparent",
+    color: state.isSelected ? "var(--primary-foreground)" : "var(--text)",
+    cursor: "pointer",
+    "&:active": { backgroundColor: "var(--surface-2)" },
+  }),
+  noOptionsMessage: (base) => ({ ...base, color: "var(--text-muted)" }),
+  loadingMessage: (base) => ({ ...base, color: "var(--text-muted)" }),
+};
 
 interface Props {
   name?: string;
@@ -94,8 +135,12 @@ export default function AsyncSelectField({
         loadingMessage={() => "Cargando..."}
         noOptionsMessage={() => loading ? "Cargando..." : "Sin opciones"}
         isLoading={loading}
+        styles={selectStyles}
+        classNamePrefix="rs"
+        menuPortalTarget={typeof document !== "undefined" ? document.body : undefined}
+        menuShouldBlockScroll
       />
-      {error && <p className="text-sm text-red-500">{error}</p>}
+      {error && <p className="text-sm text-error">{error}</p>}
     </div>
   );
 }

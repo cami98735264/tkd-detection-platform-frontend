@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { useParentChildrenStore } from "@/features/athletes/store/parentChildrenStore";
+import { usePermissions } from "@/features/auth/hooks/usePermissions";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
@@ -27,10 +28,12 @@ export default function AttendanceFilters({
   onEndDateChange,
 }: AttendanceFiltersProps) {
   const { children, fetchChildren } = useParentChildrenStore();
+  const { hasRole } = usePermissions();
+  const isParent = hasRole(["parent"]);
 
   useEffect(() => {
-    fetchChildren();
-  }, [fetchChildren]);
+    if (isParent) fetchChildren();
+  }, [isParent, fetchChildren]);
 
   const updateRange = (mode: ViewMode) => {
     const now = new Date();

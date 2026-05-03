@@ -20,6 +20,7 @@ import { useAuthStore } from "@/features/auth/store/authStore";
 import { useApiErrorHandler } from "@/feedback/useApiErrorHandler";
 import { useFeedback } from "@/feedback/useFeedback";
 import FormModal from "@/components/common/FormModal";
+import { PageHeader } from "@/components/common/PageHeader";
 import type { Profile as ProfileType } from "@/types/entities";
 
 const ROLE_LABELS: Record<string, string> = {
@@ -89,35 +90,33 @@ export default function Profile() {
 
   return (
     <div className="space-y-6">
-      {/* HEADER */}
-      <div>
-        <h1 className="text-3xl font-bold">Perfil</h1>
-        <p className="text-muted-foreground">
-          Administra la información de tu cuenta y preferencias.
-        </p>
-      </div>
+      <PageHeader
+        title="Mi perfil"
+        description="Administra la información de tu cuenta y preferencias."
+        eyebrow="Cuenta"
+      />
 
       <div className="grid gap-6 lg:grid-cols-3">
         {/* PERFIL LATERAL */}
         <Card>
           <CardContent className="pt-6 text-center space-y-4">
-            <div className="mx-auto h-24 w-24 rounded-full bg-green-600 flex items-center justify-center text-white text-3xl font-bold">
+            <div className="mx-auto grid h-24 w-24 place-items-center rounded-full bg-primary text-primary-foreground font-display text-3xl font-semibold tracking-tight">
               {user ? getInitials(user.full_name) : "??"}
             </div>
 
             <div>
-              <h2 className="text-xl font-semibold">
+              <h2 className="font-display text-xl font-semibold tracking-tight text-text">
                 {user?.full_name ?? "—"}
               </h2>
-              <p className="text-sm text-muted-foreground">{user?.email}</p>
+              <p className="text-sm text-muted">{user?.email}</p>
             </div>
 
-            <Badge className="bg-green-600 mx-auto w-fit">
+            <Badge variant="tonal" className="mx-auto w-fit">
               {ROLE_LABELS[user?.role ?? ""] ?? user?.role}
             </Badge>
 
             {profile && (
-              <div className="border-t pt-4 mt-4 text-sm space-y-2 text-left">
+              <div className="border-t border-divider pt-4 mt-4 text-sm space-y-2 text-left">
                 <p>
                   <span className="font-semibold">Documento:</span>{" "}
                   {profile.documento || "—"}
@@ -188,7 +187,7 @@ export default function Profile() {
                         <ErrorMessage
                           name="nombres"
                           component="p"
-                          className="text-sm text-red-500"
+                          className="text-sm text-error"
                         />
                       </div>
 
@@ -202,7 +201,7 @@ export default function Profile() {
                         <ErrorMessage
                           name="apellidos"
                           component="p"
-                          className="text-sm text-red-500"
+                          className="text-sm text-error"
                         />
                       </div>
 
@@ -216,7 +215,7 @@ export default function Profile() {
                         <ErrorMessage
                           name="telefono"
                           component="p"
-                          className="text-sm text-red-500"
+                          className="text-sm text-error"
                         />
                       </div>
 
@@ -230,7 +229,7 @@ export default function Profile() {
                         <ErrorMessage
                           name="documento"
                           component="p"
-                          className="text-sm text-red-500"
+                          className="text-sm text-error"
                         />
                       </div>
 
@@ -245,7 +244,7 @@ export default function Profile() {
                         <ErrorMessage
                           name="date_of_birth"
                           component="p"
-                          className="text-sm text-red-500"
+                          className="text-sm text-error"
                         />
                       </div>
 
@@ -259,17 +258,17 @@ export default function Profile() {
                         <ErrorMessage
                           name="address"
                           component="p"
-                          className="text-sm text-red-500"
+                          className="text-sm text-error"
                         />
                       </div>
                     </div>
 
                     {/* BOTONES */}
-                    <div className="flex justify-end gap-3 pt-4 border-t">
+                    <div className="flex justify-end gap-3 pt-4 border-t border-divider">
                       {!isEditing ? (
                         <Button
                           type="button"
-                          className="bg-green-600 hover:bg-green-700"
+                         
                           onClick={() => setIsEditing(true)}
                         >
                           Editar
@@ -286,7 +285,7 @@ export default function Profile() {
 
                           <Button
                             type="submit"
-                            className="bg-green-600 hover:bg-green-700"
+                           
                             disabled={
                               isSubmitting || !isValid || !dirty
                             }
@@ -310,7 +309,7 @@ export default function Profile() {
               <CardTitle>Seguridad</CardTitle>
 
               <Button
-                className="bg-blue-600 hover:bg-blue-700"
+                variant="outline"
                 onClick={() => setPasswordModalOpen(true)}
               >
                 Cambiar contraseña
@@ -359,23 +358,23 @@ export default function Profile() {
                 <div className="space-y-1">
                   <Label>Contraseña Actual</Label>
                   <Field as={Input} type="password" name="current_password" />
-                  <ErrorMessage name="current_password" component="p" className="text-sm text-red-500" />
+                  <ErrorMessage name="current_password" component="p" className="text-sm text-error" />
                 </div>
                 <div className="space-y-1">
                   <Label>Nueva Contraseña</Label>
                   <Field as={Input} type="password" name="new_password" />
-                  <ErrorMessage name="new_password" component="p" className="text-sm text-red-500" />
+                  <ErrorMessage name="new_password" component="p" className="text-sm text-error" />
                 </div>
                 <div className="space-y-1">
                   <Label>Confirmar Nueva Contraseña</Label>
                   <Field as={Input} type="password" name="confirm_password" />
-                  <ErrorMessage name="confirm_password" component="p" className="text-sm text-red-500" />
+                  <ErrorMessage name="confirm_password" component="p" className="text-sm text-error" />
                 </div>
                 <div className="flex justify-end gap-3 pt-4">
                   <Button type="button" variant="outline" onClick={() => setPasswordModalOpen(false)}>
                     Cancelar
                   </Button>
-                  <Button type="submit" className="bg-green-600 hover:bg-green-700" disabled={isSubmitting}>
+                  <Button type="submit" disabled={isSubmitting}>
                     {isSubmitting ? "Guardando..." : "Cambiar"}
                   </Button>
                 </div>

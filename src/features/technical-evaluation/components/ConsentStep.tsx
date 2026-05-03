@@ -41,7 +41,7 @@ export default function ConsentStep({ onConsented }: ConsentStepProps) {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        <div className="flex items-start gap-4 p-4 bg-muted rounded-lg">
+        <div className="flex items-start gap-4 p-4 bg-surface-2 rounded-lg">
           <Switch checked={consent} onCheckedChange={setConsent} />
           <div>
             <p className="font-medium">Autorizo la grabación de video</p>

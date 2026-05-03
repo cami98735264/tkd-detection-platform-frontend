@@ -1,9 +1,17 @@
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import FormModal from "@/components/common/FormModal";
 import { programsApi } from "@/features/programs/api/programsApi";
 import type { Program } from "@/types/entities";
@@ -21,7 +29,7 @@ const TRAINING_TYPES = [
 ];
 
 const schema = Yup.object({
-  program: Yup.number().required("El programa es obligatorio"),
+  program: Yup.number().min(1, "El programa es obligatorio").required("El programa es obligatorio"),
   nombre: Yup.string().required("El nombre es obligatorio"),
   descripcion: Yup.string().required("La descripción es obligatoria"),
   fecha: Yup.string().required("La fecha es obligatoria"),
@@ -33,7 +41,14 @@ interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   training?: Training | null;
-  onSubmit: (values: { program: number; nombre: string; descripcion: string; fecha: string; time: string; numero_atletas: number }) => Promise<void>;
+  onSubmit: (values: {
+    program: number;
+    nombre: string;
+    descripcion: string;
+    fecha: string;
+    time: string;
+    numero_atletas: number;
+  }) => Promise<void>;
 }
 
 export default function TrainingFormModal({ open, onOpenChange, training, onSubmit }: Props) {
@@ -42,12 +57,19 @@ export default function TrainingFormModal({ open, onOpenChange, training, onSubm
 
   useEffect(() => {
     if (open) {
-      programsApi.list(1, "").then((res) => setPrograms(res.results)).catch(() => {});
+      programsApi
+        .list(1, "")
+        .then((res) => setPrograms(res.results))
+        .catch(() => {});
     }
   }, [open]);
 
   return (
-    <FormModal open={open} onOpenChange={onOpenChange} title={isEdit ? "Editar Entrenamiento" : "Nuevo Entrenamiento"}>
+    <FormModal
+      open={open}
+      onOpenChange={onOpenChange}
+      title={isEdit ? "Editar entrenamiento" : "Nuevo entrenamiento"}
+    >
       {!open ? null : (
         <Formik
           initialValues={{
@@ -65,53 +87,94 @@ export default function TrainingFormModal({ open, onOpenChange, training, onSubm
             setSubmitting(false);
           }}
         >
-          {({ isSubmitting }) => (
+          {({ isSubmitting, values, setFieldValue, setFieldTouched }) => (
             <Form className="space-y-4">
               <div className="space-y-1">
-                <Label>Programa</Label>
-                <Field as="select" name="program" className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
-                  <option value="">Seleccionar...</option>
-                  {programs.map((p) => (
-                    <option key={p.id} value={p.id}>{p.name}</option>
-                  ))}
-                </Field>
-                <ErrorMessage name="program" component="p" className="text-sm text-red-500" />
+                <Label htmlFor="training-program">Programa</Label>
+                <Select
+                  value={values.program ? String(values.program) : ""}
+                  onValueChange={(v) => {
+                    setFieldValue("program", v ? Number(v) : 0);
+                    setFieldTouched("program", true, false);
+                  }}
+                >
+                  <SelectTrigger id="training-program">
+                    <SelectValue placeholder="Seleccionar programa" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {programs.map((p) => (
+                      <SelectItem key={p.id} value={String(p.id)}>
+                        {p.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <ErrorMessage name="program" component="p" className="text-sm text-error" />
               </div>
+
               <div className="space-y-1">
-                <Label>Tipo de Entrenamiento</Label>
-                <Field as="select" name="nombre" className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
-                  <option value="">Seleccionar...</option>
-                  {TRAINING_TYPES.map((t) => (
-                    <option key={t} value={t}>{t}</option>
-                  ))}
-                </Field>
-                <ErrorMessage name="nombre" component="p" className="text-sm text-red-500" />
+                <Label htmlFor="training-type">Tipo de entrenamiento</Label>
+                <Select
+                  value={values.nombre || ""}
+                  onValueChange={(v) => {
+                    setFieldValue("nombre", v);
+                    setFieldTouched("nombre", true, false);
+                  }}
+                >
+                  <SelectTrigger id="training-type">
+                    <SelectValue placeholder="Seleccionar tipo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {TRAINING_TYPES.map((t) => (
+                      <SelectItem key={t} value={t}>
+                        {t}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <ErrorMessage name="nombre" component="p" className="text-sm text-error" />
               </div>
+
               <div className="space-y-1">
-                <Label>Descripción</Label>
-                <Field as={Input} name="descripcion" />
-                <ErrorMessage name="descripcion" component="p" className="text-sm text-red-500" />
+                <Label htmlFor="training-descripcion">Descripción</Label>
+                <Field as={Input} id="training-descripcion" name="descripcion" />
+                <ErrorMessage name="descripcion" component="p" className="text-sm text-error" />
               </div>
+
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <Label>Fecha</Label>
-                  <Field as={Input} type="date" name="fecha" />
-                  <ErrorMessage name="fecha" component="p" className="text-sm text-red-500" />
+                  <Label htmlFor="training-fecha">Fecha</Label>
+                  <Field as={Input} id="training-fecha" type="date" name="fecha" />
+                  <ErrorMessage name="fecha" component="p" className="text-sm text-error" />
                 </div>
                 <div className="space-y-1">
-                  <Label>Hora</Label>
-                  <Field as={Input} type="time" name="time" />
-                  <ErrorMessage name="time" component="p" className="text-sm text-red-500" />
+                  <Label htmlFor="training-time">Hora</Label>
+                  <Field as={Input} id="training-time" type="time" name="time" />
+                  <ErrorMessage name="time" component="p" className="text-sm text-error" />
                 </div>
               </div>
+
               <div className="space-y-1">
-                <Label>Número de Atletas</Label>
-                <Field as={Input} type="number" name="numero_atletas" min="1" />
-                <ErrorMessage name="numero_atletas" component="p" className="text-sm text-red-500" />
+                <Label htmlFor="training-atletas">Número de atletas</Label>
+                <Field
+                  as={Input}
+                  id="training-atletas"
+                  type="number"
+                  name="numero_atletas"
+                  min="1"
+                />
+                <ErrorMessage
+                  name="numero_atletas"
+                  component="p"
+                  className="text-sm text-error"
+                />
               </div>
+
               <div className="flex justify-end gap-3 pt-4">
-                <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
-                <Button type="submit" className="bg-green-600 hover:bg-green-700" disabled={isSubmitting}>
+                <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                  Cancelar
+                </Button>
+                <Button type="submit" disabled={isSubmitting}>
                   {isSubmitting ? "Guardando..." : isEdit ? "Actualizar" : "Crear"}
                 </Button>
               </div>

@@ -20,7 +20,7 @@ export default function Pagination({
 
   return (
     <div className="flex items-center justify-between pt-4">
-      <p className="text-sm text-muted-foreground">
+      <p className="text-sm text-muted">
         {count} registro{count !== 1 ? "s" : ""}
       </p>
 
@@ -30,12 +30,13 @@ export default function Pagination({
           size="sm"
           disabled={page <= 1}
           onClick={() => onPageChange(page - 1)}
+          aria-label="Página anterior"
         >
           <ChevronLeft size={16} />
         </Button>
 
-        <span className="text-sm">
-          {page} / {totalPages}
+        <span className="text-sm tabular-nums text-text">
+          {page} <span className="text-faint">/</span> {totalPages}
         </span>
 
         <Button
@@ -43,6 +44,7 @@ export default function Pagination({
           size="sm"
           disabled={page >= totalPages}
           onClick={() => onPageChange(page + 1)}
+          aria-label="Página siguiente"
         >
           <ChevronRight size={16} />
         </Button>

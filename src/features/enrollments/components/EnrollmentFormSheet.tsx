@@ -1,8 +1,9 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { ChevronLeft, ChevronRight, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -13,6 +14,7 @@ import {
   SheetDescription,
 } from "@/components/ui/sheet";
 import AsyncSelectField from "@/components/common/AsyncSelectField";
+import { FormSelect } from "@/components/common/FormSelect";
 import { athletesApi } from "@/features/athletes/api/athletesApi";
 import { programsApi } from "@/features/programs/api/programsApi";
 import { enrollmentsApi } from "@/features/enrollments/api/enrollmentsApi";
@@ -66,6 +68,11 @@ export default function EnrollmentFormSheet({ open, onOpenChange, editing, onSuc
   const { showToast } = useFeedback();
 
   const [step, setStep] = useState(1);
+  const prevStepRef = useRef(step);
+  const direction = step >= prevStepRef.current ? "right" : "left";
+  useEffect(() => {
+    prevStepRef.current = step;
+  }, [step]);
   const [submitting, setSubmitting] = useState(false);
   const [athleteData, setAthleteData] = useState<Athlete | null>(null);
   const isEdit = !!editing;
@@ -131,25 +138,19 @@ export default function EnrollmentFormSheet({ open, onOpenChange, editing, onSuc
   const isMinor = age !== null && age < 18;
 
   const loadAthletes = useCallback((input: string, page: number) => {
-    console.log("[EnrollmentForm] loadAthletes called with input:", input, "page:", page);
-    return athletesApi.list(page, input, "active", true).then((res) => {
-      console.log("[EnrollmentForm] athletes response:", res);
-      return {
-        options: res.results.map((a) => ({ value: a.id, label: a.full_name })),
-        hasMore: res.next !== null,
-      };
-    });
+    return athletesApi.list(page, input, "active", true).then((res) => ({
+      options: res.results.map((a) => ({ value: a.id, label: a.full_name })),
+      hasMore: res.next !== null,
+    }));
   }, []);
 
   const loadPrograms = useCallback((input: string, page: number) => {
-    console.log("[EnrollmentForm] loadPrograms called with input:", input, "page:", page);
-    return programsApi.list(page, input).then((res) => {
-      console.log("[EnrollmentForm] programs response:", res);
-      return {
-        options: res.results.filter((p: { active: boolean }) => p.active).map((p: { id: number; name: string }) => ({ value: p.id, label: p.name })),
-        hasMore: res.next !== null,
-      };
-    });
+    return programsApi.list(page, input).then((res) => ({
+      options: res.results
+        .filter((p: { active: boolean }) => p.active)
+        .map((p: { id: number; name: string }) => ({ value: p.id, label: p.name })),
+      hasMore: res.next !== null,
+    }));
   }, []);
 
   const handleAthleteSelect = (athleteId: number | null) => {
@@ -250,7 +251,19 @@ export default function EnrollmentFormSheet({ open, onOpenChange, editing, onSuc
 
   return (
     <Sheet open={open} onOpenChange={handleClose}>
-      <SheetContent className="w-full sm:max-w-2xl overflow-y-auto">
+      <SheetContent
+        className="w-full sm:max-w-2xl overflow-y-auto"
+        onPointerDownOutside={(e) => {
+          if ((e.target as HTMLElement).closest(".rs__menu-portal, .rs__menu")) {
+            e.preventDefault();
+          }
+        }}
+        onInteractOutside={(e) => {
+          if ((e.target as HTMLElement).closest(".rs__menu-portal, .rs__menu")) {
+            e.preventDefault();
+          }
+        }}
+      >
         <SheetHeader>
           <SheetTitle>Nueva Inscripción</SheetTitle>
           <SheetDescription>
@@ -263,16 +276,18 @@ export default function EnrollmentFormSheet({ open, onOpenChange, editing, onSuc
           {STEPS.map((s, i) => (
             <div key={s.id} className="flex items-center">
               <div
-                className={`flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium ${
-                  step >= s.id
-                    ? "bg-green-600 text-white"
-                    : "bg-gray-200 text-gray-600"
+                className={`flex items-center justify-center w-8 h-8 rounded-full text-sm font-semibold ${
+                  step > s.id
+                    ? "bg-primary text-primary-foreground"
+                    : step === s.id
+                      ? "bg-primary/10 text-primary border border-primary"
+                      : "bg-surface-2 text-faint border border-border"
                 }`}
               >
                 {step > s.id ? <CheckCircle2 size={16} /> : s.id}
               </div>
               {i < STEPS.length - 1 && (
-                <div className={`w-12 h-0.5 mx-1 ${step > s.id ? "bg-green-600" : "bg-gray-200"}`} />
+                <div className={`w-12 h-0.5 mx-1 ${step > s.id ? "bg-primary" : "bg-border"}`} />
               )}
             </div>
           ))}
@@ -283,6 +298,16 @@ export default function EnrollmentFormSheet({ open, onOpenChange, editing, onSuc
           <p className="text-sm text-muted-foreground">{STEPS[step - 1].description}</p>
         </div>
 
+        {/* Stepped content — keyed wrapper restarts the directional slide
+         * keyframe whenever `step` changes. */}
+        <div
+          key={step}
+          className={
+            direction === "right"
+              ? "animate-slide-from-right"
+              : "animate-slide-from-left"
+          }
+        >
         {/* Step 1: Personal Data */}
         {step === 1 && (
           <div className="space-y-4">
@@ -347,16 +372,11 @@ export default function EnrollmentFormSheet({ open, onOpenChange, editing, onSuc
 
             <div className="space-y-1">
               <Label>Tipo de Sangre</Label>
-              <select
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              <FormSelect
                 value={form.blood_type}
-                onChange={(e) => setForm((f) => ({ ...f, blood_type: e.target.value }))}
-              >
-                <option value="">Seleccionar...</option>
-                {BLOOD_TYPES.filter((t) => t).map((t) => (
-                  <option key={t} value={t}>{t}</option>
-                ))}
-              </select>
+                onValueChange={(v) => setForm((f) => ({ ...f, blood_type: v }))}
+                options={BLOOD_TYPES.filter((t) => t).map((t) => ({ value: t, label: t }))}
+              />
             </div>
 
             <div className="space-y-1">
@@ -369,7 +389,7 @@ export default function EnrollmentFormSheet({ open, onOpenChange, editing, onSuc
                   className="flex-1"
                 />
                 {form.certificado_medico && (
-                  <span className="text-sm text-green-600">
+                  <span className="text-sm text-success">
                     <CheckCircle2 size={16} />
                   </span>
                 )}
@@ -378,8 +398,7 @@ export default function EnrollmentFormSheet({ open, onOpenChange, editing, onSuc
 
             <div className="space-y-1">
               <Label>Notas</Label>
-              <textarea
-                className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm min-h-[60px]"
+              <Textarea
                 value={form.notes}
                 onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
                 placeholder="Observaciones adicionales..."
@@ -417,16 +436,13 @@ export default function EnrollmentFormSheet({ open, onOpenChange, editing, onSuc
 
                     <div className="space-y-1">
                       <Label>Parentesco *</Label>
-                      <select
-                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                      <FormSelect
                         value={form.guardian_relationship}
-                        onChange={(e) => setForm((f) => ({ ...f, guardian_relationship: e.target.value }))}
-                      >
-                        <option value="">Seleccionar...</option>
-                        {RELATIONSHIPS.map((r) => (
-                          <option key={r.value} value={r.value}>{r.label}</option>
-                        ))}
-                      </select>
+                        onValueChange={(v) =>
+                          setForm((f) => ({ ...f, guardian_relationship: v }))
+                        }
+                        options={RELATIONSHIPS}
+                      />
                     </div>
 
                     <div className="grid gap-4 grid-cols-2">
@@ -543,9 +559,10 @@ export default function EnrollmentFormSheet({ open, onOpenChange, editing, onSuc
             </Card>
           </div>
         )}
+        </div>
 
         {/* Navigation buttons */}
-        <div className="flex justify-between pt-4 mt-4 border-t">
+        <div className="flex justify-between pt-4 mt-4 border-t border-divider">
           {step > 1 ? (
             <Button variant="outline" onClick={handleBack}>
               <ChevronLeft size={16} className="mr-1" /> Anterior
@@ -558,7 +575,7 @@ export default function EnrollmentFormSheet({ open, onOpenChange, editing, onSuc
 
           {step < 3 ? (
             <Button
-              className="bg-green-600 hover:bg-green-700"
+             
               onClick={handleNext}
               disabled={!canProceed()}
             >
@@ -566,7 +583,7 @@ export default function EnrollmentFormSheet({ open, onOpenChange, editing, onSuc
             </Button>
           ) : (
             <Button
-              className="bg-green-600 hover:bg-green-700"
+             
               onClick={handleSubmit}
               disabled={submitting}
             >
