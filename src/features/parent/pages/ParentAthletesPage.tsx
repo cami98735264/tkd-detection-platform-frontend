@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { UserPlus } from "lucide-react";
@@ -153,10 +153,7 @@ export default function ParentAthletesPage() {
       </div>
 
       <Card>
-        <CardHeader>
-          <CardTitle>Lista de vínculos</CardTitle>
-        </CardHeader>
-        <CardContent>
+        <CardContent className="p-2 sm:p-4">
           <DataTable
             columns={columns}
             data={data}

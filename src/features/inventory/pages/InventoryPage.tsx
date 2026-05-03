@@ -90,7 +90,7 @@ export default function InventoryPage() {
         }
       />
       <Card>
-        <CardContent>
+        <CardContent className="p-2 sm:p-4">
           <DataTable
             columns={columns}
             data={data}
