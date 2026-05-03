@@ -11,6 +11,7 @@ import { useAuthStore } from "@/features/auth/store/authStore";
 import { attendanceApi } from "@/features/attendance/api/attendanceApi";
 import { athletesApi } from "@/features/athletes/api/athletesApi";
 import { useApiErrorHandler } from "@/feedback/useApiErrorHandler";
+import { useAuthReady } from "@/features/auth/components/RoleRoute";
 import type { Athlete } from "@/types/entities";
 
 type ViewMode = "weekly" | "monthly" | "yearly";
@@ -18,6 +19,7 @@ type ViewMode = "weekly" | "monthly" | "yearly";
 export default function AthleteDashboardPage() {
   const user = useAuthStore((s) => s.user);
   const { handleError } = useApiErrorHandler();
+  const authReady = useAuthReady();
 
   const [athlete, setAthlete] = useState<Athlete | null>(null);
   const [loading, setLoading] = useState(true);
@@ -34,19 +36,18 @@ export default function AthleteDashboardPage() {
 
   // Load athlete data
   useEffect(() => {
+    if (!authReady) return;
     setLoading(true);
     athletesApi.getMe()
       .then((data) => {
-        console.log("athlete data:", data);
         setAthlete(data);
       })
       .catch((err) => {
-        console.error("athlete error:", err);
         handleError(err);
       })
       .finally(() => setLoading(false));
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [authReady]);
 
   // Load attendance summary when athlete or date range changes
   const loadSummary = useCallback(() => {

@@ -136,8 +136,12 @@ export interface Evaluation {
   program_id: number | null;
   evaluated_at: string;
   result_summary: string;
-  metrics: EvaluationMetric[];
   notes: string | null;
+  video_url: string;
+  analisis_mediapipe: Record<string, any>;
+  puntuacion_final: number | null;
+  autorizacion_padre: boolean;
+  metrics: EvaluationMetric[];
   created_at: string;
   updated_at: string;
 }

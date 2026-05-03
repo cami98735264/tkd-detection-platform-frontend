@@ -1,12 +1,15 @@
-import { useFeedback } from "./useFeedback";
+import { useContext } from "react";
+import { FeedbackContext } from "./FeedbackProvider";
 import { ApiError } from "@/types/api";
 
 export function useApiErrorHandler() {
-  const { showToast } = useFeedback();
+  const context = useContext(FeedbackContext);
 
   const handleError = (error: unknown) => {
+    if (!context) return;
+
     if (error instanceof ApiError) {
-      showToast({
+      context.showToast({
         title: error.isServerError ? "Error del servidor" : "Error",
         description: error.userMessage,
         variant: error.isServerError ? "error" : "warning",
@@ -17,7 +20,7 @@ export function useApiErrorHandler() {
     const message =
       error instanceof Error ? error.message : "Error inesperado";
 
-    showToast({
+    context.showToast({
       title: "Error",
       description: message,
       variant: "error",

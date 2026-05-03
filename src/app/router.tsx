@@ -15,6 +15,8 @@ import ProgramsPage from "@/features/programs/pages/ProgramsPage";
 import EditionsPage from "@/features/programs/pages/EditionsPage";
 import EnrollmentsPage from "@/features/enrollments/pages/EnrollmentsPage";
 import EvaluationsPage from "@/features/evaluations/pages/EvaluationsPage";
+import SportsmanEvaluationsPage from "@/features/evaluations/pages/SportsmanEvaluationsPage";
+import ParentEvaluationsPage from "@/features/evaluations/pages/ParentEvaluationsPage";
 import ReportsPage from "@/features/reports/pages/ReportsPage";
 import CompetitionCategoriesPage from "@/features/categories/pages/CategoriesPage";
 import RegistrationPage from "@/features/registration/pages/RegistrationPage";
@@ -68,7 +70,13 @@ export default function AppRouter() {
           <RoleRoute allowedRoles={["sportsman", "parent", "administrator"]}><EnrollmentsPage /></RoleRoute>
         } />
         <Route path="evaluacion" element={
-          <RoleRoute allowedRoles={["sportsman", "parent", "administrator"]}><EvaluationsPage /></RoleRoute>
+          <RoleRoute allowedRoles={["administrator"]}><EvaluationsPage /></RoleRoute>
+        } />
+        <Route path="deportista/mis-evaluaciones" element={
+          <RoleRoute allowedRoles={["sportsman"]}><SportsmanEvaluationsPage /></RoleRoute>
+        } />
+        <Route path="acudiente/mis-hijos/evaluaciones" element={
+          <RoleRoute allowedRoles={["parent"]}><ParentEvaluationsPage /></RoleRoute>
         } />
         <Route path="categorias-competencia" element={<CompetitionCategoriesPage />} />
         <Route path="reportes" element={

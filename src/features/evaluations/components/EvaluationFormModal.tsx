@@ -132,7 +132,7 @@ export default function EvaluationFormModal({
             await onSubmit({
               athlete: Number(values.athlete),
               program: values.program ? Number(values.program) : null,
-              evaluated_at: values.evaluated_at,
+              evaluated_at: values.evaluated_at.slice(0, 10),
               result_summary: values.result_summary,
               notes: values.notes || null,
               metrics: values.metrics.map((m) => ({

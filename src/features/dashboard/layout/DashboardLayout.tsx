@@ -137,6 +137,7 @@ export default function DashboardLayout() {
               <SidebarItem to="/dashboard/deportista/mis-programas" icon={BookOpen} label="Mis Programas" />
               <SidebarItem to="/dashboard/deportista/mi-inscripcion" icon={ClipboardList} label="Mi Inscripción" />
               <SidebarItem to="/dashboard/deportista/entrenamientos" icon={Dumbbell} label="Entrenamientos" />
+              <SidebarItem to="/dashboard/deportista/mis-evaluaciones" icon={CheckCircle} label="Mis Evaluaciones" />
               <SidebarItem to="/dashboard/asistencia" icon={ClipboardCheck} label="Mi Asistencia" />
               <SidebarItem to="/dashboard/reuniones" icon={Calendar} label="Reuniones" />
               <SidebarItem to="/dashboard/evaluacion-tecnica" icon={Camera} label="Evaluación Técnica" />
@@ -152,10 +153,10 @@ export default function DashboardLayout() {
               <SidebarItem to="/dashboard/deportistas" icon={Users} label="Deportistas" />
               <SidebarItem to="/dashboard/programas" icon={BookOpen} label="Programas" />
               <SidebarItem to="/dashboard/inscripcion" icon={ClipboardList} label="Inscripciones" />
-              <SidebarItem to="/dashboard/evaluacion" icon={CheckCircle} label="Evaluaciones" />
               <div className="pt-4 pb-2">
                 <span className="text-xs text-green-400 uppercase tracking-wider">Mi Hijo/A</span>
               </div>
+              <SidebarItem to="/dashboard/acudiente/mis-hijos/evaluaciones" icon={CheckCircle} label="Evaluaciones" />
               <SidebarItem to="/dashboard/reuniones" icon={Calendar} label="Confirmar Reuniones" />
               <SidebarItem to="/dashboard/asistencia" icon={ClipboardCheck} label="Asistencia" />
               <SidebarItem to="/dashboard/evaluacion-tecnica" icon={Camera} label="Evaluación Técnica" />
