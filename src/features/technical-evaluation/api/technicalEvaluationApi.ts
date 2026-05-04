@@ -28,6 +28,7 @@ export interface EvaluationSession {
   recording_url: string;
   status: "recording" | "processing" | "completed" | "failed";
   results: EvaluationResults | null;
+  recommendations: string;
   created_at: string;
 }
 
@@ -52,9 +53,16 @@ export const technicalEvaluationApi = {
     http.get<EvaluationSession>(`/technical-evaluation/sessions/${id}/`),
 
   createSession: (kickType: KickType, recordingUrl: string, athleteId?: number) =>
-    http.post<EvaluationSession>("/technical-evaluation/sessions/", {
-      kick_type: kickType,
-      recording_url: recordingUrl,
-      athlete_id: athleteId,
-    }),
+    http.post<EvaluationSession>(
+      "/technical-evaluation/sessions/",
+      {
+        kick_type: kickType,
+        recording_url: recordingUrl,
+        athlete_id: athleteId,
+      },
+      // Synchronous server-side analysis (MediaPipe model load + processing)
+      // can take 30–60s on the first call after server start; the global 10s
+      // axios timeout is too tight here.
+      { timeout: 120_000 },
+    ),
 };

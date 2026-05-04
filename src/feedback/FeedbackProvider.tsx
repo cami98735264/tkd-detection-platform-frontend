@@ -1,4 +1,4 @@
-import { createContext, useState } from "react";
+import { createContext, useEffect, useState } from "react";
 import { Toaster, toast } from "sonner";
 
 import {
@@ -12,6 +12,25 @@ import {
 import AppModal from "./components/AppModal";
 import AppAlert from "./components/AppAlert";
 import AppBanner from "./components/AppBanner";
+
+function useHtmlTheme(): "light" | "dark" {
+  const [theme, setTheme] = useState<"light" | "dark">(() =>
+    typeof document !== "undefined" && document.documentElement.classList.contains("dark")
+      ? "dark"
+      : "light",
+  );
+
+  useEffect(() => {
+    const root = document.documentElement;
+    const observer = new MutationObserver(() => {
+      setTheme(root.classList.contains("dark") ? "dark" : "light");
+    });
+    observer.observe(root, { attributes: true, attributeFilter: ["class"] });
+    return () => observer.disconnect();
+  }, []);
+
+  return theme;
+}
 
 interface FeedbackContextType {
   openModal: (options: ModalOptions) => void;
@@ -32,6 +51,7 @@ export function FeedbackProvider({
   const [modal, setModal] = useState<ModalOptions | null>(null);
   const [alert, setAlert] = useState<AlertOptions | null>(null);
   const [banner, setBanner] = useState<BannerOptions | null>(null);
+  const toasterTheme = useHtmlTheme();
 
   // 🔥 CONFIRM QUEUE
   const [confirmQueue, setConfirmQueue] = useState<
@@ -128,7 +148,7 @@ export function FeedbackProvider({
 
       <Toaster
         position="top-right"
-        theme="system"
+        theme={toasterTheme}
         toastOptions={{
           classNames: {
             toast:

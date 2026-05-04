@@ -17,7 +17,11 @@ const schema = (isEdit: boolean) => Yup.object({
   email: Yup.string().email("Email inválido").required("El email es obligatorio"),
   full_name: Yup.string().required("El nombre es obligatorio"),
   password: isEdit
-    ? Yup.string()
+    ? Yup.string().test(
+        "min-when-set",
+        "La contraseña debe tener al menos 8 caracteres",
+        (value) => !value || value.length >= 8,
+      )
     : Yup.string().min(8, "La contraseña debe tener al menos 8 caracteres").required("La contraseña es obligatoria"),
   role: Yup.string().required("El rol es obligatorio"),
   is_active: Yup.boolean().default(true),
@@ -88,17 +92,21 @@ export default function UserFormModal({
                 />
               </div>
 
-              {!isEdit && (
-                <div className="space-y-1">
-                  <Label>Contraseña</Label>
-                  <Field as={Input} type="password" name="password" />
-                  <ErrorMessage
-                    name="password"
-                    component="p"
-                    className="text-sm text-error"
-                  />
-                </div>
-              )}
+              <div className="space-y-1">
+                <Label>Contraseña</Label>
+                <Field
+                  as={Input}
+                  type="password"
+                  name="password"
+                  autoComplete="new-password"
+                  placeholder={isEdit ? "Dejar vacío para no cambiar" : undefined}
+                />
+                <ErrorMessage
+                  name="password"
+                  component="p"
+                  className="text-sm text-error"
+                />
+              </div>
 
               <div className="space-y-1">
                 <Label>Rol</Label>

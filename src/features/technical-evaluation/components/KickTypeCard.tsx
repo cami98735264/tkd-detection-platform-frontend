@@ -1,6 +1,5 @@
-import { CheckCircle2 } from "lucide-react";
+import { CheckCircle2, Target } from "lucide-react";
 
-import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
 interface KickTypeCardProps {
@@ -9,25 +8,22 @@ interface KickTypeCardProps {
   onClick: () => void;
 }
 
-export default function KickTypeCard({ name, selected, onClick }: KickTypeCardProps) {
+export default function KickTypeCard({
+  name,
+  selected,
+  onClick,
+}: KickTypeCardProps) {
   return (
-    <Card
-      role="button"
-      tabIndex={0}
+    <button
+      type="button"
       onClick={onClick}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          onClick();
-        }
-      }}
+      aria-pressed={selected}
       className={cn(
-        "relative p-4 cursor-pointer text-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-bg",
+        "group relative flex flex-col items-start gap-3 rounded-lg border bg-surface p-4 text-left transition-interactive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-bg",
         selected
           ? "border-primary bg-primary/5 ring-1 ring-primary"
-          : "border-border hover:border-primary/40 hover:bg-surface-2",
+          : "border-border hover:-translate-y-0.5 hover:border-primary/40 hover:bg-primary/5",
       )}
-      aria-pressed={selected}
     >
       {selected && (
         <CheckCircle2
@@ -35,6 +31,16 @@ export default function KickTypeCard({ name, selected, onClick }: KickTypeCardPr
           aria-hidden="true"
         />
       )}
+      <span
+        className={cn(
+          "grid h-10 w-10 place-items-center rounded-md transition-interactive",
+          selected
+            ? "bg-primary/15 text-primary"
+            : "bg-primary/10 text-primary group-hover:bg-primary/15",
+        )}
+      >
+        <Target className="h-4 w-4" />
+      </span>
       <p
         className={cn(
           "font-display text-base font-semibold tracking-tight",
@@ -43,6 +49,6 @@ export default function KickTypeCard({ name, selected, onClick }: KickTypeCardPr
       >
         {name}
       </p>
-    </Card>
+    </button>
   );
 }

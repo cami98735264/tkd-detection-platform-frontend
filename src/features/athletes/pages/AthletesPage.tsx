@@ -15,7 +15,7 @@ import { ListPageTemplate } from "@/components/common/ListPageTemplate";
 import { StatsRow } from "@/components/common/StatsRow";
 import type { Column, RowAction } from "@/components/common/DataTable";
 
-import AthleteFormModal from "@/features/athletes/components/AthleteFormModal";
+import AthleteFormSheet from "@/features/athletes/components/AthleteFormSheet";
 import { athletesApi } from "@/features/athletes/api/athletesApi";
 import { categoriesApi } from "@/features/categories/api/categoriesApi";
 import { parentAthletesApi } from "@/features/athletes/api/parentAthletesApi";
@@ -201,28 +201,11 @@ export default function AthletesPage() {
       .finally(() => setChildrenLoading(false));
   }, [isParent]);
 
-  const handleSubmit = async (values: {
-    full_name: string;
-    date_of_birth: string | null;
-    categoria_competencia: number | null;
-    status: string;
-  }) => {
-    try {
-      if (editing) {
-        await athletesApi.update(editing.id, values);
-        showToast({ title: "Deportista actualizado", variant: "success" });
-      } else {
-        await athletesApi.create(values);
-        showToast({ title: "Deportista creado", variant: "success" });
-      }
-      setModalOpen(false);
-      setEditing(null);
-      setPage(1);
-      refreshStats();
-      fetchData();
-    } catch (err) {
-      handleError(err);
-    }
+  const handleFormSuccess = () => {
+    setEditing(null);
+    setPage(1);
+    refreshStats();
+    fetchData();
   };
 
   const handleToggleStatus = async (athlete: Athlete) => {
@@ -442,14 +425,14 @@ export default function AthletesPage() {
         onChange: setPage,
       }}
       formSheet={
-        <AthleteFormModal
+        <AthleteFormSheet
           open={modalOpen}
           onOpenChange={(v) => {
             setModalOpen(v);
             if (!v) setEditing(null);
           }}
           athlete={editing}
-          onSubmit={handleSubmit}
+          onSuccess={handleFormSuccess}
         />
       }
     />

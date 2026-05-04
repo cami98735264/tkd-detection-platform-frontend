@@ -20,6 +20,15 @@ export interface CreateParentAthlete {
   relationship: "mother" | "father" | "guardian";
 }
 
+export interface RegisterParentAthletePayload {
+  athlete: number;
+  parent_relationship: "mother" | "father" | "guardian";
+  parent_user_id?: number | null;
+  parent_email?: string;
+  parent_password?: string;
+  parent_full_name?: string;
+}
+
 export const parentAthletesApi = {
   list: (page = 1, search = "") =>
     http.get<PaginatedResponse<ParentAthlete>>(
@@ -31,6 +40,13 @@ export const parentAthletesApi = {
 
   create: (data: CreateParentAthlete) =>
     http.post<ParentAthlete>("/parent-athletes/", data),
+
+  /**
+   * Atomic admin-only endpoint: creates (or links) a parent User and the
+   * ParentAthlete relationship in a single transaction.
+   */
+  register: (data: RegisterParentAthletePayload) =>
+    http.post<ParentAthlete>("/parent-athletes/register/", data),
 
   delete: (id: number) =>
     http.delete(`/parent-athletes/${id}/`),

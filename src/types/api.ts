@@ -10,8 +10,34 @@ export interface PaginatedResponse<T> {
   results: T[];
 }
 
-/** DRF error body — `detail` for single message, field keys for validation */
+/**
+ * Standardized API error envelope (see `apps/common/exceptions.py`):
+ *
+ *     {
+ *       success: false,
+ *       data: null,
+ *       error: {
+ *         code: "validation_error",
+ *         message: "<first human-readable message>",
+ *         fields?: { field: [messages] },
+ *         field_codes?: { field: [codes] }
+ *       }
+ *     }
+ *
+ * The legacy DRF shape (`{"detail": "..."}` or `{field: [...]}`) is also
+ * tolerated by the formatter for any older endpoints.
+ */
+export interface StandardApiError {
+  code: string;
+  message: string;
+  fields?: Record<string, string[]>;
+  field_codes?: Record<string, string[]>;
+}
+
 export interface ApiErrorBody {
+  success?: boolean;
+  data?: unknown;
+  error?: StandardApiError | string;
   detail?: string;
   [field: string]: unknown;
 }
@@ -131,5 +157,30 @@ export class ApiError extends Error {
 
   get userMessage(): string {
     return formatApiErrorBody(this.body);
+  }
+
+  /**
+   * Per-field error messages from validation responses (`{field: [msg, ...]}`),
+   * or `null` when the response wasn't field-shaped.
+   */
+  get fields(): Record<string, string[]> | null {
+    const error = this.body.error;
+    if (error && typeof error === "object" && error.fields) return error.fields;
+    return null;
+  }
+
+  /**
+   * Programmatic error codes for fields that carry one (e.g. `user_exists`).
+   * Use this for stable detection instead of substring-matching `userMessage`.
+   */
+  get fieldCodes(): Record<string, string[]> | null {
+    const error = this.body.error;
+    if (error && typeof error === "object" && error.field_codes) return error.field_codes;
+    return null;
+  }
+
+  /** Convenience: does any error on `field` carry the given `code`? */
+  hasFieldCode(field: string, code: string): boolean {
+    return !!this.fieldCodes?.[field]?.includes(code);
   }
 }

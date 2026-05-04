@@ -92,13 +92,12 @@ export default function ParentAthletesPage() {
 
   const openAssignModal = useCallback(() => {
     Promise.all([
-      usersApi.list(1, ""),
+      usersApi.list({ role: "parent" }),
       athletesApi.list(1, "", "active"),
     ])
       .then(([parentsRes, athletesRes]) => {
-        // Filter only parent users client-side
-        setParents(parentsRes.results.filter((u) => u.role === "parent"));
-        setAthletes(athletesRes.results.filter((a) => a.status === "active"));
+        setParents(parentsRes.results);
+        setAthletes(athletesRes.results);
         setModalOpen(true);
       })
       .catch(handleError);

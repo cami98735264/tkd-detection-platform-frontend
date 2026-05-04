@@ -1,6 +1,8 @@
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Target } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import KickTypeCard from "./KickTypeCard";
 import type { KickType } from "@/features/technical-evaluation/api/technicalEvaluationApi";
 
@@ -23,10 +25,16 @@ export default function KickSelection({ onSelected }: KickSelectionProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Seleccionar Patada</CardTitle>
+        <CardTitle className="flex items-center gap-2 font-display text-lg font-semibold tracking-tight">
+          <Target className="h-5 w-5 text-primary" />
+          Seleccionar patada
+        </CardTitle>
+        <p className="text-sm text-muted">
+          Elige la técnica que vas a registrar para esta evaluación.
+        </p>
       </CardHeader>
       <CardContent className="space-y-6">
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
           {KICK_TYPES.map((kick) => (
             <KickTypeCard
               key={kick}

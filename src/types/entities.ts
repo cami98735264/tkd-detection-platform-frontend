@@ -34,6 +34,7 @@ export interface Athlete {
   status: "active" | "inactive";
   belt_actual: number | null;
   belt_actual_name: string | null;
+  height_cm: string | null;
   created_at: string;
   updated_at: string;
 }

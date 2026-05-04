@@ -1,6 +1,8 @@
 import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { ShieldCheck } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { technicalEvaluationApi } from "@/features/technical-evaluation/api/technicalEvaluationApi";
 import { useApiErrorHandler } from "@/feedback/useApiErrorHandler";
@@ -31,33 +33,38 @@ export default function ConsentStep({ onConsented }: ConsentStepProps) {
   };
 
   return (
-    <Card className="max-w-lg mx-auto">
+    <Card className="mx-auto max-w-2xl">
       <CardHeader>
-        <CardTitle>Autorización para Grabación</CardTitle>
-        <CardDescription>
-          Para realizar la evaluación técnica de su hijo(a), necesitamos su autorización
-          para grabar video durante la sesión de patadas. Los videos se utilizarán
-          únicamente para análisis técnico y no se compartirán con terceros.
-        </CardDescription>
+        <CardTitle className="flex items-center gap-2 font-display text-lg font-semibold tracking-tight">
+          <ShieldCheck className="h-5 w-5 text-primary" />
+          Autorización para grabación
+        </CardTitle>
+        <p className="text-sm text-muted">
+          Para realizar la evaluación técnica necesitamos tu autorización para
+          grabar video durante la sesión de patadas. Los videos se utilizan
+          únicamente para análisis técnico y no se comparten con terceros.
+        </p>
       </CardHeader>
       <CardContent className="space-y-6">
-        <div className="flex items-start gap-4 p-4 bg-surface-2 rounded-lg">
+        <label className="flex cursor-pointer items-start gap-4 rounded-lg border border-border bg-surface-2 p-4 transition-interactive hover:border-primary/40">
           <Switch checked={consent} onCheckedChange={setConsent} />
-          <div>
-            <p className="font-medium">Autorizo la grabación de video</p>
-            <p className="text-sm text-muted-foreground">
-              Acepto que Warriors TKD Espinal grabe sesiones de evaluación técnica
-              de mi hijo(a) para análisis de rendimiento.
+          <div className="min-w-0">
+            <p className="font-medium text-text">
+              Autorizo la grabación de video
+            </p>
+            <p className="mt-1 text-sm text-muted">
+              Acepto que Warriors TKD Espinal grabe sesiones de evaluación
+              técnica para análisis de rendimiento.
             </p>
           </div>
-        </div>
+        </label>
 
         <Button
           className="w-full"
-          disabled={!consent}
+          disabled={!consent || loading}
           onClick={handleSubmit}
         >
-          {loading ? "Guardando..." : "Continuar"}
+          {loading ? "Guardando…" : "Continuar"}
         </Button>
       </CardContent>
     </Card>

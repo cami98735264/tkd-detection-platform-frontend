@@ -62,7 +62,7 @@ export default function UsersPage() {
   const fetchData = useCallback((p: number) => {
     setLoading(true);
     usersApi
-      .list(p)
+      .list({ page: p })
       .then((res) => {
         setData(res.results);
         setCount(res.count);
@@ -81,10 +81,13 @@ export default function UsersPage() {
     full_name: string;
     role: string;
     is_active: boolean;
+    password?: string;
   }) => {
     try {
       if (editing) {
-        await usersApi.update(editing.id, values);
+        const { password, ...rest } = values;
+        const payload = password ? { ...rest, password } : rest;
+        await usersApi.update(editing.id, payload);
         showToast({ title: "Usuario actualizado", variant: "success" });
       } else {
         await usersApi.create(values);
