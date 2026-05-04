@@ -110,9 +110,10 @@ export default function ForgotPassword() {
               noValidate
               onSubmit={async (event) => {
                 event.preventDefault();
+                const formEl = event.currentTarget;
                 const errs = await validateForm();
                 if (Object.keys(errs).length > 0) {
-                  flagAndShakeInvalidFields(event.currentTarget, errs);
+                  flagAndShakeInvalidFields(formEl, errs);
                   return;
                 }
                 submitForm();
