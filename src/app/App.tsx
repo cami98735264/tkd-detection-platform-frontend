@@ -1,4 +1,5 @@
 import { BrowserRouter } from "react-router-dom";
+import "@/lib/yupLocale";
 import Providers from "./providers";
 import AppRouter from "./router";
 
