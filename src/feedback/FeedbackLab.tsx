@@ -23,7 +23,7 @@ export default function FeedbackLab() {
           })
         }
       >
-        Toast Success
+        Toast exitoso
       </Button>
 
       {/* MODAL */}
@@ -36,7 +36,7 @@ export default function FeedbackLab() {
           })
         }
       >
-        Open Modal
+        Abrir modal
       </Button>
 
       {/* ALERT FORMAL */}
@@ -50,7 +50,7 @@ export default function FeedbackLab() {
           })
         }
       >
-        Show Alert
+        Mostrar alerta
       </Button>
 
       {/* CONFIRM ASYNC NORMAL */}
@@ -70,19 +70,19 @@ export default function FeedbackLab() {
           }
         }}
       >
-        Confirm Async
+        Confirmar asíncrono
       </Button>
 
       {/* TEST QUEUE DE CONFIRMACIONES */}
       <Button
         variant="outline"
         onClick={async () => {
-          await confirm({ title: "Confirm 1" });
-          await confirm({ title: "Confirm 2" });
-          await confirm({ title: "Confirm 3" });
+          await confirm({ title: "Confirmar 1" });
+          await confirm({ title: "Confirmar 2" });
+          await confirm({ title: "Confirmar 3" });
         }}
       >
-        Test Confirm Queue
+        Probar cola de confirmaciones
       </Button>
 
       {/* BANNER */}
@@ -95,7 +95,7 @@ export default function FeedbackLab() {
           })
         }
       >
-        Show Banner
+        Mostrar aviso
       </Button>
 
     </div>

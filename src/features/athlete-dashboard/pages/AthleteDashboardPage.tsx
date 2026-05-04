@@ -7,6 +7,7 @@ import {
   ClipboardCheck,
   Dumbbell,
   FileText,
+  History,
   type LucideIcon,
   Trophy,
 } from "lucide-react";
@@ -66,6 +67,12 @@ const ACTIONS: { to: string; icon: LucideIcon; label: string; description: strin
     icon: Camera,
     label: "Evaluación técnica",
     description: "Registrar patadas",
+  },
+  {
+    to: "/dashboard/deportista/historial-patadas",
+    icon: History,
+    label: "Historial de patadas",
+    description: "Ver mis patadas registradas",
   },
 ];
 

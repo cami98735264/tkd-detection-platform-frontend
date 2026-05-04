@@ -21,6 +21,7 @@ import ConsentStep from "@/features/technical-evaluation/components/ConsentStep"
 import KickSelection from "@/features/technical-evaluation/components/KickSelection";
 import RecordingCapture from "@/features/technical-evaluation/components/RecordingCapture";
 import EvaluationResultsView from "@/features/technical-evaluation/components/EvaluationResults";
+import EvaluationHistory from "@/features/technical-evaluation/components/EvaluationHistory";
 import {
   technicalEvaluationApi,
   type EvaluationSession,
@@ -32,9 +33,9 @@ import { useAuthStore } from "@/features/auth/store/authStore";
 import { athletesApi } from "@/features/athletes/api/athletesApi";
 import type { Athlete } from "@/types/entities";
 
-type Step = "choose" | "consent" | "kick" | "record" | "results";
+type Step = "choose" | "consent" | "history" | "kick" | "record" | "results";
 
-const STEP_ORDER: Step[] = ["choose", "consent", "kick", "record", "results"];
+const STEP_ORDER: Step[] = ["choose", "consent", "history", "kick", "record", "results"];
 
 interface ConsentInfo {
   consent_granted: boolean;
@@ -116,7 +117,7 @@ export default function TechnicalEvaluationPage() {
   useEffect(() => {
     if (!step || step !== "choose" || !myAthlete || !consentInfo) return;
     if (isAdult && isSportsman && consentInfo.consent_granted) {
-      setStep("kick");
+      setStep("history");
       return;
     }
     if (!isAdult && isSportsman && consentInfo.consent_granted) {
@@ -129,7 +130,7 @@ export default function TechnicalEvaluationPage() {
       consent_granted: true,
       consent_timestamp: new Date().toISOString(),
     });
-    setStep("kick");
+    setStep("history");
   };
 
   const handleKickSelected = (kick: KickType) => {
@@ -177,6 +178,13 @@ export default function TechnicalEvaluationPage() {
     setSessionId(null);
     setSession(null);
     setSelectedChild(null);
+  };
+
+  const handleStartNew = () => {
+    setStep("kick");
+    setKickType(null);
+    setSessionId(null);
+    setSession(null);
   };
 
   const handleRetry = () => {
@@ -373,7 +381,7 @@ export default function TechnicalEvaluationPage() {
                             type="button"
                             onClick={() => {
                               setSelectedChild(minor);
-                              setStep("kick");
+                              setStep("history");
                             }}
                             className="group flex items-center gap-3 rounded-lg border border-border bg-surface p-4 text-left transition-interactive hover:-translate-y-0.5 hover:border-primary/40 hover:bg-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
                           >
@@ -406,6 +414,14 @@ export default function TechnicalEvaluationPage() {
                     : "animate-slide-from-left"
                 }
               >
+                {step === "history" && selectedChild && (
+                  <EvaluationHistory
+                    athleteId={selectedChild.athlete_id}
+                    childName={selectedChild.athlete_name}
+                    eyebrow={pageHeaderEyebrow}
+                    onStartNew={() => setStep("kick")}
+                  />
+                )}
                 {step === "kick" && (
                   <KickSelection onSelected={handleKickSelected} />
                 )}
@@ -504,7 +520,7 @@ export default function TechnicalEvaluationPage() {
         description={pageHeaderDescription}
         eyebrow={pageHeaderEyebrow}
         actions={
-          step !== "consent" && step !== "choose" ? (
+          step !== "consent" && step !== "choose" && step !== "history" ? (
             <Button variant="outline" size="sm" onClick={handleReset}>
               <RefreshCw className="h-4 w-4" />
               Nueva evaluación
@@ -522,6 +538,14 @@ export default function TechnicalEvaluationPage() {
         }
       >
         {step === "consent" && <ConsentStep onConsented={handleConsented} />}
+
+        {step === "history" && (
+          <EvaluationHistory
+            athleteId={myAthlete?.id}
+            eyebrow={pageHeaderEyebrow}
+            onStartNew={() => setStep("kick")}
+          />
+        )}
 
         {step === "kick" && <KickSelection onSelected={handleKickSelected} />}
 

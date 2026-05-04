@@ -84,8 +84,8 @@ export default function Home() {
   const fetchChildren = useParentChildrenStore((s) => s.fetchChildren);
 
   useEffect(() => {
-    if (isParent || isSportsman) fetchChildren();
-  }, [isParent, isSportsman, fetchChildren]);
+    if (isParent) fetchChildren();
+  }, [isParent, fetchChildren]);
 
   // Sportsman attendance summary
   const [summary, setSummary] = useState<{

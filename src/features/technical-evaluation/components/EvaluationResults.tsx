@@ -1,15 +1,17 @@
-import { CheckCircle } from "lucide-react";
+import { CheckCircle, X } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import type { EvaluationResults } from "@/features/technical-evaluation/api/technicalEvaluationApi";
 
 interface EvaluationResultsProps {
   results: EvaluationResults;
+  onClose?: () => void;
 }
 
-export default function EvaluationResultsView({ results }: EvaluationResultsProps) {
+export default function EvaluationResultsView({ results, onClose }: EvaluationResultsProps) {
   const tone =
     results.overall_score >= 80
       ? "success"
@@ -26,11 +28,16 @@ export default function EvaluationResultsView({ results }: EvaluationResultsProp
 
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0">
         <CardTitle className="flex items-center gap-2 font-display text-lg font-semibold tracking-tight">
           <CheckCircle className="h-5 w-5 text-success" />
           Resultados de la evaluación
         </CardTitle>
+        {onClose && (
+          <Button variant="ghost" size="icon" onClick={onClose} className="h-8 w-8">
+            <X className="h-4 w-4" />
+          </Button>
+        )}
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="text-center py-6 border-b border-divider">

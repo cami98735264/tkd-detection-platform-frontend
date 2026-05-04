@@ -18,6 +18,7 @@ import EvaluationsPage from "@/features/evaluations/pages/EvaluationsPage";
 import SportsmanEvaluationsPage from "@/features/evaluations/pages/SportsmanEvaluationsPage";
 import ParentEvaluationsPage from "@/features/evaluations/pages/ParentEvaluationsPage";
 import ReportsPage from "@/features/reports/pages/ReportsPage";
+import ReportesPage from "@/features/reports/pages/ReportesPage";
 import CompetitionCategoriesPage from "@/features/categories/pages/CategoriesPage";
 
 import UsersPage from "@/features/users/pages/UsersPage";
@@ -34,6 +35,8 @@ import MyProgramsPage from "@/features/programs/pages/MyProgramsPage";
 import MyEnrollmentPage from "@/features/enrollments/pages/MyEnrollmentPage";
 import MyTrainingsPage from "@/features/trainings/pages/MyTrainingsPage";
 import ParentAthletesPage from "@/features/parent/pages/ParentAthletesPage";
+import KickHistoryPage from "@/features/kick-history/pages/KickHistoryPage";
+import ParentKickHistoryPage from "@/features/kick-history/pages/ParentKickHistoryPage";
 
 import FeedbackLab from "@/feedback/FeedbackLab";
 import NotFound from "@/components/common/NotFound";
@@ -75,9 +78,15 @@ export default function AppRouter() {
         <Route path="acudiente/mis-hijos/evaluaciones" element={
           <RoleRoute allowedRoles={["parent"]}><ParentEvaluationsPage /></RoleRoute>
         } />
+        <Route path="deportista/historial-patadas" element={
+          <RoleRoute allowedRoles={["sportsman"]}><KickHistoryPage /></RoleRoute>
+        } />
+        <Route path="acudiente/historial-patadas" element={
+          <RoleRoute allowedRoles={["parent"]}><ParentKickHistoryPage /></RoleRoute>
+        } />
         <Route path="categorias-competencia" element={<CompetitionCategoriesPage />} />
         <Route path="reportes" element={
-          <RoleRoute allowedRoles={["administrator"]}><ReportsPage /></RoleRoute>
+          <RoleRoute allowedRoles={["administrator"]}><ReportesPage /></RoleRoute>
         } />
         <Route path="usuarios" element={
           <RoleRoute allowedRoles={["administrator"]}><UsersPage /></RoleRoute>

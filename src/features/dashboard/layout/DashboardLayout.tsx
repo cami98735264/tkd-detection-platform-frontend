@@ -223,10 +223,7 @@ function Topbar({ onOpenMobileNav, onLogout, role, user }: TopbarProps) {
         className="flex items-center gap-1.5 lg:hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-bg rounded-md"
         aria-label="Warriors TKD — Inicio"
       >
-        <Logo className="h-10 w-10 -my-1" alt="" />
-        <span className="font-display text-sm font-semibold tracking-tight text-text hidden sm:inline">
-          Warriors TKD
-        </span>
+        <Logo className="h-14 w-14" alt="" />
       </Link>
 
       <Breadcrumbs role={role} />

@@ -57,6 +57,8 @@
 		"clsx": "^2.1.1",
 		"dayjs": "^1.11.20",
 		"formik": "^2.4.9",
+		"jspdf": "^4.2.1",
+		"jspdf-autotable": "^5.0.7",
 		"lucide-react": "^0.575.0",
 		"react": "^19.2.4",
 		"react-dom": "^19.2.4",

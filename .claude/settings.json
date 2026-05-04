@@ -13,7 +13,9 @@
       "Bash(curl -s -H \"Cache-Control: no-cache\" -H \"If-None-Match: \\\\\"ef196881a7c9541451beafc5b159c639\\\\\"\" http://localhost:8787/styles.css)",
       "Bash(pkill -f \"wrangler dev\")",
       "Bash(pkill -f \"wrangler\")",
-      "Bash(npx tsc *)"
+      "Bash(npx tsc *)",
+      "Read(//c/Users/Juan/Documents/word/Tecnologia_gestion_informatica/Semestre_7/TKD/TKD/tkd_backed/**)",
+      "Bash(curl -s http://localhost:8000/api/technical-evaluation/sessions/ -H \"Authorization: Bearer $\\(cat /c/Users/Juan/Documents/word/Tecnologia_gestion_informatica/Semestre_7/TKD/TKD/tkd_fronend/.env)"
     ],
     "additionalDirectories": [
       "\\tmp"

@@ -52,6 +52,9 @@ export const technicalEvaluationApi = {
   getSession: (id: number) =>
     http.get<EvaluationSession>(`/technical-evaluation/sessions/${id}/`),
 
+  deleteSession: (id: number) =>
+    http.delete(`/technical-evaluation/sessions/${id}/`),
+
   createSession: (kickType: KickType, recordingUrl: string, athleteId?: number) =>
     http.post<EvaluationSession>(
       "/technical-evaluation/sessions/",
