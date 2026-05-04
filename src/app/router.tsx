@@ -30,8 +30,6 @@ import HelpPage from "@/features/help/pages/HelpPage";
 import AttendancePage from "@/features/attendance/pages/AttendancePage";
 import AttendanceRegisterPage from "@/features/attendance/pages/AttendanceRegisterPage";
 import TechnicalEvaluationPage from "@/features/technical-evaluation/pages/TechnicalEvaluationPage";
-import AthleteDashboardPage from "@/features/athlete-dashboard/pages/AthleteDashboardPage";
-import AthleteSubLayout from "@/features/athlete-dashboard/layout/AthleteSubLayout";
 import MyProgramsPage from "@/features/programs/pages/MyProgramsPage";
 import MyEnrollmentPage from "@/features/enrollments/pages/MyEnrollmentPage";
 import MyTrainingsPage from "@/features/trainings/pages/MyTrainingsPage";
@@ -104,14 +102,15 @@ export default function AppRouter() {
         <Route path="evaluacion-tecnica" element={
           <RoleRoute allowedRoles={["parent", "sportsman"]}><TechnicalEvaluationPage /></RoleRoute>
         } />
-        <Route path="deportista" element={
-          <RoleRoute allowedRoles={["sportsman"]}><AthleteSubLayout /></RoleRoute>
-        }>
-          <Route index element={<AthleteDashboardPage />} />
-          <Route path="mis-programas" element={<MyProgramsPage />} />
-          <Route path="mi-inscripcion" element={<MyEnrollmentPage />} />
-          <Route path="entrenamientos" element={<MyTrainingsPage />} />
-        </Route>
+        <Route path="deportista/mis-programas" element={
+          <RoleRoute allowedRoles={["sportsman"]}><MyProgramsPage /></RoleRoute>
+        } />
+        <Route path="deportista/mi-inscripcion" element={
+          <RoleRoute allowedRoles={["sportsman"]}><MyEnrollmentPage /></RoleRoute>
+        } />
+        <Route path="deportista/entrenamientos" element={
+          <RoleRoute allowedRoles={["sportsman"]}><MyTrainingsPage /></RoleRoute>
+        } />
         <Route path="acudientes" element={
           <RoleRoute allowedRoles={["administrator"]}><ParentAthletesPage /></RoleRoute>
         } />

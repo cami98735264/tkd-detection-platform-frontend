@@ -4,7 +4,9 @@
       "Bash(xargs grep:*)",
       "Bash(npm run:*)",
       "Bash(find /c/Users/Administrador_R/Desktop/proyectos/tkd/tkd-frontend/src/features -type f \\\\\\(-name *.tsx -o -name *.ts \\\\\\))",
-      "Bash(find /c/Users/Administrador_R/Desktop/proyectos/tkd/tkd-frontend/src -path */feedback/* -type f \\\\\\(-name *.tsx -o -name *.ts \\\\\\))"
+      "Bash(find /c/Users/Administrador_R/Desktop/proyectos/tkd/tkd-frontend/src -path */feedback/* -type f \\\\\\(-name *.tsx -o -name *.ts \\\\\\))",
+      "Bash(npx postcss *)",
+      "Bash(curl -s http://localhost:8787/styles.css)"
     ]
   }
 }

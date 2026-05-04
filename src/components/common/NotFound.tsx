@@ -3,12 +3,15 @@ import { Link } from "react-router-dom";
 
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/common/Logo";
+import { useAuthStore } from "@/features/auth/store/authStore";
 
 export default function NotFound() {
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+
   return (
     <main className="min-h-screen bg-bg text-text">
       <div className="mx-auto flex min-h-screen max-w-xl flex-col items-center justify-center px-6 py-16 text-center">
-        <Logo className="h-24 w-24" alt="Warriors TKD" />
+        <Logo className="h-32 w-32" alt="Warriors TKD" />
         <p className="mt-6 font-display text-7xl font-semibold tracking-tight text-text">
           404
         </p>
@@ -29,12 +32,14 @@ export default function NotFound() {
               Ir al inicio
             </Link>
           </Button>
-          <Button asChild variant="ghost" size="lg" className="text-muted hover:text-text">
-            <Link to="/login">
-              <Compass className="h-4 w-4" />
-              Iniciar sesión
-            </Link>
-          </Button>
+          {!isAuthenticated && (
+            <Button asChild variant="ghost" size="lg" className="text-muted hover:text-text">
+              <Link to="/login">
+                <Compass className="h-4 w-4" />
+                Iniciar sesión
+              </Link>
+            </Button>
+          )}
         </div>
       </div>
     </main>

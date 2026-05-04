@@ -10,6 +10,7 @@ import { flagAndShakeInvalidFields } from "@/lib/formAnimations";
 import { authApi } from "@/features/auth/api/authApi";
 import { AuthShell } from "@/features/auth/components/AuthShell";
 import { useApiErrorHandler } from "@/feedback/useApiErrorHandler";
+import type { RoleName } from "@/config/permissions";
 
 const schema = Yup.object({
   email: Yup.string()
@@ -17,6 +18,12 @@ const schema = Yup.object({
     .required("El correo es obligatorio"),
   password: Yup.string().required("La contraseña es obligatoria"),
 });
+
+const redirectByRole: Record<RoleName, string> = {
+  administrator: "/dashboard",
+  sportsman: "/dashboard",
+  parent: "/dashboard",
+};
 
 export default function Login() {
   const navigate = useNavigate();
@@ -45,7 +52,10 @@ export default function Login() {
           onSubmit={async (values, { setSubmitting }) => {
             try {
               await authApi.login(values);
-              navigate("/dashboard");
+              // Fetch user info to determine role and redirect accordingly
+              const user = await authApi.me();
+              const role = user.role as RoleName;
+              navigate(redirectByRole[role] ?? "/dashboard");
             } catch (err) {
               handleError(err);
             } finally {

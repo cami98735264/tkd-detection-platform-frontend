@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { ClipboardCheck, Pencil, Plus, Trash2 } from "lucide-react";
+import { BarChart2 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -115,6 +116,15 @@ export default function EvaluationsPage() {
   const actions: RowAction<Evaluation>[] = isAdminUser
     ? [
         {
+          id: "viewMetrics",
+          label: "Ver métricas",
+          icon: BarChart2,
+          variant: "outline",
+          onClick: (row) => {
+            setViewingMetrics(row);
+          },
+        },
+        {
           id: "edit",
           label: "Editar",
           icon: Pencil,
@@ -188,17 +198,25 @@ export default function EvaluationsPage() {
       }}
       pagination={isParent ? undefined : { count, page, onChange: setPage }}
       formSheet={
-        isAdminUser && (
-          <EvaluationFormModal
-            open={modalOpen}
-            onOpenChange={(v) => {
-              setModalOpen(v);
-              if (!v) setEditing(null);
-            }}
-            evaluation={editing}
-            onSubmit={handleSubmit}
+        <>
+          {isAdminUser && (
+            <EvaluationFormModal
+              open={modalOpen}
+              onOpenChange={(v) => {
+                setModalOpen(v);
+                if (!v) setEditing(null);
+              }}
+              evaluation={editing}
+              onSubmit={handleSubmit}
+              isAdmin={isAdminUser}
+            />
+          )}
+          <MetricsModal
+            open={!!viewingMetrics}
+            onOpenChange={(v) => { if (!v) setViewingMetrics(null); }}
+            evaluation={viewingMetrics}
           />
-        )
+        </>
       }
     />
   );

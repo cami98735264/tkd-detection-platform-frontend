@@ -1,74 +1,123 @@
-import { useEffect, useState, useRef } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import DataTable, { type Column } from "@/components/common/DataTable";
-import Pagination from "@/components/common/Pagination";
+import { useCallback, useEffect, useState } from "react";
+import { ClipboardCheck } from "lucide-react";
+import { BarChart2 } from "lucide-react";
+
+import { Badge } from "@/components/ui/badge";
+import type { Column, RowAction } from "@/components/common/DataTable";
+import { ListPageTemplate } from "@/components/common/ListPageTemplate";
+import MetricsModal from "@/features/evaluations/components/MetricsModal";
 import { evaluationsApi } from "@/features/evaluations/api/evaluationsApi";
-import { useApiErrorHandler } from "@/feedback/useApiErrorHandler";
 import { useAuthReady } from "@/features/auth/components/RoleRoute";
+import { useApiErrorHandler } from "@/feedback/useApiErrorHandler";
 import type { Evaluation } from "@/types/entities";
 
 const columns: Column<Evaluation>[] = [
-  { key: "evaluator_name", header: "Evaluador" },
+  {
+    key: "athlete_name",
+    header: "Deportista",
+    hideOnMobile: true,
+  },
+  {
+    key: "evaluator_name",
+    header: "Evaluador",
+    hideOnMobile: true,
+  },
   {
     key: "evaluated_at",
     header: "Fecha",
     render: (r) => new Date(r.evaluated_at).toLocaleDateString(),
   },
-  { key: "result_summary", header: "Resumen" },
   {
-    key: "puntuacion_final",
-    header: "Puntaje",
-    render: (r) =>
-      r.puntuacion_final != null ? `${r.puntuacion_final}%` : "—",
+    key: "result_summary",
+    header: "Resumen",
+    hideOnMobile: true,
+    render: (r) => (
+      <span className="text-muted line-clamp-1">{r.result_summary || "—"}</span>
+    ),
   },
   {
     key: "metrics",
     header: "Métricas",
-    render: (r) => `${r.metrics.length} métrica${r.metrics.length !== 1 ? "s" : ""}`,
+    render: (r) => (
+      <Badge variant="outline">
+        {r.metrics.length} métrica{r.metrics.length !== 1 ? "s" : ""}
+      </Badge>
+    ),
   },
 ];
 
 export default function SportsmanEvaluationsPage() {
   const { handleError } = useApiErrorHandler();
   const authReady = useAuthReady();
+
   const [data, setData] = useState<Evaluation[]>([]);
   const [count, setCount] = useState(0);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
-  const mountedRef = useRef(true);
+  const [viewingMetrics, setViewingMetrics] = useState<Evaluation | null>(null);
 
-  useEffect(() => {
-    if (!authReady) return;
-    mountedRef.current = true;
+  const fetchData = useCallback((p: number) => {
     setLoading(true);
     evaluationsApi
-      .list(page)
+      .list(p)
       .then((res) => {
-        if (!mountedRef.current) return;
         setData(res.results);
         setCount(res.count);
       })
-      .catch((err) => {
-        if (mountedRef.current) handleError(err);
-      })
-      .finally(() => { if (mountedRef.current) setLoading(false); });
-    return () => { mountedRef.current = false; };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, authReady]);
+      .catch(handleError)
+      .finally(() => setLoading(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if (!authReady) return;
+    fetchData(page);
+  }, [page, fetchData, authReady]);
+
+  const actions: RowAction<Evaluation>[] = [
+    {
+      id: "viewMetrics",
+      label: "Ver métricas",
+      icon: BarChart2,
+      variant: "outline",
+      onClick: (row) => setViewingMetrics(row),
+    },
+  ];
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-3xl font-bold">Mis Evaluaciones</h1>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Historial de evaluaciones</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <DataTable columns={columns} data={data} loading={loading} />
-          <Pagination count={count} page={page} onPageChange={setPage} />
-        </CardContent>
-      </Card>
-    </div>
+    <ListPageTemplate
+      title="Mis Evaluaciones"
+      description="Historial de evaluaciones técnicas y de desempeño."
+      eyebrow="Deportista"
+      columns={columns}
+      data={data}
+      loading={loading}
+      rowKey={(r) => r.id}
+      rowActions={actions}
+      mobileCard={(r) => (
+        <div className="space-y-1">
+          <p className="font-medium text-text">{r.evaluator_name}</p>
+          <p className="text-xs text-muted">
+            {new Date(r.evaluated_at).toLocaleDateString()}
+          </p>
+          {r.result_summary && (
+            <p className="text-xs text-faint line-clamp-2">{r.result_summary}</p>
+          )}
+        </div>
+      )}
+      empty={{
+        icon: ClipboardCheck,
+        title: "Sin evaluaciones",
+        description: "Las evaluaciones que recibas aparecerán aquí.",
+      }}
+      pagination={{ count, page, onChange: setPage }}
+      formSheet={
+        <MetricsModal
+          open={!!viewingMetrics}
+          onOpenChange={(v) => { if (!v) setViewingMetrics(null); }}
+          evaluation={viewingMetrics}
+        />
+      }
+    />
   );
 }

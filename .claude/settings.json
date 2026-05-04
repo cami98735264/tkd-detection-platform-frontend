@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(netstat -tlnp)",
+      "Bash(curl -s -H \"Cache-Control: no-cache\" http://localhost:8787/styles.css)",
+      "Bash(curl -s http://localhost:8787/client.js)",
+      "Bash(npx wrangler *)",
+      "Bash(kill %1)",
+      "Bash(curl -s \"http://localhost:8787/styles.css?$\\(date +%s\\)\")",
+      "Bash(curl -I -s http://localhost:8787/styles.css)",
+      "Read(//tmp/**)",
+      "Bash(curl -v -s http://localhost:8787/styles.css)",
+      "Bash(curl -s -H \"Cache-Control: no-cache\" -H \"If-None-Match: \\\\\"ef196881a7c9541451beafc5b159c639\\\\\"\" http://localhost:8787/styles.css)",
+      "Bash(pkill -f \"wrangler dev\")",
+      "Bash(pkill -f \"wrangler\")",
+      "Bash(npx tsc *)"
+    ],
+    "additionalDirectories": [
+      "\\tmp"
+    ]
+  }
+}

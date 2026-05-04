@@ -167,6 +167,7 @@ dist
 
 # Build output (esbuild + postcss generated files)
 dist/
+public/styles.css
 public/client.js
 public/client.js.map
 

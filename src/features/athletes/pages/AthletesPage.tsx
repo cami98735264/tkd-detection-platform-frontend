@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { CalendarDays, Pencil, Plus, ShieldCheck, Trophy, Users } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -132,7 +132,6 @@ export default function AthletesPage() {
   const [categoryOptions, setCategoryOptions] = useState<CompetitionCategory[]>([]);
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [stats, setStats] = useState({ total: 0, active: 0, inactive: 0 });
-  const [statsLoaded, setStatsLoaded] = useState(false);
 
   const [children, setChildren] = useState<ParentChild[]>([]);
   const [childrenLoading, setChildrenLoading] = useState(true);
@@ -145,24 +144,18 @@ export default function AthletesPage() {
       .catch(() => {});
   }, []);
 
-  // Stats — load once on mount (admin only)
-  useEffect(() => {
-    if (!isAdminUser || statsLoaded) return;
-    setStatsLoaded(true);
-    athletesApi
-      .list(1, "", "")
-      .then((res) => {
-        setStats({
-          total: res.count,
-          active: res.results.filter((a) => a.status === "active").length,
-          inactive: res.results.filter((a) => a.status === "inactive").length,
-        });
-      })
-      .catch(() => {});
-  }, [isAdminUser, statsLoaded]);
+  const refreshStats = useCallback(() => {
+    if (!isAdminUser) return;
+    athletesApi.list(1, "", "", false, 100).then((res) => {
+      setStats({
+        total: res.count,
+        active: res.results.filter((a) => a.status === "active").length,
+        inactive: res.results.filter((a) => a.status === "inactive").length,
+      });
+    }).catch(() => {});
+  }, [isAdminUser]);
 
-  // Athletes table — load when page/filters change (admin only)
-  useEffect(() => {
+  const fetchData = useCallback(() => {
     if (!isAdminUser) return;
     let cancelled = false;
     setLoading(true);
@@ -182,11 +175,20 @@ export default function AthletesPage() {
       .finally(() => {
         if (!cancelled) setLoading(false);
       });
-    return () => {
-      cancelled = true;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAdminUser, page, statusFilter, categoryFilter]);
+  }, [isAdminUser, page, statusFilter, categoryFilter, handleError]);
+
+  // Stats — load on mount (admin only)
+  useEffect(() => {
+    if (!isAdminUser) return;
+    refreshStats();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAdminUser, refreshStats]);
+
+  // Athletes table — load when page/filters change (admin only)
+  useEffect(() => {
+    if (!isAdminUser) return;
+    fetchData();
+  }, [isAdminUser, fetchData]);
 
   // Fetch children for parent
   useEffect(() => {
@@ -217,6 +219,7 @@ export default function AthletesPage() {
       setEditing(null);
       setPage(1);
       refreshStats();
+      fetchData();
     } catch (err) {
       handleError(err);
     }
@@ -238,6 +241,7 @@ export default function AthletesPage() {
       });
       setPage(1);
       refreshStats();
+      fetchData();
     } catch (err) {
       handleError(err);
     }

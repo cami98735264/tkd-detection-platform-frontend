@@ -77,7 +77,6 @@ export const navConfig: Record<RoleName, NavGroup[]> = {
     {
       heading: "Mi entrenamiento",
       items: [
-        { to: "/dashboard/deportista", label: "Mi panel", icon: BarChart3, end: true },
         { to: "/dashboard/deportista/mis-programas", label: "Mis programas", icon: BookOpen },
         { to: "/dashboard/deportista/mi-inscripcion", label: "Mi inscripción", icon: ClipboardList },
         { to: "/dashboard/deportista/entrenamientos", label: "Entrenamientos", icon: Dumbbell },
