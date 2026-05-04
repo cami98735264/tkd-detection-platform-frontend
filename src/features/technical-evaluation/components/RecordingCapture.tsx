@@ -58,13 +58,11 @@ export default function RecordingCapture({
   );
 
   // The current <video> element. Tracked in state (rather than a ref) so the
-  // SkeletonOverlay can react when the element changes across phases.
+  // SkeletonOverlay can react when the element changes.
   const [videoEl, setVideoEl] = useState<HTMLVideoElement | null>(null);
 
-  // Callback ref: re-attaches the live stream every time the <video> element
-  // mounts. Each phase (idle/countdown/recording) renders its own <video>, so
-  // a plain useEffect+useRef would only fire once and the new elements would
-  // stay black.
+  // Callback ref: re-attach the live stream whenever the <video> element
+  // mounts or the stream identity changes.
   const setVideoNode = useCallback(
     (node: HTMLVideoElement | null) => {
       if (node && stream) {
@@ -117,8 +115,6 @@ export default function RecordingCapture({
             ? `Error al subir la grabación: ${err.message}`
             : "Error al subir la grabación.";
         onError(message);
-        // Drop out of the "uploading" spinner and re-acquire the camera so the
-        // user can retry without reloading.
         setPhase("idle");
         setCountdown(PRECOUNTDOWN_SECS);
         requestCamera();
@@ -128,7 +124,7 @@ export default function RecordingCapture({
     recorder.start();
     setPhase("recording");
     startTimer();
-  }, [stream, kickType, startTimer, onComplete, onError]);
+  }, [stream, kickType, startTimer, onComplete, onError, requestCamera]);
 
   const handleStart = async () => {
     await requestCamera();
@@ -140,7 +136,6 @@ export default function RecordingCapture({
       setCountdown((c) => {
         if (c <= 1) {
           clearInterval(interval);
-          setPhase("recording");
           startRecording();
           return 0;
         }
@@ -149,8 +144,35 @@ export default function RecordingCapture({
     }, 1000);
   };
 
-  // Idle: ask for camera permission, then show preview + start button
-  if (phase === "idle") {
+  // Phase: uploading — separate card, no video stage.
+  if (phase === "uploading") {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 font-display text-lg font-semibold tracking-tight">
+            <Loader2 className="h-5 w-5 animate-spin text-primary" />
+            Procesando
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col items-center gap-4 py-12 text-center">
+            <div className="h-12 w-12 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+            <div>
+              <p className="font-display text-base font-semibold tracking-tight text-text">
+                Subiendo y analizando…
+              </p>
+              <p className="mt-1 text-sm text-muted">
+                Esto puede tardar unos segundos.
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Phase: idle without permission — request access first.
+  if (phase === "idle" && !hasPermission) {
     return (
       <Card>
         <CardHeader>
@@ -170,164 +192,154 @@ export default function RecordingCapture({
               <span>{camError}</span>
             </div>
           )}
-
-          {!hasPermission ? (
-            <EmptyState
-              icon={Camera}
-              title="Acceso a la cámara requerido"
-              description="Para grabar la patada necesitamos permiso para acceder a la cámara de tu dispositivo."
-              action={
-                <Button onClick={handleStart}>
-                  <Camera className="h-4 w-4" />
-                  Solicitar acceso a cámara
-                </Button>
-              }
-            />
-          ) : (
-            <div className="space-y-4">
-              <div className="overflow-hidden rounded-lg border border-border bg-black">
-                <div className="relative aspect-video">
-                  <video
-                    ref={setVideoNode}
-                    autoPlay
-                    muted
-                    playsInline
-                    className="h-full w-full object-cover"
-                  />
-                  <SkeletonOverlay video={videoEl} enabled={overlayEnabled} />
-                </div>
-              </div>
-              <Button className="w-full" onClick={handleBeginCountdown}>
-                Comenzar grabación
+          <EmptyState
+            icon={Camera}
+            title="Acceso a la cámara requerido"
+            description="Para grabar la patada necesitamos permiso para acceder a la cámara de tu dispositivo."
+            action={
+              <Button onClick={handleStart}>
+                <Camera className="h-4 w-4" />
+                Solicitar acceso a cámara
               </Button>
-              <p className="text-center text-xs text-faint">
-                Al iniciar, tendrás {PRECOUNTDOWN_SECS} segundos para colocarte y
-                {" "}
-                {RECORD_SECS} segundos para ejecutar la patada.
-              </p>
-            </div>
-          )}
+            }
+          />
         </CardContent>
       </Card>
     );
   }
 
-  if (phase === "countdown") {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="font-display text-lg font-semibold tracking-tight">
-            Prepárate
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="overflow-hidden rounded-lg border border-border bg-black">
-            <div className="relative aspect-video">
-              <video
-                ref={setVideoNode}
-                autoPlay
-                muted
-                playsInline
-                className="h-full w-full object-cover"
-              />
-              <SkeletonOverlay video={videoEl} enabled={overlayEnabled} />
+  // Phases idle (with permission) / countdown / recording all share the same
+  // Card structure. The <video> + <SkeletonOverlay> stay mounted across phase
+  // transitions so the pose landmarker isn't torn down and re-initialized
+  // (which would briefly drop the skeleton during recording).
+  const title =
+    phase === "countdown" ? (
+      <>Prepárate</>
+    ) : phase === "recording" ? (
+      <>
+        <span
+          className="inline-flex h-2 w-2 animate-pulse-soft rounded-full bg-error"
+          aria-hidden="true"
+        />
+        Grabando · {kickType}
+      </>
+    ) : (
+      <>
+        <Video className="h-5 w-5 text-primary" />
+        Grabar patada
+      </>
+    );
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 font-display text-lg font-semibold tracking-tight">
+          {title}
+        </CardTitle>
+        {phase === "idle" && (
+          <p className="text-sm text-muted">
+            Técnica seleccionada:{" "}
+            <span className="font-medium text-text">{kickType}</span>
+          </p>
+        )}
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {camError && (
+          <div className="flex items-start gap-2 rounded-md border border-error/30 bg-error/10 p-3 text-sm text-error">
+            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+            <span>{camError}</span>
+          </div>
+        )}
+
+        <div className="overflow-hidden rounded-lg border border-border bg-black">
+          <div className="relative aspect-video">
+            <video
+              ref={setVideoNode}
+              autoPlay
+              muted
+              playsInline
+              className="h-full w-full object-cover"
+            />
+            <SkeletonOverlay video={videoEl} enabled={overlayEnabled} />
+            {phase === "countdown" && (
               <div className="absolute inset-0 flex items-center justify-center bg-black/30">
                 <span className="font-display text-8xl font-semibold tabular-nums text-white drop-shadow-lg">
                   {countdown}
                 </span>
               </div>
-            </div>
+            )}
           </div>
+        </div>
+
+        {phase === "idle" && (
+          <>
+            <div className="rounded-md border border-border bg-surface-2/50 p-3 text-xs text-muted">
+              <p className="font-medium text-text">
+                Para un análisis preciso:
+              </p>
+              <ul className="mt-1 list-disc space-y-0.5 pl-4">
+                <li>
+                  Coloca la cámara <span className="text-text">de costado</span>{" "}
+                  al deportista, a la altura de la cadera.
+                </li>
+                <li>
+                  Distancia de ~3 m, con el cuerpo completo (cabeza a pies)
+                  visible.
+                </li>
+                <li>Buena iluminación y fondo sin obstáculos.</li>
+              </ul>
+            </div>
+            <Button className="w-full" onClick={handleBeginCountdown}>
+              Comenzar grabación
+            </Button>
+            <p className="text-center text-xs text-faint">
+              Al iniciar, tendrás {PRECOUNTDOWN_SECS} segundos para colocarte y{" "}
+              {RECORD_SECS} segundos para ejecutar la patada.
+            </p>
+          </>
+        )}
+
+        {phase === "countdown" && (
           <p className="text-center text-sm text-muted">
             Prepárate para ejecutar la patada
           </p>
-        </CardContent>
-      </Card>
-    );
-  }
+        )}
 
-  if (phase === "recording") {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 font-display text-lg font-semibold tracking-tight">
-            <span
-              className="inline-flex h-2 w-2 animate-pulse-soft rounded-full bg-error"
-              aria-hidden="true"
-            />
-            Grabando · {kickType}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="overflow-hidden rounded-lg border border-border bg-black">
-            <div className="relative aspect-video">
-              <video
-                ref={setVideoNode}
-                autoPlay
-                muted
-                playsInline
-                className="h-full w-full object-cover"
-              />
-              <SkeletonOverlay video={videoEl} enabled={overlayEnabled} />
-            </div>
-          </div>
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm">
-              <span className="inline-flex items-center gap-1.5 font-medium text-error">
-                <span
-                  className="h-2 w-2 animate-pulse-soft rounded-full bg-error"
-                  aria-hidden="true"
-                />
-                REC
-              </span>
-              <span className="font-display tabular-nums text-text">
-                {secondsLeft}s{" "}
-                <span className="text-faint">/ {RECORD_SECS}s</span>
-              </span>
-            </div>
-            <div
-              className="h-2 w-full overflow-hidden rounded-full bg-surface-2"
-              role="progressbar"
-              aria-valuenow={progress}
-              aria-valuemin={0}
-              aria-valuemax={100}
-              aria-label="Progreso de grabación"
-            >
+        {phase === "recording" && (
+          <>
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="inline-flex items-center gap-1.5 font-medium text-error">
+                  <span
+                    className="h-2 w-2 animate-pulse-soft rounded-full bg-error"
+                    aria-hidden="true"
+                  />
+                  REC
+                </span>
+                <span className="font-display tabular-nums text-text">
+                  {secondsLeft}s{" "}
+                  <span className="text-faint">/ {RECORD_SECS}s</span>
+                </span>
+              </div>
               <div
-                className="h-full bg-error transition-all duration-1000"
-                style={{ width: `${progress}%` }}
-              />
+                className="h-2 w-full overflow-hidden rounded-full bg-surface-2"
+                role="progressbar"
+                aria-valuenow={progress}
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-label="Progreso de grabación"
+              >
+                <div
+                  className="h-full bg-error transition-all duration-1000"
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
             </div>
-          </div>
-          <p className="text-center text-sm text-muted">
-            Ejecuta la patada con máxima fuerza y precisión.
-          </p>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  // uploading
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2 font-display text-lg font-semibold tracking-tight">
-          <Loader2 className="h-5 w-5 animate-spin text-primary" />
-          Procesando
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="flex flex-col items-center gap-4 py-12 text-center">
-          <div className="h-12 w-12 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-          <div>
-            <p className="font-display text-base font-semibold tracking-tight text-text">
-              Subiendo y analizando…
+            <p className="text-center text-sm text-muted">
+              Ejecuta la patada con máxima fuerza y precisión.
             </p>
-            <p className="mt-1 text-sm text-muted">
-              Esto puede tardar unos segundos.
-            </p>
-          </div>
-        </div>
+          </>
+        )}
       </CardContent>
     </Card>
   );
