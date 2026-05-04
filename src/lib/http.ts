@@ -1,4 +1,4 @@
-import axios, { type AxiosRequestConfig } from "axios";
+import axios, { type AxiosRequestConfig, type AxiosResponse } from "axios";
 import { config } from "@/config/env";
 import { ApiError, type ApiErrorBody } from "@/types/api";
 import { useAuthStore } from "@/features/auth/store/authStore";
@@ -8,11 +8,13 @@ import { useAuthStore } from "@/features/auth/store/authStore";
 // JWT is stored in an httpOnly cookie — the browser attaches it automatically.
 // withCredentials: true is the only requirement on the client side.
 // baseURL includes the versioned prefix so all calls are versioned automatically.
+// timeout caps worst-case hangs so a slow backend can't lock the UI indefinitely.
 // ---------------------------------------------------------------------------
 
 export const axiosInstance = axios.create({
   baseURL: `${config.apiUrl}/${config.apiPrefix}/`,
   withCredentials: true, // sends the httpOnly JWT cookie on every request
+  timeout: 10_000,
   headers: {
     "Content-Type": "application/json",
     Accept: "application/json",
@@ -106,13 +108,39 @@ axiosInstance.interceptors.response.use(
 );
 
 // ---------------------------------------------------------------------------
+// In-flight GET deduplication
+// Multiple components mounting at once (e.g. several useEffects on the
+// dashboard) frequently issue the *same* GET concurrently. We share a single
+// in-flight promise so the backend is hit once. Mutations are never deduped.
+// Callers receive the same resolved object — treat the result as immutable.
+// ---------------------------------------------------------------------------
+
+const inflightGets = new Map<string, Promise<unknown>>();
+
+function dedupKey(endpoint: string, cfg?: AxiosRequestConfig): string {
+  const params = cfg?.params;
+  return params ? `${endpoint}?${JSON.stringify(params)}` : endpoint;
+}
+
+// ---------------------------------------------------------------------------
 // Public HTTP client
 // Thin wrappers that unwrap `response.data` so callsites stay identical.
 // ---------------------------------------------------------------------------
 
 export const http = {
-  get: <T>(endpoint: string, cfg?: Parameters<typeof axiosInstance.get>[1]) =>
-    axiosInstance.get<T>(endpoint, cfg).then((r) => r.data),
+  get: <T>(endpoint: string, cfg?: Parameters<typeof axiosInstance.get>[1]) => {
+    const key = dedupKey(endpoint, cfg as AxiosRequestConfig | undefined);
+    const existing = inflightGets.get(key) as Promise<T> | undefined;
+    if (existing) return existing;
+    const promise = axiosInstance
+      .get<T>(endpoint, cfg)
+      .then((r: AxiosResponse<T>) => r.data)
+      .finally(() => {
+        inflightGets.delete(key);
+      });
+    inflightGets.set(key, promise);
+    return promise;
+  },
 
   post: <T>(endpoint: string, body?: unknown, cfg?: Parameters<typeof axiosInstance.post>[2]) =>
     axiosInstance.post<T>(endpoint, body, cfg).then((r) => r.data),

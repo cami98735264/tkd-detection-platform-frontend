@@ -87,17 +87,6 @@ export default function Home() {
     if (isParent || isSportsman) fetchChildren();
   }, [isParent, isSportsman, fetchChildren]);
 
-  // Sportsman: load athlete profile
-  useEffect(() => {
-    if (!authReady || !isSportsman) return;
-    setAthleteLoading(true);
-    athletesApi
-      .getMe()
-      .then(setAthlete)
-      .catch(handleError)
-      .finally(() => setAthleteLoading(false));
-  }, [authReady, isSportsman, handleError]);
-
   // Sportsman attendance summary
   const [summary, setSummary] = useState<{
     total_sessions: number;
@@ -107,13 +96,21 @@ export default function Home() {
     attendance_rate: number;
   } | null>(null);
 
+  // Sportsman: load athlete profile and attendance summary in parallel.
+  // The backend resolves the athlete from request.user for the sportsman role,
+  // so the summary call doesn't need to wait for the athlete record.
   useEffect(() => {
-    if (!athlete || !isSportsman) return;
-    attendanceApi
-      .summary({ athlete_id: athlete.id })
-      .then(setSummary)
-      .catch(handleError);
-  }, [athlete, isSportsman, handleError]);
+    if (!authReady || !isSportsman) return;
+    setAthleteLoading(true);
+    Promise.allSettled([athletesApi.getMe(), attendanceApi.summary({})])
+      .then(([athleteRes, summaryRes]) => {
+        if (athleteRes.status === "fulfilled") setAthlete(athleteRes.value);
+        else handleError(athleteRes.reason);
+        if (summaryRes.status === "fulfilled") setSummary(summaryRes.value);
+        else handleError(summaryRes.reason);
+      })
+      .finally(() => setAthleteLoading(false));
+  }, [authReady, isSportsman, handleError]);
 
   const attendanceRate = summary?.attendance_rate ?? 0;
   const rateTone =

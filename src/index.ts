@@ -50,7 +50,15 @@ export default {
 		// SSR for all other routes (HTML pages)
 		const html = renderApp(url.pathname);
 		return new Response(html, {
-			headers: { 'Content-Type': 'text/html; charset=utf-8' }
+			headers: {
+				'Content-Type': 'text/html; charset=utf-8',
+				// The shell embeds nothing user-specific — auth lives in the API
+				// behind a JWT cookie — so the document itself is cacheable, but
+				// we want clients to revalidate on every navigation so deploys
+				// roll out immediately. Hashed JS/CSS bundles are served by
+				// env.ASSETS, which already sets long-lived caching.
+				'Cache-Control': 'public, max-age=0, must-revalidate',
+			},
 		});
 	},
 } satisfies ExportedHandler<Env>;
