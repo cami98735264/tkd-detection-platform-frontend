@@ -11,7 +11,7 @@ interface PaginationProps {
 export default function Pagination({
   count,
   page,
-  pageSize = 5,
+  pageSize = 25,
   onPageChange,
 }: PaginationProps) {
   const totalPages = Math.max(1, Math.ceil(count / pageSize));
