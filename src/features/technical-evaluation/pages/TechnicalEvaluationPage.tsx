@@ -117,7 +117,7 @@ export default function TechnicalEvaluationPage() {
   useEffect(() => {
     if (!step || step !== "choose" || !myAthlete || !consentInfo) return;
     if (isAdult && isSportsman && consentInfo.consent_granted) {
-      setStep("history");
+      setStep("kick");
       return;
     }
     if (!isAdult && isSportsman && consentInfo.consent_granted) {
@@ -231,9 +231,7 @@ export default function TechnicalEvaluationPage() {
 
   const pageHeaderEyebrow = isParent
     ? "Acudiente"
-    : isSportsman
-      ? "Mi entrenamiento"
-      : "Seguimiento";
+    : undefined;
   const pageHeaderDescription = isParent
     ? "Autoriza la grabación y registra patadas de tus deportistas vinculados."
     : "Registra una patada para analizar ángulo, altura, velocidad y estabilidad.";
@@ -381,7 +379,7 @@ export default function TechnicalEvaluationPage() {
                             type="button"
                             onClick={() => {
                               setSelectedChild(minor);
-                              setStep("history");
+                              setStep("kick");
                             }}
                             className="group flex items-center gap-3 rounded-lg border border-border bg-surface p-4 text-left transition-interactive hover:-translate-y-0.5 hover:border-primary/40 hover:bg-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
                           >
@@ -414,14 +412,6 @@ export default function TechnicalEvaluationPage() {
                     : "animate-slide-from-left"
                 }
               >
-                {step === "history" && selectedChild && (
-                  <EvaluationHistory
-                    athleteId={selectedChild.athlete_id}
-                    childName={selectedChild.athlete_name}
-                    eyebrow={pageHeaderEyebrow}
-                    onStartNew={() => setStep("kick")}
-                  />
-                )}
                 {step === "kick" && (
                   <KickSelection onSelected={handleKickSelected} />
                 )}
@@ -520,7 +510,7 @@ export default function TechnicalEvaluationPage() {
         description={pageHeaderDescription}
         eyebrow={pageHeaderEyebrow}
         actions={
-          step !== "consent" && step !== "choose" && step !== "history" ? (
+          step !== "consent" && step !== "choose" ? (
             <Button variant="outline" size="sm" onClick={handleReset}>
               <RefreshCw className="h-4 w-4" />
               Nueva evaluación
@@ -537,16 +527,6 @@ export default function TechnicalEvaluationPage() {
             : "animate-slide-from-left"
         }
       >
-        {step === "consent" && <ConsentStep onConsented={handleConsented} />}
-
-        {step === "history" && (
-          <EvaluationHistory
-            athleteId={myAthlete?.id}
-            eyebrow={pageHeaderEyebrow}
-            onStartNew={() => setStep("kick")}
-          />
-        )}
-
         {step === "kick" && <KickSelection onSelected={handleKickSelected} />}
 
         {step === "record" && kickType && (

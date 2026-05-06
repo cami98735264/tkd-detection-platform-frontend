@@ -204,11 +204,11 @@ export default function EvaluationHistory({
 
   const title = childName
     ? `Historial de ${childName}`
-    : "Mi historial de evaluaciones";
+    : "Historial de evaluaciones técnicas";
 
   const description = childName
     ? "Evolución de las patadas registradas."
-    : "Historial de tus evaluaciones técnicas registradas.";
+    : "Todas las evaluaciones técnicas registradas.";
 
   return (
     <>

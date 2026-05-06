@@ -8,8 +8,9 @@ export interface Meeting {
   date: string;
   time: string;
   created_at: string;
-  is_confirmed?: boolean;
-  confirmed_at?: string | null;
+  updated_at: string;
+  is_confirmed: boolean;
+  confirmed_at: string | null;
 }
 
 export interface CreateMeetingData {
