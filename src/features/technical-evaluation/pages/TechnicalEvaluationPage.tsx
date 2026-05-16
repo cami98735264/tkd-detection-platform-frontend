@@ -418,6 +418,7 @@ export default function TechnicalEvaluationPage() {
                 {step === "record" && kickType && (
                   <RecordingCapture
                     kickType={kickType}
+                    athleteId={selectedChild?.athlete_id}
                     onComplete={handleRecordingComplete}
                     onError={(msg) =>
                       showToast({ title: msg, variant: "error" })

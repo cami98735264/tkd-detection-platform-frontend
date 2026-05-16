@@ -14,6 +14,7 @@ import {
 
 interface RecordingCaptureProps {
   kickType: KickType;
+  athleteId?: number;
   onComplete: (sessionId: number) => void;
   onError: (msg: string) => void;
 }
@@ -33,6 +34,7 @@ function blobToDataUrl(blob: Blob): Promise<string> {
 
 export default function RecordingCapture({
   kickType,
+  athleteId,
   onComplete,
   onError,
 }: RecordingCaptureProps) {
@@ -107,6 +109,7 @@ export default function RecordingCapture({
         const session = await technicalEvaluationApi.createSession(
           kickType,
           base64,
+          athleteId,
         );
         onComplete(session.id);
       } catch (err) {
@@ -124,7 +127,7 @@ export default function RecordingCapture({
     recorder.start();
     setPhase("recording");
     startTimer();
-  }, [stream, kickType, startTimer, onComplete, onError, requestCamera]);
+  }, [stream, kickType, athleteId, startTimer, onComplete, onError, requestCamera]);
 
   const handleStart = async () => {
     await requestCamera();
