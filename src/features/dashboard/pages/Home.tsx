@@ -72,6 +72,11 @@ export default function Home() {
 
   const isParent = hasRole(["parent"]);
   const isSportsman = hasRole(["sportsman"]);
+  // Stable boolean (by value) so the admin-stats effect below doesn't re-run on
+  // every render. `isAdmin` from usePermissions() is a fresh function each render;
+  // depending on it directly caused an infinite fetch loop (setStats → re-render
+  // → new fn identity → effect re-runs).
+  const isAdminView = isAdmin();
 
   const [stats, setStats] = useState<StatItem[] | null>(null);
   const [recentActivity, setRecentActivity] = useState<UserActivity[]>([]);
@@ -124,7 +129,7 @@ export default function Home() {
 
   // Admin stats
   useEffect(() => {
-    if (!isAdmin()) return;
+    if (!isAdminView) return;
     Promise.allSettled([
       athletesApi.list(1),
       programsApi.list(1),
@@ -176,7 +181,7 @@ export default function Home() {
         },
       ]);
     });
-  }, [isAdmin]);
+  }, [isAdminView]);
 
   // Sportsman stats
   useEffect(() => {
