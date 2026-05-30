@@ -198,8 +198,10 @@ function createRealtimeClient(): RealtimeClient {
     setStatus("connecting");
 
     // No token in the URL — the httpOnly JWT cookie rides the handshake
-    // automatically (cross-site SameSite=None;Secure). Connects directly to
-    // the backend origin, not through the Worker hosting the SPA.
+    // automatically. config.wsUrl resolves to our OWN origin, and the SPA's
+    // Cloudflare Worker reverse-proxies /ws/ to the backend. Keeping the
+    // handshake same-origin makes the cookie first-party, so browsers that
+    // block third-party cookies (Brave Shields, Safari ITP) still send it.
     let sock: WebSocket;
     try {
       sock = new WebSocket(`${config.wsUrl}/ws/realtime/`);

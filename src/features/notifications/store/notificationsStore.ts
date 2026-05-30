@@ -58,8 +58,11 @@ export const useNotificationsStore = create<NotificationsState>()((set, get) => 
         notificationsApi.list({ page: 1 }),
       ]);
       set({
-        unreadCount: countRes.count,
-        notifications: listRes.results,
+        unreadCount: countRes.count ?? 0,
+        // Coalesce to [] — never let an unexpected response shape (e.g. an HTML
+        // error page from a misconfigured proxy) leave notifications undefined
+        // and crash the bell on `.length`/`.map`.
+        notifications: listRes.results ?? [],
         hasMore: Boolean(listRes.next),
         page: 1,
         loaded: true,
@@ -79,8 +82,8 @@ export const useNotificationsStore = create<NotificationsState>()((set, get) => 
         notificationsApi.list({ page: 1 }),
       ]);
       set({
-        unreadCount: countRes.count,
-        notifications: listRes.results,
+        unreadCount: countRes.count ?? 0,
+        notifications: listRes.results ?? [],
         hasMore: Boolean(listRes.next),
         page: 1,
         loaded: true,
@@ -99,7 +102,7 @@ export const useNotificationsStore = create<NotificationsState>()((set, get) => 
       const res = await notificationsApi.list({ page: next });
       // De-dupe in case a live push already prepended one of these rows.
       const seen = new Set(notifications.map((n) => n.id));
-      const fresh = res.results.filter((n) => !seen.has(n.id));
+      const fresh = (res.results ?? []).filter((n) => !seen.has(n.id));
       set({
         notifications: [...notifications, ...fresh],
         hasMore: Boolean(res.next),
