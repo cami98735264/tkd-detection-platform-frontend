@@ -29,6 +29,9 @@ export function resolveNotificationLink(
       return "/dashboard/deportista/mis-evaluaciones";
     case "enrollment":
       return "/dashboard/inscripcion";
+    case "user":
+      // Security bell notifications (contract §6) → profile security section.
+      return "/dashboard/profile";
     default:
       return null;
   }

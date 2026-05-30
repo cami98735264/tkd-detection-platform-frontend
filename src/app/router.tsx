@@ -5,6 +5,10 @@ import GuestRoute from "@/features/auth/components/GuestRoute";
 import RoleRoute from "@/features/auth/components/RoleRoute";
 import Login from "@/features/auth/pages/Login";
 import ForgotPassword from "@/features/auth/pages/ForgotPassword";
+import ResetPassword from "@/features/auth/pages/ResetPassword";
+import VerifyEmail from "@/features/auth/pages/VerifyEmail";
+import ConfirmEmailChange from "@/features/auth/pages/ConfirmEmailChange";
+import AcceptInvitation from "@/features/auth/pages/AcceptInvitation";
 
 import DashboardLayout from "@/features/dashboard/layout/DashboardLayout";
 import Home from "@/features/dashboard/pages/Home";
@@ -47,6 +51,11 @@ export default function AppRouter() {
       {/* Auth */}
       <Route path="/login" element={<GuestRoute><Login /></GuestRoute>} />
       <Route path="/forgot-password" element={<GuestRoute><ForgotPassword /></GuestRoute>} />
+      <Route path="/reset-password" element={<GuestRoute><ResetPassword /></GuestRoute>} />
+      <Route path="/accept-invitation" element={<GuestRoute><AcceptInvitation /></GuestRoute>} />
+      {/* Auth-agnostic: the link works whether or not the user is logged in */}
+      <Route path="/verify-email" element={<VerifyEmail />} />
+      <Route path="/confirm-email-change" element={<ConfirmEmailChange />} />
 
       {/* Dashboard with layout and nested routes */}
       <Route

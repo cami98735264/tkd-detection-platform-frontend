@@ -103,7 +103,11 @@ axiosInstance.interceptors.response.use(
     const errorBody: ApiErrorBody =
       (error.response?.data as ApiErrorBody) ?? { detail: error.message };
 
-    return Promise.reject(new ApiError(status, errorBody));
+    // Surface the Retry-After header (seconds) on throttled responses (§2).
+    const retryAfterRaw = error.response?.headers?.["retry-after"];
+    const retryAfter = retryAfterRaw != null ? Number(retryAfterRaw) : undefined;
+
+    return Promise.reject(new ApiError(status, errorBody, retryAfter));
   },
 );
 

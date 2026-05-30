@@ -9,6 +9,10 @@ export interface AuthUser {
   full_name: string;
   is_staff: boolean;
   role: "sportsman" | "parent" | "administrator";
+  /** Whether the user confirmed their email (contract §7 note 9). Banner-only. */
+  email_verified?: boolean;
+  /** New address of an outstanding email-change request, or null (contract §7 note 9). */
+  pending_email?: string | null;
 }
 
 /** GET/PUT /api/profile/ — UserProfileSerializer */

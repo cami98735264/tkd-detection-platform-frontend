@@ -20,6 +20,7 @@ import { useAuthStore } from "@/features/auth/store/authStore";
 import { useApiErrorHandler } from "@/feedback/useApiErrorHandler";
 import { useFeedback } from "@/feedback/useFeedback";
 import FormModal from "@/components/common/FormModal";
+import EmailManagementSection from "@/features/auth/components/EmailManagementSection";
 import { PageHeader } from "@/components/common/PageHeader";
 import type { Profile as ProfileType } from "@/types/entities";
 
@@ -316,6 +317,9 @@ export default function Profile() {
               </Button>
             </CardHeader>
           </Card>
+
+          {/* Email verification banner + email-change management (contract §4/§5) */}
+          <EmailManagementSection />
         </div>
       </div>
 

@@ -59,6 +59,36 @@ export function buildNotificationToast(
       }
       return null;
 
+    // Security bell notifications (contract §6) — all roles, deep-link to the
+    // profile security section via resource "user" (see notificationLinks).
+    case "security.password_changed":
+      return {
+        title: "Tu contraseña fue cambiada",
+        description: n.body || undefined,
+        variant: "warning",
+      };
+
+    case "security.email_changed":
+      return {
+        title: "Tu correo fue actualizado",
+        description: n.body || undefined,
+        variant: "info",
+      };
+
+    case "security.new_device_login":
+      return {
+        title: "Nuevo inicio de sesión detectado",
+        description: n.body || undefined,
+        variant: "warning",
+      };
+
+    case "security.account_locked":
+      return {
+        title: "Tu cuenta fue bloqueada temporalmente",
+        description: n.body || undefined,
+        variant: "error",
+      };
+
     default:
       // Any other durable notification still surfaces as a generic toast using
       // its own copy (these are user-facing by definition).

@@ -14,6 +14,7 @@ import {
 
 import { Card, CardContent } from "@/components/ui/card";
 import { PageHeader } from "@/components/common/PageHeader";
+import SupportContactForm from "@/features/support/components/SupportContactForm";
 
 interface Section {
   icon: LucideIcon;
@@ -154,6 +155,8 @@ export default function HelpPage() {
           </a>
         </CardContent>
       </Card>
+
+      <SupportContactForm />
     </div>
   );
 }

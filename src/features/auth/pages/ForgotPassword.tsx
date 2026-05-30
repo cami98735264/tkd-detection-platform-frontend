@@ -94,7 +94,7 @@ export default function ForgotPassword() {
           validateOnBlur={false}
           onSubmit={async (values, { setSubmitting }) => {
             try {
-              await authApi.requestPasswordReset(values.email);
+              await authApi.requestPasswordReset({ email: values.email });
               setSubmittedEmail(values.email);
               setView("sent");
             } catch (err) {

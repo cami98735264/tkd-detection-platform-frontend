@@ -11,6 +11,17 @@ export interface PaginatedResponse<T> {
 }
 
 /**
+ * Success envelope for the email endpoints (contract §0 + §7 note 1):
+ * `{ success: true, data: <payload|null>, error: null }`. API methods unwrap
+ * `.data`. Pre-existing auth endpoints (login/me/profile) stay bare-bodied.
+ */
+export interface ApiEnvelope<T> {
+  success: true;
+  data: T;
+  error: null;
+}
+
+/**
  * Standardized API error envelope (see `apps/common/exceptions.py`):
  *
  *     {
@@ -180,12 +191,29 @@ export class ApiError extends Error {
   readonly status: number;
   /** Parsed JSON body from Django */
   readonly body: ApiErrorBody;
+  /** Seconds from the `Retry-After` header on a 429, when present (contract §2). */
+  readonly retryAfter: number | null;
 
-  constructor(status: number, body: ApiErrorBody) {
+  constructor(status: number, body: ApiErrorBody, retryAfter?: number) {
     super(body.detail ?? `HTTP ${status}`);
     this.name = "ApiError";
     this.status = status;
     this.body = body;
+    this.retryAfter = Number.isFinite(retryAfter) ? (retryAfter as number) : null;
+  }
+
+  /** Stable backend error `code` (e.g. "throttled", "validation_error"), if present. */
+  get code(): string | null {
+    const error = this.body.error;
+    if (error && typeof error === "object" && typeof error.code === "string") {
+      return error.code;
+    }
+    return null;
+  }
+
+  /** True for a throttled (rate-limited) response — contract §2. */
+  get isThrottled(): boolean {
+    return this.status === 429 || this.code === "throttled";
   }
 
   /** True for 4xx — caller mistake / validation error */
@@ -236,4 +264,30 @@ export class ApiError extends Error {
   hasFieldCode(field: string, code: string): boolean {
     return !!this.fieldCodes?.[field]?.includes(code);
   }
+}
+
+// ---------------------------------------------------------------------------
+// Token-rejection state (contract §3)
+//
+// Token-driven endpoints (reset / verify / email-change / invitation) reject
+// bad tokens with 400 `validation_error` and a stable `field_codes.token` code.
+// The frontend renders distinct states for each.
+// ---------------------------------------------------------------------------
+
+export type TokenRejection = "invalid" | "expired" | "revoked";
+
+const TOKEN_CODE_MAP: Record<string, TokenRejection> = {
+  token_invalid: "invalid",
+  token_expired: "expired",
+  token_revoked: "revoked",
+};
+
+/**
+ * Map an error to its token-rejection state, or `null` if it isn't one.
+ * Reads `error.field_codes.token[0]` per contract §3.
+ */
+export function tokenRejectionState(err: unknown): TokenRejection | null {
+  if (!(err instanceof ApiError)) return null;
+  const code = err.fieldCodes?.token?.[0];
+  return (code && TOKEN_CODE_MAP[code]) || null;
 }

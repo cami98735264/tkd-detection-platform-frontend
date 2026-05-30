@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useState } from "react";
-import { Pencil, Plus, Trash2, UserCog, UserPlus } from "lucide-react";
+import { Mail, Pencil, Plus, Trash2, UserCog, UserPlus } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { Column, RowAction } from "@/components/common/DataTable";
 import { ListPageTemplate } from "@/components/common/ListPageTemplate";
 import UserFormModal from "@/features/users/components/UserFormModal";
+import InviteUserModal from "@/features/users/components/InviteUserModal";
 import { usersApi, type User } from "@/features/users/api/usersApi";
 import { useApiErrorHandler } from "@/feedback/useApiErrorHandler";
 import { useFeedback } from "@/feedback/useFeedback";
@@ -57,6 +58,7 @@ export default function UsersPage() {
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
+  const [inviteOpen, setInviteOpen] = useState(false);
   const [editing, setEditing] = useState<User | null>(null);
 
   const fetchData = useCallback((p: number) => {
@@ -142,15 +144,26 @@ export default function UsersPage() {
       description="Gestiona las cuentas y los roles del sistema."
       eyebrow="Administración"
       primaryAction={
-        <Button
-          onClick={() => {
-            setEditing(null);
-            setModalOpen(true);
-          }}
-        >
-          <UserPlus className="h-4 w-4" />
-          Nuevo usuario
-        </Button>
+        <>
+          <Button variant="outline" onClick={() => setInviteOpen(true)}>
+            <Mail className="h-4 w-4" />
+            Invitar usuario
+          </Button>
+          <Button
+            onClick={() => {
+              setEditing(null);
+              setModalOpen(true);
+            }}
+          >
+            <UserPlus className="h-4 w-4" />
+            Nuevo usuario
+          </Button>
+          <InviteUserModal
+            open={inviteOpen}
+            onOpenChange={setInviteOpen}
+            onInvited={() => fetchData(page)}
+          />
+        </>
       }
       columns={columns}
       data={data}
