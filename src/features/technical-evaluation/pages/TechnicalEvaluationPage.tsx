@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Camera,
   CheckCircle,
@@ -29,6 +29,7 @@ import {
 } from "@/features/technical-evaluation/api/technicalEvaluationApi";
 import { useApiErrorHandler } from "@/feedback/useApiErrorHandler";
 import { useFeedback } from "@/feedback/useFeedback";
+import { useRealtime, useRealtimeEvent } from "@/features/realtime";
 import { useAuthStore } from "@/features/auth/store/authStore";
 import { athletesApi } from "@/features/athletes/api/athletesApi";
 import type { Athlete } from "@/types/entities";
@@ -69,9 +70,10 @@ export default function TechnicalEvaluationPage() {
   }, [step]);
   const [myAthlete, setMyAthlete] = useState<Athlete | null>(null);
   const [kickType, setKickType] = useState<KickType | null>(null);
-  const [, setSessionId] = useState<number | null>(null);
+  const [sessionId, setSessionId] = useState<number | null>(null);
   const [session, setSession] = useState<EvaluationSession | null>(null);
   const [loadingSession, setLoadingSession] = useState(false);
+  const { status: realtimeStatus, reconnectNonce } = useRealtime();
   const [consentInfo, setConsentInfo] = useState<ConsentInfo | null>(null);
   const [loadingConsent, setLoadingConsent] = useState(true);
   const [linkedMinors, setLinkedMinors] = useState<AthleteConsent[]>([]);
@@ -140,37 +142,92 @@ export default function TechnicalEvaluationPage() {
 
   const handleRecordingComplete = (id: number) => {
     setSessionId(id);
-    pollResults(id);
+    setSession(null);
+    setLoadingSession(true);
+    setStep("results");
   };
 
-  const pollResults = (id: number) => {
-    setStep("results");
-    setLoadingSession(true);
-
-    const poll = async () => {
+  // Fetch the authoritative session. The WS `tech_eval.updated` payload is
+  // trimmed (no recommendations text), so on any update we load the full row.
+  // `allowToast` gates the failure toast to the polling fallback path only —
+  // when the socket is open, the durable `notification.created` event fires the
+  // toast via the bell, so we mustn't double-toast here.
+  const fetchSession = useCallback(
+    async (id: number, allowToast: boolean) => {
       try {
         const s = await technicalEvaluationApi.getSession(id);
+        setSession(s);
         if (s.status === "completed" || s.status === "failed") {
-          setSession(s);
           setLoadingSession(false);
-          if (s.status === "failed") {
+          if (s.status === "failed" && allowToast) {
             showToast({
               title: "Error en el análisis",
-              description: s.recommendations || "No se pudo procesar la patada.",
+              description:
+                s.recommendations || "No se pudo procesar la patada.",
               variant: "error",
             });
           }
-        } else {
-          setTimeout(poll, 2000);
         }
+        return s.status;
       } catch {
         setLoadingSession(false);
         handleError(new Error("Error al obtener resultados"));
+        return undefined;
+      }
+    },
+    // showToast/handleError are stable across renders.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
+  );
+
+  // Live page sync: patch the open session from the realtime event. When the
+  // socket is open this REPLACES the 2s poll. Filtered to the active session.
+  useRealtimeEvent("tech_eval.updated", (env) => {
+    if (sessionId == null || Number(env.id) !== sessionId) return;
+    void fetchSession(sessionId, false);
+  });
+
+  // Initial load + polling fallback. While in the results step with a pending
+  // session: fetch once, then keep polling every 2s ONLY while the socket is
+  // not open. Stops on terminal status, on unmount, and when the socket opens.
+  useEffect(() => {
+    if (step !== "results" || sessionId == null) return;
+    const terminal =
+      session?.status === "completed" || session?.status === "failed";
+    if (terminal) return;
+
+    let active = true;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+
+    const tick = async () => {
+      if (!active) return;
+      const st = await fetchSession(sessionId, realtimeStatus !== "open");
+      if (!active) return;
+      const done = st === "completed" || st === "failed";
+      if (!done && realtimeStatus !== "open") {
+        timer = setTimeout(tick, 2000);
       }
     };
+    void tick();
 
-    poll();
-  };
+    return () => {
+      active = false;
+      if (timer) clearTimeout(timer);
+    };
+    // session?.status is intentionally omitted: tick() handles termination
+    // internally; re-running on every fetch would loop while the socket is open.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step, sessionId, realtimeStatus, fetchSession]);
+
+  // Recover a session whose terminal event was missed while offline.
+  useEffect(() => {
+    if (reconnectNonce === 0 || sessionId == null) return;
+    const terminal =
+      session?.status === "completed" || session?.status === "failed";
+    if (terminal) return;
+    void fetchSession(sessionId, false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [reconnectNonce]);
 
   const handleReset = () => {
     setStep("choose");

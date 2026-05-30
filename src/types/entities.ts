@@ -147,6 +147,29 @@ export interface Evaluation {
   updated_at: string;
 }
 
+/**
+ * /api/notifications/ — NotificationSerializer (durable bell feed).
+ *
+ * Mirrors the realtime contract's Notification model. A row is persisted per
+ * recipient and is the single source of truth for the bell (the WS
+ * `notification.created` event carries this exact shape as its `data`).
+ */
+export interface Notification {
+  id: number;
+  /** e.g. "tech_eval.completed" | "tech_eval.failed" | "report.completed" | "report.failed" */
+  type: string;
+  title: string;
+  body: string;
+  /** Deep-link target resource + id (e.g. "tech_eval_session", "report"). */
+  resource: string;
+  resource_id: number | null;
+  /** Trimmed JSON payload (server-defined; may include athlete_name, title, …). */
+  data: Record<string, unknown>;
+  /** ISO timestamp when read, or null while unread. */
+  read_at: string | null;
+  created_at: string;
+}
+
 /** /api/competition-categories/ — CompetitionCategorySerializer */
 export interface CompetitionCategory {
   id: number;

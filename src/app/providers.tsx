@@ -2,6 +2,8 @@ import { useEffect } from "react";
 import { FeedbackProvider } from "@/feedback/FeedbackProvider";
 import { authApi } from "@/features/auth/api/authApi";
 import { useAuthStore } from "@/features/auth/store/authStore";
+import { RealtimeProvider } from "@/features/realtime";
+import { NotificationsBootstrap } from "@/features/notifications/NotificationsBootstrap";
 
 function AuthInit({ children }: { children: React.ReactNode }) {
   const { status, setAuthenticated, clearSession } = useAuthStore();
@@ -25,7 +27,12 @@ function AuthInit({ children }: { children: React.ReactNode }) {
 export default function Providers({ children }: { children: React.ReactNode }) {
   return (
     <FeedbackProvider>
-      <AuthInit>{children}</AuthInit>
+      <AuthInit>
+        <RealtimeProvider>
+          <NotificationsBootstrap />
+          {children}
+        </RealtimeProvider>
+      </AuthInit>
     </FeedbackProvider>
   );
 }

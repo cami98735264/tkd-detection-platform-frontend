@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/sheet";
 import { Logo } from "@/components/common/Logo";
 import { ThemeToggle } from "@/components/common/ThemeToggle";
+import { NotificationBell } from "@/features/notifications/components/NotificationBell";
 
 import { navConfig, buildLabelMap, type NavGroup, type NavItem } from "./navConfig";
 
@@ -229,6 +230,7 @@ function Topbar({ onOpenMobileNav, onLogout, role, user }: TopbarProps) {
       <Breadcrumbs role={role} />
 
       <div className="ml-auto flex items-center gap-2">
+        <NotificationBell />
         <ThemeToggle />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

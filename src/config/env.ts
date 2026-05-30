@@ -2,19 +2,24 @@
 // __API_PREFIX__ is the versioned API path segment (e.g., "api/v1" or empty in tests).
 // __MOCK_AUTH__ makes initAuth() short-circuit to skip real auth calls.
 // __API_BASE_URL__ lets you set the full base URL (protocol+host+port) in one var.
+// __WS_URL__ overrides the realtime WebSocket origin; empty ⇒ derive it from apiUrl.
 declare const __API_URL__: string | undefined;
 declare const __API_PREFIX__: string | undefined;
 declare const __MOCK_AUTH__: string | undefined;
 declare const __API_BASE_URL__: string | undefined;
+declare const __WS_URL__: string | undefined;
+
+/** Resolved REST base URL — reused below to derive the WebSocket origin. */
+const resolvedApiUrl =
+  typeof __API_BASE_URL__ !== "undefined"
+    ? __API_BASE_URL__
+    : typeof __API_URL__ !== "undefined"
+      ? __API_URL__
+      : "http://localhost:8000";
 
 export const config = {
   /** Full base URL for the API server (without trailing slash). Falls back to localhost in dev. */
-  apiUrl:
-    typeof __API_BASE_URL__ !== "undefined"
-      ? __API_BASE_URL__
-      : typeof __API_URL__ !== "undefined"
-        ? __API_URL__
-        : "http://localhost:8000",
+  apiUrl: resolvedApiUrl,
 
   /**
    * Versioned API path segment appended to apiUrl.
@@ -32,6 +37,17 @@ export const config = {
   /** When true, initAuth() short-circuits and marks every session as authenticated. */
   mockAuth:
     typeof __MOCK_AUTH__ !== "undefined" ? __MOCK_AUTH__ === "true" : false,
+
+  /**
+   * WebSocket origin for the realtime channel (`{wsUrl}/ws/realtime/`).
+   * Overridable via the WS_URL env var; otherwise derived from apiUrl by
+   * swapping the scheme (http→ws, https→wss). The socket connects directly to
+   * the backend origin — never through the Cloudflare Worker hosting the SPA.
+   */
+  wsUrl:
+    typeof __WS_URL__ !== "undefined" && __WS_URL__
+      ? __WS_URL__
+      : resolvedApiUrl.replace(/^https:\/\//, "wss://").replace(/^http:\/\//, "ws://"),
 } as const;
 
 /**

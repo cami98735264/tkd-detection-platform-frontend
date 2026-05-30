@@ -9,6 +9,7 @@ import GenerateReportModal from "@/features/reports/components/GenerateReportMod
 import { reportsApi } from "@/features/reports/api/reportsApi";
 import { useApiErrorHandler } from "@/feedback/useApiErrorHandler";
 import { useFeedback } from "@/feedback/useFeedback";
+import { useRealtime, useRealtimeEvent } from "@/features/realtime";
 import type { Report } from "@/types/entities";
 
 const STATUS_LABELS: Record<string, string> = {
@@ -82,6 +83,32 @@ export default function ReportsPage() {
   useEffect(() => {
     fetchData(page);
   }, [page, fetchData]);
+
+  const { reconnectNonce } = useRealtime();
+
+  // Live page sync: patch the changed report row in place (status/title from
+  // the trimmed event payload). Ephemeral — does NOT touch the bell.
+  useRealtimeEvent("report.updated", (env) => {
+    const id = Number(env.id);
+    const patch = env.data as Partial<Pick<Report, "status" | "title">>;
+    setData((prev) =>
+      prev.map((r) =>
+        r.id === id
+          ? {
+              ...r,
+              ...(patch.status ? { status: patch.status } : {}),
+              ...(patch.title ? { title: patch.title } : {}),
+            }
+          : r,
+      ),
+    );
+  });
+
+  // Recover rows whose updates were missed while offline.
+  useEffect(() => {
+    if (reconnectNonce > 0) fetchData(page);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [reconnectNonce]);
 
   const handleGenerate = async (values: {
     title: string;
