@@ -13,29 +13,34 @@
 
 import { renderApp } from './server';
 
+// Origin of the Django backend. The browser never talks to it directly — it is
+// reached only via the same-origin reverse proxy below.
+const BACKEND_HOST = 'tkd-backend.duckdns.org';
+
 export default {
 	async fetch(request, env, ctx): Promise<Response> {
 		const url = new URL(request.url);
-		
-		// API routes - handle these in the worker
-		if (url.pathname.startsWith('/api/')) {
-			switch (url.pathname) {
-				case '/api/message':
-					return new Response(JSON.stringify({ message: 'Hello from TKD API!' }), {
-						headers: { 'Content-Type': 'application/json' }
-					});
-				case '/api/random':
-					return new Response(JSON.stringify({ uuid: crypto.randomUUID() }), {
-						headers: { 'Content-Type': 'application/json' }
-					});
-				default:
-					return new Response(JSON.stringify({ error: 'Not Found' }), { 
-						status: 404,
-						headers: { 'Content-Type': 'application/json' }
-					});
-			}
+
+		// Reverse-proxy the REST API and the realtime WebSocket to the backend so
+		// the browser only ever talks to THIS origin. That keeps the JWT auth
+		// cookie FIRST-PARTY, so browsers that block third-party cookies (Brave
+		// Shields, Safari ITP, Chrome's 3p-cookie phase-out) still attach it to
+		// both `/api/*` calls and the `/ws/realtime/` handshake.
+		if (
+			url.pathname.startsWith('/api/') ||
+			url.pathname.startsWith('/ws/') ||
+			url.pathname.startsWith('/media/')
+		) {
+			const target = new URL(request.url);
+			target.protocol = 'https:';
+			target.hostname = BACKEND_HOST;
+			target.port = '';
+			// Forward the request untouched (method, Cookie header, WebSocket
+			// Upgrade, body). Returning the upstream Response as-is preserves the
+			// 101 upgrade and every Set-Cookie (login sets access + refresh).
+			return fetch(new Request(target, request));
 		}
-		
+
 		// Serve static files (js, css, images, etc.) from assets
 		const hasFileExtension = /\.[a-zA-Z0-9]+$/.test(url.pathname);
 		if (hasFileExtension && env.ASSETS) {

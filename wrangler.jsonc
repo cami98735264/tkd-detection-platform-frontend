@@ -20,12 +20,17 @@
 	},
 	/**
 	 * Build-time defaults read by build.mjs / watch.mjs.
-	 * Override API_URL and set MOCK_AUTH="false" via CI env vars for production.
 	 * Real secrets (DB passwords, tokens, etc.) go in the CF dashboard, not here.
 	 * https://developers.cloudflare.com/workers/wrangler/configuration/#environment-variables
+	 *
+	 * API_URL is intentionally EMPTY: the client uses same-origin relative URLs
+	 * (`/api/v1/...` and `/ws/realtime/`) and this Worker reverse-proxies them to
+	 * the backend (see BACKEND_HOST in src/index.ts). Keeping the browser on a
+	 * single origin makes the auth cookie first-party. If you ever revert to a
+	 * direct cross-origin backend, set API_URL back to the full backend URL.
 	 */
 	"vars": {
-		"API_URL": "https://tkd-backend.duckdns.org",
+		"API_URL": "",
 		"API_PREFIX": "api/v1",
 		"MOCK_AUTH": "false"
 	}

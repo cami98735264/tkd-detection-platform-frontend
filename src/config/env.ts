@@ -40,14 +40,24 @@ export const config = {
 
   /**
    * WebSocket origin for the realtime channel (`{wsUrl}/ws/realtime/`).
-   * Overridable via the WS_URL env var; otherwise derived from apiUrl by
-   * swapping the scheme (http→ws, https→wss). The socket connects directly to
-   * the backend origin — never through the Cloudflare Worker hosting the SPA.
+   * Resolution order:
+   *   1. WS_URL env var, if set (explicit override).
+   *   2. Derived from apiUrl by swapping the scheme (http→ws, https→wss) —
+   *      used when apiUrl is an absolute cross-origin backend URL.
+   *   3. apiUrl is empty ⇒ SAME-ORIGIN mode: the SPA's Cloudflare Worker
+   *      reverse-proxies `/ws/` to the backend, so we connect back to our own
+   *      origin (derived from window.location at runtime). This keeps the auth
+   *      cookie first-party. Empty string during SSR (no window) — the client
+   *      is the only consumer of the socket.
    */
   wsUrl:
     typeof __WS_URL__ !== "undefined" && __WS_URL__
       ? __WS_URL__
-      : resolvedApiUrl.replace(/^https:\/\//, "wss://").replace(/^http:\/\//, "ws://"),
+      : resolvedApiUrl
+        ? resolvedApiUrl.replace(/^https:\/\//, "wss://").replace(/^http:\/\//, "ws://")
+        : typeof window !== "undefined"
+          ? `${window.location.protocol === "https:" ? "wss:" : "ws:"}//${window.location.host}`
+          : "",
 } as const;
 
 /**
