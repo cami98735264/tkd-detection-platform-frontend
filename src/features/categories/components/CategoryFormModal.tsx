@@ -1,9 +1,12 @@
+import { useCallback } from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import FormModal from "@/components/common/FormModal";
+import AsyncSelectField from "@/components/common/AsyncSelectField";
+import { beltsApi } from "@/features/evaluations/api/beltsApi";
 import type { CompetitionCategory } from "@/types/entities";
 
 const schema = Yup.object({
@@ -33,6 +36,14 @@ interface Props {
 
 export default function CategoryFormModal({ open, onOpenChange, category, onSubmit }: Props) {
   const isEdit = !!category;
+  const loadBelts = useCallback(
+    (input: string, page: number) =>
+      beltsApi.list(page, input).then((res) => ({
+        options: res.results.map((b) => ({ value: b.id, label: b.nombre })),
+        hasMore: res.next !== null,
+      })),
+    []
+  );
 
   return (
     <FormModal open={open} onOpenChange={onOpenChange} title={isEdit ? "Editar Categoría" : "Nueva Categoría"}>
@@ -54,7 +65,7 @@ export default function CategoryFormModal({ open, onOpenChange, category, onSubm
             setSubmitting(false);
           }}
         >
-          {({ isSubmitting }) => (
+          {({ isSubmitting, values, setFieldValue }) => (
             <Form className="space-y-4">
               <div className="space-y-1">
                 <Label>Nombre</Label>
@@ -76,12 +87,34 @@ export default function CategoryFormModal({ open, onOpenChange, category, onSubm
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
                   <Label>Cinturón Desde</Label>
-                  <Field as={Input} type="number" name="belt_from" />
+                  <AsyncSelectField
+                    name="belt_from"
+                    value={values.belt_from}
+                    onChange={(val) => setFieldValue("belt_from", val)}
+                    loadOptions={loadBelts}
+                    selectedOption={
+                      category
+                        ? { value: category.belt_from, label: category.belt_from_name }
+                        : null
+                    }
+                    placeholder="Buscar cinturón..."
+                  />
                   <ErrorMessage name="belt_from" component="p" className="text-sm text-error" />
                 </div>
                 <div className="space-y-1">
                   <Label>Cinturón Hasta</Label>
-                  <Field as={Input} type="number" name="belt_to" />
+                  <AsyncSelectField
+                    name="belt_to"
+                    value={values.belt_to}
+                    onChange={(val) => setFieldValue("belt_to", val)}
+                    loadOptions={loadBelts}
+                    selectedOption={
+                      category
+                        ? { value: category.belt_to, label: category.belt_to_name }
+                        : null
+                    }
+                    placeholder="Buscar cinturón..."
+                  />
                   <ErrorMessage name="belt_to" component="p" className="text-sm text-error" />
                 </div>
               </div>
