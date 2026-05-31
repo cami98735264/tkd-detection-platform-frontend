@@ -275,7 +275,7 @@ export default function TwoFactorSection() {
             <div className="space-y-1.5">
               <Label>¿No puedes escanear? Ingresa esta clave manualmente</Label>
               <div className="flex items-center gap-2">
-                <code className="flex-1 break-all rounded bg-muted px-2 py-1.5 text-xs">
+                <code className="flex-1 break-all rounded bg-surface-2 px-2 py-1.5 text-xs text-text">
                   {setup.secret}
                 </code>
                 <Button
