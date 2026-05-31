@@ -53,6 +53,7 @@ interface Props {
   value: string | number | null;
   onChange: (value: number | null) => void;
   loadOptions: (input: string, page: number) => Promise<{ options: Option[]; hasMore: boolean }>;
+  selectedOption?: Option | null;
   placeholder?: string;
   error?: string;
   isDisabled?: boolean;
@@ -62,6 +63,7 @@ export default function AsyncSelectField({
   value,
   onChange,
   loadOptions,
+  selectedOption,
   placeholder = "Buscar...",
   error,
   isDisabled = false,
@@ -121,11 +123,15 @@ export default function AsyncSelectField({
     }
   };
 
+  const resolvedValue =
+    options.find(o => o.value === value) ||
+    (selectedOption?.value === value ? selectedOption : null);
+
   return (
     <div className="space-y-1">
       <AsyncSelect
         options={options}
-        value={options.find(o => o.value === value) || null}
+        value={resolvedValue}
         onChange={handleChange}
         onInputChange={handleInputChange}
         onMenuScrollToBottom={handleMenuScrollToBottom}

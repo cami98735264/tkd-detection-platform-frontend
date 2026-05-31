@@ -120,6 +120,11 @@ export default function CompetitionCategoryFormModal({
                     value={values.belt_from}
                     onChange={(val) => setFieldValue("belt_from", val)}
                     loadOptions={loadBelts}
+                    selectedOption={
+                      category
+                        ? { value: category.belt_from, label: category.belt_from_name }
+                        : null
+                    }
                     placeholder="Buscar cinturón..."
                   />
                   <ErrorMessage name="belt_from" component="p" className="text-sm text-error" />
@@ -131,6 +136,11 @@ export default function CompetitionCategoryFormModal({
                     value={values.belt_to}
                     onChange={(val) => setFieldValue("belt_to", val)}
                     loadOptions={loadBelts}
+                    selectedOption={
+                      category
+                        ? { value: category.belt_to, label: category.belt_to_name }
+                        : null
+                    }
                     placeholder="Buscar cinturón..."
                   />
                   <ErrorMessage name="belt_to" component="p" className="text-sm text-error" />
