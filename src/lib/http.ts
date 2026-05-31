@@ -22,24 +22,94 @@ export const axiosInstance = axios.create({
 });
 
 // ---------------------------------------------------------------------------
-// Token refresh queue — when a 401 happens we attempt a single refresh, queue
-// all concurrent 401 requests, then replay or reject them once the refresh
-// resolves.
+// Token refresh — single-flight
+// A refresh can be triggered two ways: reactively (a protected endpoint 401s)
+// or proactively (the request interceptor sees the access token is about to
+// lapse). Both funnel through refreshTokens() so at most one /auth/refresh/ is
+// ever in flight; concurrent callers share the same promise.
 // ---------------------------------------------------------------------------
 
-let isRefreshing = false;
-let failedQueue: Array<{
-  resolve: (value?: unknown) => void;
-  reject: (reason?: unknown) => void;
-}> = [];
+let refreshPromise: Promise<void> | null = null;
 
-function processQueue(error: unknown | null) {
-  failedQueue.forEach((p) => {
-    if (error) p.reject(error);
-    else p.resolve();
-  });
-  failedQueue = [];
+function refreshTokens(): Promise<void> {
+  if (!refreshPromise) {
+    refreshPromise = axiosInstance
+      // The refresh endpoint reads the refresh_token cookie. `_retry` marks it
+      // so the response interceptor never tries to refresh a failed refresh.
+      .post(`/auth/refresh/`, null, { _retry: true } as AxiosRequestConfig & {
+        _retry: boolean;
+      })
+      .then(() => undefined)
+      .finally(() => {
+        refreshPromise = null;
+      });
+  }
+  return refreshPromise;
 }
+
+// Auth endpoints manage their own 401s (not logged in, bad creds, expired
+// refresh) and must never trigger a refresh — that would loop.
+function isAuthEndpoint(url: string): boolean {
+  return (
+    url.includes(`/auth/login`) ||
+    url.includes(`/auth/me`) ||
+    url.includes(`/auth/refresh`)
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Proactive refresh — request interceptor
+// The httpOnly access_token cookie lapses after ACCESS_TOKEN_LIFETIME. On a
+// protected endpoint that surfaces as a 401 we recover from below, but on an
+// AllowAny endpoint (e.g. /support/contact/) the backend just treats the
+// request as anonymous — no 401, no recovery. To keep those working we read a
+// non-httpOnly companion cookie (`access_token_expires_at`, epoch seconds) the
+// backend sets alongside the token and refresh BEFORE sending once the token is
+// expired or within the skew window. The companion cookie shares the token's
+// max_age, so its absence means the token is already gone.
+// ---------------------------------------------------------------------------
+
+const PROACTIVE_REFRESH_SKEW_MS = 30_000;
+
+function readCookie(name: string): string | null {
+  if (typeof document === "undefined") return null;
+  const match = document.cookie.match(
+    new RegExp(`(?:^|; )${name}=([^;]*)`),
+  );
+  return match ? decodeURIComponent(match[1]) : null;
+}
+
+function accessTokenNeedsRefresh(): boolean {
+  const raw = readCookie("access_token_expires_at");
+  if (!raw) return true; // companion cookie gone ⇒ access token already expired
+  const expiresAtMs = Number(raw) * 1000;
+  if (!Number.isFinite(expiresAtMs)) return true;
+  return Date.now() >= expiresAtMs - PROACTIVE_REFRESH_SKEW_MS;
+}
+
+axiosInstance.interceptors.request.use(async (cfg) => {
+  const url = cfg.url ?? "";
+  const alreadyRetried = (cfg as AxiosRequestConfig & { _retry?: boolean })._retry;
+
+  // Skip endpoints that manage their own auth, the refresh call itself, and any
+  // request that just got a fresh token via the reactive path.
+  if (isAuthEndpoint(url) || alreadyRetried) return cfg;
+
+  // Only a believed-active session has anything to refresh. A genuine anonymous
+  // user (isAuthenticated false) skips this entirely, so public endpoints stay
+  // a single round-trip.
+  if (!useAuthStore.getState().isAuthenticated) return cfg;
+
+  if (accessTokenNeedsRefresh()) {
+    try {
+      await refreshTokens();
+    } catch {
+      // Refresh token is also expired. Let the request proceed: protected
+      // endpoints will 401 and the reactive handler below clears the session.
+    }
+  }
+  return cfg;
+});
 
 // ---------------------------------------------------------------------------
 // Response interceptor — normalise errors into ApiError, handle token refresh
@@ -58,34 +128,15 @@ axiosInstance.interceptors.response.use(
     // --- 401 handling with refresh ---
     // Skip refresh for auth endpoints — these 401s are expected (not logged in, bad creds)
     const url = originalRequest.url ?? "";
-    const isAuthEndpoint =
-      url.includes(`/auth/login`) ||
-      url.includes(`/auth/me`) ||
-      url.includes(`/auth/refresh`);
 
-    if (status === 401 && !originalRequest._retry && !isAuthEndpoint) {
-      // If we're already refreshing, queue this request
-      if (isRefreshing) {
-        return new Promise((resolve, reject) => {
-          failedQueue.push({ resolve, reject });
-        }).then(() => axiosInstance(originalRequest));
-      }
-
+    if (status === 401 && !originalRequest._retry && !isAuthEndpoint(url)) {
       originalRequest._retry = true;
-      isRefreshing = true;
 
       try {
-        // Attempt to refresh — the refresh endpoint reads the refresh_token cookie
-        await axiosInstance.post(`/auth/refresh/`, null, {
-          // Prevent infinite loop: if refresh itself 401s, don't retry
-          _retry: true,
-        } as AxiosRequestConfig & { _retry: boolean });
-
-        processQueue(null);
+        await refreshTokens();
         // Retry the original request with the new cookies
         return axiosInstance(originalRequest);
-      } catch (refreshError) {
-        processQueue(refreshError);
+      } catch {
         // Refresh failed — session is truly expired.
         // Only clear session; React route guards handle the redirect.
         // Do NOT call window.location.replace here — it causes infinite
@@ -94,8 +145,6 @@ axiosInstance.interceptors.response.use(
         return Promise.reject(
           new ApiError(401, { detail: "Sesión expirada. Por favor ingresá de nuevo." }),
         );
-      } finally {
-        isRefreshing = false;
       }
     }
 

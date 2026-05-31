@@ -22,6 +22,7 @@ import { flagAndShakeInvalidFields } from "@/lib/formAnimations";
  */
 export default function SupportContactForm() {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const userEmail = useAuthStore((s) => s.user?.email);
   const { handleError } = useApiErrorHandler();
   const { cooldown, handle: handleThrottle } = useThrottle();
   const [sent, setSent] = useState(false);
@@ -77,7 +78,13 @@ export default function SupportContactForm() {
             await supportApi.submitSupportRequest({
               subject: values.subject,
               message: values.message,
-              email: isAuthenticated ? undefined : values.email,
+              // When authenticated the backend uses the session email, but the
+              // access-token cookie expires after 15 min and this endpoint is
+              // AllowAny — a lapsed session is silently treated as anonymous
+              // (no 401 → no refresh). Send the stored email as a fallback so
+              // the form still works; the backend ignores it when the session
+              // is valid.
+              email: isAuthenticated ? userEmail : values.email,
               honeypot: values.honeypot,
             });
             setSent(true);

@@ -68,4 +68,33 @@ describe("ApiError.hasFieldCode", () => {
     expect(err.hasFieldCode("email", "email_in_use")).toBe(true);
     expect(err.hasFieldCode("email", "other")).toBe(false);
   });
+
+  it("detects email-change field codes (current_password:invalid, new_email:email_in_use)", () => {
+    const wrongPw = new ApiError(400, {
+      success: false,
+      data: null,
+      error: {
+        code: "validation_error",
+        message: "La contraseña actual es incorrecta.",
+        field_codes: { current_password: ["invalid"] },
+      },
+    });
+    expect(wrongPw.hasFieldCode("current_password", "invalid")).toBe(true);
+
+    const inUse = new ApiError(400, {
+      success: false,
+      data: null,
+      error: {
+        code: "validation_error",
+        message: "Ese correo ya está en uso.",
+        field_codes: { new_email: ["email_in_use"] },
+      },
+    });
+    expect(inUse.hasFieldCode("new_email", "email_in_use")).toBe(true);
+    expect(inUse.hasFieldCode("new_email", "invalid")).toBe(false);
+  });
+
+  it("is false when there are no field codes at all", () => {
+    expect(new ApiError(500, { detail: "boom" }).hasFieldCode("email", "email_in_use")).toBe(false);
+  });
 });

@@ -53,10 +53,10 @@ Tokens are opaque strings the frontend only forwards. They arrive via email link
 to the frontend routes in §5 as query params and are POSTed back verbatim.
 Token-rejection responses use 400 `validation_error` with a stable
 `error.field_codes.token` value the frontend switches on:
-  - `token_invalid`   → malformed / unknown / already used
+  - `token_invalid`   → malformed / unknown
   - `token_expired`   → valid but past TTL
-  - `token_revoked`   → superseded by a newer token of the same purpose
-Frontend renders distinct states for invalid/used, expired, and revoked.
+  - `token_revoked`   → already used, or superseded by a newer token of the same purpose
+Frontend renders distinct states for invalid, expired, and revoked (used/superseded).
 
 TTLs (informational; backend authoritative): reset 60m, email_verify 24h,
 email_change 24h, invitation 7d.
