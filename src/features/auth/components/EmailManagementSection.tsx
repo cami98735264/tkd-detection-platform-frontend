@@ -12,6 +12,7 @@ import { useThrottle } from "@/features/auth/lib/useThrottle";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { FieldErrorText } from "@/components/common/FieldErrorText";
 import FormModal from "@/components/common/FormModal";
@@ -201,10 +202,9 @@ export default function EmailManagementSection() {
                 <div className="space-y-1.5" data-field="current_password">
                   <Label htmlFor="current_password">Contraseña actual</Label>
                   <Field
-                    as={Input}
+                    as={PasswordInput}
                     id="current_password"
                     name="current_password"
-                    type="password"
                     autoComplete="current-password"
                   />
                   <ErrorMessage name="current_password" component={FieldErrorText} />

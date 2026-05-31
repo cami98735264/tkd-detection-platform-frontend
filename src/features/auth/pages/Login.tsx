@@ -1,14 +1,17 @@
+import { useState } from "react";
 import { ErrorMessage, Field, Form, Formik } from "formik";
 import { Link, useNavigate } from "react-router-dom";
 import * as Yup from "yup";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { FieldErrorText } from "@/components/common/FieldErrorText";
 import { flagAndShakeInvalidFields } from "@/lib/formAnimations";
 import { authApi } from "@/features/auth/api/authApi";
 import { AuthShell } from "@/features/auth/components/AuthShell";
+import TwoFactorChallenge from "@/features/auth/components/TwoFactorChallenge";
 import { useApiErrorHandler } from "@/feedback/useApiErrorHandler";
 import type { RoleName } from "@/config/permissions";
 
@@ -28,6 +31,28 @@ const redirectByRole: Record<RoleName, string> = {
 export default function Login() {
   const navigate = useNavigate();
   const { handleError } = useApiErrorHandler();
+  const [challenge, setChallenge] = useState<{ token: string; methods: string[] } | null>(null);
+
+  const goToDashboard = async () => {
+    const user = await authApi.me();
+    const role = user.role as RoleName;
+    navigate(redirectByRole[role] ?? "/dashboard");
+  };
+
+  if (challenge) {
+    return (
+      <AuthShell>
+        <TwoFactorChallenge
+          challengeToken={challenge.token}
+          methods={challenge.methods}
+          onVerified={() => {
+            void goToDashboard();
+          }}
+          onExpired={() => setChallenge(null)}
+        />
+      </AuthShell>
+    );
+  }
 
   return (
     <AuthShell>
@@ -51,11 +76,14 @@ export default function Login() {
           validateOnBlur={false}
           onSubmit={async (values, { setSubmitting }) => {
             try {
-              await authApi.login(values);
+              const result = await authApi.login(values);
+              if (result.status === "2fa_required") {
+                // No session yet — present the second-factor challenge step.
+                setChallenge({ token: result.challengeToken, methods: result.methods });
+                return;
+              }
               // Fetch user info to determine role and redirect accordingly
-              const user = await authApi.me();
-              const role = user.role as RoleName;
-              navigate(redirectByRole[role] ?? "/dashboard");
+              await goToDashboard();
             } catch (err) {
               handleError(err);
             } finally {
@@ -102,9 +130,8 @@ export default function Login() {
                   </Link>
                 </div>
                 <Field
-                  as={Input}
+                  as={PasswordInput}
                   id="password"
-                  type="password"
                   name="password"
                   autoComplete="current-password"
                   placeholder="••••••••"

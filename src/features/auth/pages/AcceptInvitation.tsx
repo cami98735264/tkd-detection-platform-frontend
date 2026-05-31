@@ -15,6 +15,7 @@ import PasswordStrength from "@/features/auth/components/PasswordStrength";
 import { TOKEN_REJECTION_COPY } from "@/features/auth/lib/tokenCopy";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { FieldErrorText } from "@/components/common/FieldErrorText";
 import { flagAndShakeInvalidFields } from "@/lib/formAnimations";
@@ -206,10 +207,9 @@ export default function AcceptInvitation() {
               <div className="space-y-1.5" data-field="password">
                 <Label htmlFor="password">Contraseña</Label>
                 <Field
-                  as={Input}
+                  as={PasswordInput}
                   id="password"
                   name="password"
-                  type="password"
                   autoComplete="new-password"
                 />
                 <PasswordStrength value={values.password} />
@@ -219,10 +219,9 @@ export default function AcceptInvitation() {
               <div className="space-y-1.5" data-field="confirm_password">
                 <Label htmlFor="confirm_password">Confirmar contraseña</Label>
                 <Field
-                  as={Input}
+                  as={PasswordInput}
                   id="confirm_password"
                   name="confirm_password"
-                  type="password"
                   autoComplete="new-password"
                 />
                 <ErrorMessage name="confirm_password" component={FieldErrorText} />

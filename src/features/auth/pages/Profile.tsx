@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -21,6 +22,7 @@ import { useApiErrorHandler } from "@/feedback/useApiErrorHandler";
 import { useFeedback } from "@/feedback/useFeedback";
 import FormModal from "@/components/common/FormModal";
 import EmailManagementSection from "@/features/auth/components/EmailManagementSection";
+import TwoFactorSection from "@/features/auth/components/TwoFactorSection";
 import { PageHeader } from "@/components/common/PageHeader";
 import type { Profile as ProfileType } from "@/types/entities";
 
@@ -320,6 +322,9 @@ export default function Profile() {
 
           {/* Email verification banner + email-change management (contract §4/§5) */}
           <EmailManagementSection />
+
+          {/* Two-factor (TOTP) management (2fa-contract §4/§7) */}
+          <TwoFactorSection />
         </div>
       </div>
 
@@ -361,17 +366,17 @@ export default function Profile() {
               <Form className="space-y-4">
                 <div className="space-y-1">
                   <Label>Contraseña Actual</Label>
-                  <Field as={Input} type="password" name="current_password" />
+                  <Field as={PasswordInput} name="current_password" />
                   <ErrorMessage name="current_password" component="p" className="text-sm text-error" />
                 </div>
                 <div className="space-y-1">
                   <Label>Nueva Contraseña</Label>
-                  <Field as={Input} type="password" name="new_password" />
+                  <Field as={PasswordInput} name="new_password" />
                   <ErrorMessage name="new_password" component="p" className="text-sm text-error" />
                 </div>
                 <div className="space-y-1">
                   <Label>Confirmar Nueva Contraseña</Label>
-                  <Field as={Input} type="password" name="confirm_password" />
+                  <Field as={PasswordInput} name="confirm_password" />
                   <ErrorMessage name="confirm_password" component="p" className="text-sm text-error" />
                 </div>
                 <div className="flex justify-end gap-3 pt-4">

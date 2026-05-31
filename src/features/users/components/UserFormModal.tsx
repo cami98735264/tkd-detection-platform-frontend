@@ -2,6 +2,7 @@ import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import FormModal from "@/components/common/FormModal";
 import { FormikSelect } from "@/components/common/FormSelect";
@@ -95,8 +96,7 @@ export default function UserFormModal({
               <div className="space-y-1">
                 <Label>Contraseña</Label>
                 <Field
-                  as={Input}
-                  type="password"
+                  as={PasswordInput}
                   name="password"
                   autoComplete="new-password"
                   placeholder={isEdit ? "Dejar vacío para no cambiar" : undefined}

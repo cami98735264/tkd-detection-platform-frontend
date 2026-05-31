@@ -13,6 +13,8 @@ export interface AuthUser {
   email_verified?: boolean;
   /** New address of an outstanding email-change request, or null (contract §7 note 9). */
   pending_email?: string | null;
+  /** Whether the user has an active TOTP second factor (2fa-contract §1). */
+  has_2fa?: boolean;
 }
 
 /** GET/PUT /api/profile/ — UserProfileSerializer */

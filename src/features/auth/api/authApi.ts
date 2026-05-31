@@ -16,6 +16,28 @@ export interface LoginPayload {
   password: string;
 }
 
+/** Bare login response body (non-enveloped, like the pre-existing auth endpoints). */
+interface LoginResponseBody {
+  two_factor_required?: boolean;
+  challenge_token?: string;
+  methods?: string[];
+}
+
+/**
+ * Result of `authApi.login` (2fa-contract §5). On `authenticated` the store has
+ * already been populated; on `2fa_required` the caller must run the challenge
+ * step (no session was established, no cookies set).
+ */
+export type LoginResult =
+  | { status: "authenticated" }
+  | { status: "2fa_required"; challengeToken: string; methods: string[] };
+
+export interface VerifyTwoFactorPayload {
+  challengeToken: string;
+  code: string;
+  rememberDevice?: boolean;
+}
+
 // --- Email-flow payloads & responses (contract §4) -------------------------
 
 export interface ConfirmPasswordResetPayload {
@@ -78,6 +100,7 @@ const MOCK_USER: AuthUser = {
   role: "administrator",
   email_verified: true,
   pending_email: null,
+  has_2fa: false,
 };
 
 // sessionStorage key used to simulate cookie invalidation after mock logout.
@@ -95,7 +118,7 @@ export const authApi = {
    * POST /api/auth/login/
    * Django sets the httpOnly access + refresh cookies in the response.
    */
-  login: async (payload: LoginPayload): Promise<void> => {
+  login: async (payload: LoginPayload): Promise<LoginResult> => {
     if (config.mockAuth) {
       if (
         payload.email !== MOCK_CREDENTIALS.email ||
@@ -107,9 +130,39 @@ export const authApi = {
       }
       sessionStorage.removeItem(MOCK_LOGGED_OUT_KEY);
       useAuthStore.getState().setAuthenticated(MOCK_USER);
+      return { status: "authenticated" };
+    }
+    // The login body is bare (non-enveloped). For a 2FA user without a trusted
+    // device the backend returns `{ two_factor_required, challenge_token, methods }`
+    // and sets NO cookies — surface that so the caller can run the challenge.
+    const body = await http.post<LoginResponseBody>("/auth/login/", payload);
+    if (body?.two_factor_required && body.challenge_token) {
+      return {
+        status: "2fa_required",
+        challengeToken: body.challenge_token,
+        methods: body.methods ?? ["totp", "recovery"],
+      };
+    }
+    const user = await authApi.me();
+    useAuthStore.getState().setAuthenticated(user);
+    return { status: "authenticated" };
+  },
+
+  /**
+   * POST /api/auth/2fa/verify/ (2fa-contract §4). Establishes a session exactly
+   * like login (backend sets cookies); we then fetch the canonical user via me().
+   */
+  verifyTwoFactor: async (payload: VerifyTwoFactorPayload): Promise<void> => {
+    if (config.mockAuth) {
+      sessionStorage.removeItem(MOCK_LOGGED_OUT_KEY);
+      useAuthStore.getState().setAuthenticated(MOCK_USER);
       return;
     }
-    await http.post<void>("/auth/login/", payload);
+    await http.post<void>("/auth/2fa/verify/", {
+      challenge_token: payload.challengeToken,
+      code: payload.code,
+      remember_device: payload.rememberDevice ?? false,
+    });
     const user = await authApi.me();
     useAuthStore.getState().setAuthenticated(user);
   },

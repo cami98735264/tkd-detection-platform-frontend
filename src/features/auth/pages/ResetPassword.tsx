@@ -14,7 +14,7 @@ import AuthStatusView from "@/features/auth/components/AuthStatusView";
 import PasswordStrength from "@/features/auth/components/PasswordStrength";
 import { TOKEN_REJECTION_COPY } from "@/features/auth/lib/tokenCopy";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { FieldErrorText } from "@/components/common/FieldErrorText";
 import { flagAndShakeInvalidFields } from "@/lib/formAnimations";
@@ -143,10 +143,9 @@ export default function ResetPassword() {
               <div className="space-y-1.5" data-field="new_password">
                 <Label htmlFor="new_password">Nueva contraseña</Label>
                 <Field
-                  as={Input}
+                  as={PasswordInput}
                   id="new_password"
                   name="new_password"
-                  type="password"
                   autoComplete="new-password"
                 />
                 <PasswordStrength value={values.new_password} />
@@ -156,10 +155,9 @@ export default function ResetPassword() {
               <div className="space-y-1.5" data-field="confirm_password">
                 <Label htmlFor="confirm_password">Confirmar contraseña</Label>
                 <Field
-                  as={Input}
+                  as={PasswordInput}
                   id="confirm_password"
                   name="confirm_password"
-                  type="password"
                   autoComplete="new-password"
                 />
                 <ErrorMessage name="confirm_password" component={FieldErrorText} />

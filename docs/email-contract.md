@@ -133,9 +133,22 @@ notification `type` values the frontend must map (toast + link):
   - `security.email_changed`
   - `security.new_device_login`
   - `security.account_locked`
+Two-factor (TOTP) bell types — defined in `docs/2fa-contract.md` §6, same transport
+and same `/dashboard/profile` link:
+  - `security.2fa_enabled`
+  - `security.2fa_disabled`
+  - `security.2fa_recovery_used`
+  - `security.2fa_recovery_regenerated`
+  - `security.new_2fa_device`
 Resource/link mapping: these point to `/dashboard/profile` (security section).
-Email is sent for the same events independently; the bell is additive, never a
-substitute. No new WS envelope shape — reuse `{type, resource, id, data, ts}`.
+Email is sent for the same events independently (except `security.new_2fa_device`,
+which is bell-only); the bell is additive, never a substitute. No new WS envelope
+shape — reuse `{type, resource, id, data, ts}`.
+
+NOTE (2FA login deviation): `auth/login/` keeps its bare body but, for a user with
+active 2FA and no trusted device, returns `{ two_factor_required: true,
+challenge_token, methods }` at HTTP 200 with NO auth cookies. See
+`docs/2fa-contract.md` §5.
 
 ## 7. Deviations log (backend appends here during its run)
 

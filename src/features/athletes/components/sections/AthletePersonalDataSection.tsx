@@ -4,6 +4,7 @@ import { Link2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import AsyncSelectField from "@/components/common/AsyncSelectField";
@@ -232,9 +233,8 @@ export default function AthletePersonalDataSection({
                 </div>
                 <div className="space-y-1.5">
                   <Label htmlFor="sportsman_password">Contraseña *</Label>
-                  <Input
+                  <PasswordInput
                     id="sportsman_password"
-                    type="password"
                     value={data.sportsman_password}
                     onChange={(e) => onChange({ sportsman_password: e.target.value })}
                     placeholder="Min. 8 caracteres con mayús., minús., dígito y símbolo"

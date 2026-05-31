@@ -26,6 +26,12 @@ const SECURITY = {
   "security.email_changed": { title: "Tu correo fue actualizado", variant: "info" },
   "security.new_device_login": { title: "Nuevo inicio de sesión detectado", variant: "warning" },
   "security.account_locked": { title: "Tu cuenta fue bloqueada temporalmente", variant: "error" },
+  // Two-factor (TOTP) bells (2fa-contract §6).
+  "security.2fa_enabled": { title: "Verificación en dos pasos activada", variant: "success" },
+  "security.2fa_disabled": { title: "Verificación en dos pasos desactivada", variant: "warning" },
+  "security.2fa_recovery_used": { title: "Código de recuperación utilizado", variant: "warning" },
+  "security.2fa_recovery_regenerated": { title: "Códigos de recuperación regenerados", variant: "info" },
+  "security.new_2fa_device": { title: "Nuevo dispositivo de confianza", variant: "info" },
 } as const;
 
 describe("buildNotificationToast — security bells (contract §6)", () => {

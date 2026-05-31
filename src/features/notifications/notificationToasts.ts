@@ -89,6 +89,42 @@ export function buildNotificationToast(
         variant: "error",
       };
 
+    // Two-factor (TOTP) bell notifications (2fa-contract §6).
+    case "security.2fa_enabled":
+      return {
+        title: "Verificación en dos pasos activada",
+        description: n.body || undefined,
+        variant: "success",
+      };
+
+    case "security.2fa_disabled":
+      return {
+        title: "Verificación en dos pasos desactivada",
+        description: n.body || undefined,
+        variant: "warning",
+      };
+
+    case "security.2fa_recovery_used":
+      return {
+        title: "Código de recuperación utilizado",
+        description: n.body || undefined,
+        variant: "warning",
+      };
+
+    case "security.2fa_recovery_regenerated":
+      return {
+        title: "Códigos de recuperación regenerados",
+        description: n.body || undefined,
+        variant: "info",
+      };
+
+    case "security.new_2fa_device":
+      return {
+        title: "Nuevo dispositivo de confianza",
+        description: n.body || undefined,
+        variant: "info",
+      };
+
     default:
       // Any other durable notification still surfaces as a generic toast using
       // its own copy (these are user-facing by definition).
