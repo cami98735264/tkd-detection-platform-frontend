@@ -13,9 +13,12 @@
 
 import { renderApp } from './server';
 
-// Origin of the Django backend. The browser never talks to it directly — it is
-// reached only via the same-origin reverse proxy below.
-const BACKEND_HOST = 'tkd-backend.duckdns.org';
+// Origin of the Django backend (e.g. "167-233-18-72.sslip.io"). Supplied at
+// runtime via the BACKEND_HOST env var/secret — NOT hardcoded, so the origin
+// host isn't committed to source. Set it with `wrangler secret put BACKEND_HOST`
+// (and in .dev.vars for local `wrangler dev`). This bundle runs on the edge, not
+// in the browser, so the value is never shipped to clients either way.
+// Keep the env-var name in sync with functions/_middleware.ts.
 
 export default {
 	async fetch(request, env, ctx): Promise<Response> {
@@ -31,9 +34,12 @@ export default {
 			url.pathname.startsWith('/ws/') ||
 			url.pathname.startsWith('/media/')
 		) {
+			if (!env.BACKEND_HOST) {
+				return new Response('BACKEND_HOST is not configured', { status: 503 });
+			}
 			const target = new URL(request.url);
 			target.protocol = 'https:';
-			target.hostname = BACKEND_HOST;
+			target.hostname = env.BACKEND_HOST;
 			target.port = '';
 			// Forward the request untouched (method, Cookie header, WebSocket
 			// Upgrade, body). Returning the upstream Response as-is preserves the

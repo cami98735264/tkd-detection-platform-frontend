@@ -13,18 +13,26 @@
 // NOTE: src/index.ts contains the equivalent proxy for the *Workers* deploy
 // path (`wrangler deploy`). Pages ignores src/index.ts and uses THIS file.
 
-// Origin of the Django backend. The browser never reaches it directly.
-const BACKEND_HOST = "tkd-backend.duckdns.org";
+// Origin of the Django backend (e.g. "167-233-18-72.sslip.io"). Supplied at
+// runtime via the BACKEND_HOST env var/secret on the Pages project — NOT
+// hardcoded, so the origin host isn't committed to source. (This Function runs
+// on the edge, so the value never reaches the browser regardless.)
+//
+// sslip.io is wildcard DNS that resolves a hostname-encoded IP back to that IP
+// (167-233-18-72.sslip.io -> 167.233.18.72) in ~0.17s. The Hetzner IP is
+// STATIC, so dynamic DNS is unnecessary — and DuckDNS's nameservers were
+// resolving in 3-20s on cache miss, stalling the edge fetch this proxy makes.
 
 // Minimal shape of the Pages Function context we use (avoids needing the
 // @cloudflare/workers-types ambient PagesFunction type at compile time).
 interface ProxyContext {
   request: Request;
   next: () => Promise<Response>;
+  env: { BACKEND_HOST?: string };
 }
 
 export const onRequest = async (context: ProxyContext): Promise<Response> => {
-  const { request, next } = context;
+  const { request, next, env } = context;
   const url = new URL(request.url);
 
   if (
@@ -32,9 +40,12 @@ export const onRequest = async (context: ProxyContext): Promise<Response> => {
     url.pathname.startsWith("/ws/") ||
     url.pathname.startsWith("/media/")
   ) {
+    if (!env.BACKEND_HOST) {
+      return new Response("BACKEND_HOST is not configured", { status: 503 });
+    }
     const target = new URL(request.url);
     target.protocol = "https:";
-    target.hostname = BACKEND_HOST;
+    target.hostname = env.BACKEND_HOST;
     target.port = "";
     // Forward the request untouched (method, Cookie header, WebSocket Upgrade,
     // body). Returning the upstream Response as-is preserves the 101 upgrade

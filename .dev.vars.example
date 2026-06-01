@@ -1,0 +1,9 @@
+# Local dev secrets for `wrangler dev` (and `wrangler pages dev`).
+# Copy to `.dev.vars` (gitignored) and fill in real values.
+#
+# BACKEND_HOST: origin host the edge reverse-proxy (src/index.ts and
+# functions/_middleware.ts) forwards /api, /ws and /media to. In production this
+# is an ENCRYPTED SECRET set in the Cloudflare dashboard (Pages project →
+# Settings → Variables and Secrets), never committed. For local dev, copy this
+# file to `.dev.vars` (gitignored) and put the real host below.
+BACKEND_HOST=your-backend-host.example
