@@ -199,7 +199,6 @@ export default function DashboardCharts() {
         ["Evaluaciones", data.summary.total_evaluaciones],
         ["Usuarios", data.summary.total_usuarios],
       ];
-      // @ts-expect-error jspdf-autotable types
       autoTable(doc, { startY: 52, head: [["Métrica", "Valor"]], body: summaryData });
 
       if (data.distributions.cinturones.length > 0) {
@@ -207,7 +206,6 @@ export default function DashboardCharts() {
         doc.setFontSize(14);
         doc.text("Distribución por Cinturón", 14, 20);
         const beltData = data.distributions.cinturones.map((c) => [c.nombre, c.cantidad]);
-        // @ts-expect-error jspdf-autotable types
         autoTable(doc, { startY: 28, head: [["Cinturón", "Cantidad"]], body: beltData });
       }
 
@@ -216,7 +214,6 @@ export default function DashboardCharts() {
         doc.setFontSize(14);
         doc.text("Distribución por Categoría", 14, 20);
         const catData = data.distributions.categorias.map((c) => [c.nombre, c.cantidad]);
-        // @ts-expect-error jspdf-autotable types
         autoTable(doc, { startY: 28, head: [["Categoría", "Cantidad"]], body: catData });
       }
 
@@ -228,7 +225,6 @@ export default function DashboardCharts() {
           a.estado === "present" ? "Presente" : a.estado === "absent" ? "Ausente" : "Tarde",
           a.cantidad,
         ]);
-        // @ts-expect-error jspdf-autotable types
         autoTable(doc, { startY: 28, head: [["Estado", "Cantidad"]], body: attData });
       }
 
