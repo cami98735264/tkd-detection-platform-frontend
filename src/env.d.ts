@@ -10,3 +10,4 @@ declare namespace Cloudflare {
     BACKEND_HOST: string;
   }
 }
+
