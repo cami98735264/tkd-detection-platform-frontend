@@ -7,7 +7,19 @@ export function useCameraAccess() {
 
   const requestCamera = async () => {
     try {
-      const s = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+      // Video-only: pose analysis never uses audio, and an audio track only
+      // bloats the uploaded recording (and triggers Opus-decode noise server
+      // side). Bound the resolution/frame rate so the upload stays small enough
+      // to complete over weak mobile uplinks — 720p@24fps is ample for
+      // whole-body pose landmarking.
+      const s = await navigator.mediaDevices.getUserMedia({
+        video: {
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
+          frameRate: { ideal: 24, max: 30 },
+        },
+        audio: false,
+      });
       setStream(s);
       setHasPermission(true);
       setError(null);

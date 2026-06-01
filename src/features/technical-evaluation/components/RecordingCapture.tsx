@@ -94,7 +94,16 @@ export default function RecordingCapture({
     if (!stream) return;
     chunksRef.current = [];
 
-    const recorder = new MediaRecorder(stream, { mimeType: "video/webm" });
+    // Cap the bitrate so a 10s clip lands around ~1.2 MB instead of the
+    // browser default (often 2.5+ Mbps ≈ 3+ MB, which inflates ~33% more once
+    // base64-encoded for the JSON upload). Smaller payloads are the difference
+    // between an upload completing or stalling out (nginx 408 / client timeout)
+    // on flaky mobile connections. 1 Mbps@720p stays well within MediaPipe's
+    // accuracy needs.
+    const recorder = new MediaRecorder(stream, {
+      mimeType: "video/webm",
+      videoBitsPerSecond: 1_000_000,
+    });
     mediaRecorderRef.current = recorder;
 
     recorder.ondataavailable = (e) => {
