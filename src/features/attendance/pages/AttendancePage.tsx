@@ -93,7 +93,7 @@ export default function AttendancePage() {
   const handleConfirm = async (record: AttendanceRecord) => {
     const ok = await confirm({
       title: "Confirmar asistencia",
-      description: `¿Confirmar la asistencia de ${record.athlete_name} a "${record.program_name}"?`,
+      description: `¿Confirmar la asistencia de ${record.athlete_name} a "${trainingName(record)}"?`,
     });
     if (!ok) return;
     try {
@@ -141,7 +141,7 @@ export default function AttendancePage() {
       mobileCard={(r) => (
         <div className="space-y-1">
           <div className="flex items-center justify-between gap-2">
-            <p className="font-medium text-text">{r.program_name}</p>
+            <p className="font-medium text-text">{trainingName(r)}</p>
             <StatusBadge status={r.status} />
           </div>
           <p className="text-xs text-muted">{r.athlete_name}</p>
@@ -160,3 +160,4 @@ export default function AttendancePage() {
     />
   );
 }
+
