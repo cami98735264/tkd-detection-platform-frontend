@@ -10,7 +10,11 @@ const h = vi.hoisted(() => ({
   pushLive: vi.fn(),
   buildToast: vi.fn(),
   rt: { reconnectNonce: 0 },
-  auth: { user: { role: "sportsman" }, status: "ready", isAuthenticated: true },
+  auth: {
+    user: { role: "sportsman" } as { role: string } | undefined,
+    status: "ready",
+    isAuthenticated: true,
+  },
   handlers: new Map<string, (env: unknown) => void>(),
 }));
 

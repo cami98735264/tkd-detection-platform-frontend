@@ -102,14 +102,14 @@ export default function EnrollmentsPage() {
       header: "Deportista",
       render: (r) => (
         <span className="font-medium text-text">
-          {athleteMap[r.athlete] ?? `#${r.athlete}`}
+          {r.athlete_name ?? athleteMap[r.athlete] ?? `#${r.athlete}`}
         </span>
       ),
     },
     {
       key: "program",
       header: "Programa",
-      render: (r) => programMap[r.program] ?? `#${r.program}`,
+      render: (r) => r.program_name ?? programMap[r.program] ?? `#${r.program}`,
     },
     {
       key: "start_date",
@@ -217,12 +217,12 @@ export default function EnrollmentsPage() {
         <div className="space-y-1">
           <div className="flex items-center justify-between gap-2">
             <p className="font-medium text-text">
-              {athleteMap[r.athlete] ?? `#${r.athlete}`}
+              {r.athlete_name ?? athleteMap[r.athlete] ?? `#${r.athlete}`}
             </p>
             <StatusBadge status={r.status} />
           </div>
           <p className="text-xs text-muted">
-            {programMap[r.program] ?? `#${r.program}`}
+            {r.program_name ?? programMap[r.program] ?? `#${r.program}`}
           </p>
           <p className="text-xs text-faint">
             Inicio: {formatDateForDisplay(r.start_date)}

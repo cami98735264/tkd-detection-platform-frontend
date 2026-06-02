@@ -18,11 +18,21 @@ function StatusBadge({ status }: { status: AttendanceRecord["status"] }) {
   return <Badge variant="outline-muted">{status}</Badge>;
 }
 
+function trainingName(record: AttendanceRecord): string {
+  return (
+    record.program_name ||
+    record.training_name ||
+    record.entrenamiento_name ||
+    record.entrenamiento ||
+    "—"
+  );
+}
+
 const columns: Column<AttendanceRecord>[] = [
   {
     key: "program_name",
     header: "Entrenamiento",
-    render: (r) => <span className="font-medium text-text">{r.program_name}</span>,
+    render: (r) => <span className="font-medium text-text">{trainingName(r)}</span>,
   },
   { key: "athlete_name", header: "Atleta", hideOnMobile: true },
   {
@@ -83,7 +93,7 @@ export default function AttendancePage() {
   const handleConfirm = async (record: AttendanceRecord) => {
     const ok = await confirm({
       title: "Confirmar asistencia",
-      description: `¿Confirmar la asistencia de ${record.athlete_name} a "${record.program_name}"?`,
+      description: `¿Confirmar la asistencia de ${record.athlete_name} a "${trainingName(record)}"?`,
     });
     if (!ok) return;
     try {
@@ -131,7 +141,7 @@ export default function AttendancePage() {
       mobileCard={(r) => (
         <div className="space-y-1">
           <div className="flex items-center justify-between gap-2">
-            <p className="font-medium text-text">{r.program_name}</p>
+            <p className="font-medium text-text">{trainingName(r)}</p>
             <StatusBadge status={r.status} />
           </div>
           <p className="text-xs text-muted">{r.athlete_name}</p>
@@ -150,3 +160,4 @@ export default function AttendancePage() {
     />
   );
 }
+

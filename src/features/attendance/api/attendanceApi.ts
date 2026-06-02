@@ -10,6 +10,9 @@ export interface AttendanceRecord {
   edition_id: number;
   edition_name: string;
   program_name: string;
+  training_name?: string;
+  entrenamiento_name?: string;
+  entrenamiento?: string;
   fecha: string;
   hora: string | null;
   status: AttendanceStatus;

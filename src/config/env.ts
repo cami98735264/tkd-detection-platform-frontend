@@ -11,7 +11,7 @@ declare const __WS_URL__: string | undefined;
 
 /** Resolved REST base URL — reused below to derive the WebSocket origin. */
 const resolvedApiUrl =
-  typeof __API_BASE_URL__ !== "undefined"
+  typeof __API_BASE_URL__ !== "undefined" && __API_BASE_URL__
     ? __API_BASE_URL__
     : typeof __API_URL__ !== "undefined"
       ? __API_URL__
