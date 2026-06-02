@@ -86,6 +86,7 @@ export interface Enrollment {
   athlete_name?: string;
   program: number;
   program_name?: string;
+  program_capacity?: number | null;
   enrolled_at: string;
   start_date: string;
   end_date: string | null;
