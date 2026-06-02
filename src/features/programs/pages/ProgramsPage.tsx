@@ -62,7 +62,7 @@ export default function ProgramsPage() {
             id: enrollment.program,
             name: enrollment.program_name ?? `Programa #${enrollment.program}`,
             description: null,
-            capacity: null,
+            capacity: enrollment.program_capacity ?? null,
             active: enrollment.status === "active",
             created_at: enrollment.enrolled_at,
             updated_at: enrollment.updated_at,
