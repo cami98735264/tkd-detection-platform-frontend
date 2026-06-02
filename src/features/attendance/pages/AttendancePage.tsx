@@ -18,11 +18,21 @@ function StatusBadge({ status }: { status: AttendanceRecord["status"] }) {
   return <Badge variant="outline-muted">{status}</Badge>;
 }
 
+function trainingName(record: AttendanceRecord): string {
+  return (
+    record.program_name ||
+    record.training_name ||
+    record.entrenamiento_name ||
+    record.entrenamiento ||
+    "—"
+  );
+}
+
 const columns: Column<AttendanceRecord>[] = [
   {
     key: "program_name",
     header: "Entrenamiento",
-    render: (r) => <span className="font-medium text-text">{r.program_name}</span>,
+    render: (r) => <span className="font-medium text-text">{trainingName(r)}</span>,
   },
   { key: "athlete_name", header: "Atleta", hideOnMobile: true },
   {

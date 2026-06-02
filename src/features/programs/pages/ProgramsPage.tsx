@@ -55,15 +55,22 @@ export default function ProgramsPage() {
     enrollmentsApi
       .getMyEnrollments()
       .then((enrollments) => {
-        const programIds = new Set(enrollments.map((e) => e.program));
-        return programsApi.list(1).then((res) => ({
-          programs: res.results.filter((p) => programIds.has(p.id)),
-          count: enrollments.length,
-        }));
-      })
-      .then(({ programs, count: c }) => {
+        const programsById = new Map<number, Program>();
+        enrollments.forEach((enrollment) => {
+          if (programsById.has(enrollment.program)) return;
+          programsById.set(enrollment.program, {
+            id: enrollment.program,
+            name: enrollment.program_name ?? `Programa #${enrollment.program}`,
+            description: null,
+            capacity: null,
+            active: enrollment.status === "active",
+            created_at: enrollment.enrolled_at,
+            updated_at: enrollment.updated_at,
+          });
+        });
+        const programs = Array.from(programsById.values());
         setData(programs);
-        setCount(c);
+        setCount(programs.length);
       })
       .catch(handleError)
       .finally(() => setLoading(false));
