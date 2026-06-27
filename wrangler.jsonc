@@ -30,8 +30,8 @@
 	 * direct cross-origin backend, set API_URL back to the full backend URL.
 	 */
 	"vars": {
-		"API_URL": "",
+		"API_URL": "http://127.0.0.1:8000",
 		"API_PREFIX": "api/v1",
 		"MOCK_AUTH": "false"
-	}
+}
 }
