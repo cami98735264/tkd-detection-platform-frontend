@@ -5,7 +5,14 @@ import { Badge } from "@/components/ui/badge";
 import { ListPageTemplate } from "@/components/common/ListPageTemplate";
 import type { Column, RowAction } from "@/components/common/DataTable";
 import AttendanceFilters from "@/features/attendance/components/AttendanceFilters";
-import { attendanceApi, type AttendanceRecord } from "@/features/attendance/api/attendanceApi";
+import {
+  ATTENDANCE_CONFIRM_ROLES,
+  attendanceApi,
+  needsConfirmation,
+  type AttendanceRecord,
+} from "@/features/attendance/api/attendanceApi";
+import { usePermissions } from "@/features/auth/hooks/usePermissions";
+import { ApiError } from "@/types/api";
 import { useApiErrorHandler } from "@/feedback/useApiErrorHandler";
 import { useFeedback } from "@/feedback/useFeedback";
 
@@ -51,6 +58,11 @@ const columns: Column<AttendanceRecord>[] = [
 export default function AttendancePage() {
   const { handleError } = useApiErrorHandler();
   const { showToast, confirm } = useFeedback();
+  const { hasRole } = usePermissions();
+  // Only the owning athlete or a linked parent may confirm (backend enforces it too).
+  const canConfirm = hasRole(ATTENDANCE_CONFIRM_ROLES);
+  /** Records the backend refused (403) — hide their confirm action. */
+  const [forbiddenIds, setForbiddenIds] = useState<ReadonlySet<number>>(() => new Set());
 
   const [data, setData] = useState<AttendanceRecord[]>([]);
   const [count, setCount] = useState(0);
@@ -101,24 +113,43 @@ export default function AttendancePage() {
     });
     if (!ok) return;
     try {
-      await attendanceApi.confirm(record.id);
+      const updated = await attendanceApi.confirm(record.id);
+      setData((rows) =>
+        rows.map((r) =>
+          r.id === record.id ? { ...r, ...updated, status: updated?.status ?? "present" } : r,
+        ),
+      );
       showToast({ title: "Asistencia confirmada", variant: "success" });
-      fetchData(page);
     } catch (err) {
+      if (err instanceof ApiError && err.isForbidden) {
+        setForbiddenIds((prev) => new Set(prev).add(record.id));
+        // The global handler already showed the backend's reason; add context
+        // only if it did not (e.g. no FeedbackProvider subscription).
+        if (!err.notified) {
+          showToast({
+            title: "No podés confirmar esta asistencia",
+            description: err.userMessage,
+            variant: "warning",
+          });
+        }
+        return;
+      }
       handleError(err);
     }
   };
 
-  const rowActions: RowAction<AttendanceRecord>[] = [
-    {
-      id: "confirm",
-      label: "Confirmar asistencia",
-      icon: CheckCircle,
-      variant: "tonal",
-      show: (row) => row.status === "present",
-      onClick: handleConfirm,
-    },
-  ];
+  const rowActions: RowAction<AttendanceRecord>[] = canConfirm
+    ? [
+        {
+          id: "confirm",
+          label: "Confirmar asistencia",
+          icon: CheckCircle,
+          variant: "tonal",
+          show: (row) => needsConfirmation(row) && !forbiddenIds.has(row.id),
+          onClick: (row) => void handleConfirm(row),
+        },
+      ]
+    : [];
 
   return (
     <ListPageTemplate
