@@ -92,7 +92,11 @@ export interface Enrollment {
   end_date: string | null;
   status: "active" | "completed" | "dropped";
   notes: string | null;
-  certificado_medico_adjunto: string;
+  /** Authenticated download path (`/api/v1/enrollments/{id}/certificate/`) or null. */
+  certificado_medico_url?: string | null;
+  has_certificado_medico?: boolean;
+  /** @deprecated Storage path from before the private-certificate change; no longer sent. */
+  certificado_medico_adjunto?: string;
   consentimiento_menor: boolean;
   blood_type: string;
   acepta_terminos: boolean;
@@ -205,7 +209,9 @@ export interface Report {
   filters_applied: Record<string, unknown>;
   status: ReportStatus;
   generated_at: string | null;
-  file_reference: string | null;
+  /** @deprecated Internal storage path; no longer returned by the API. */
+  file_reference?: string | null;
+  file_format?: "csv";
   /**
    * Authenticated download endpoint for the generated CSV (backend contract:
    * GET /api/v1/reports/{id}/download/). Optional: older payloads omit it and

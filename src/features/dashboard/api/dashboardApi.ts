@@ -1,4 +1,5 @@
 import { http } from "@/lib/http";
+import { ApiError } from "@/types/api";
 
 export interface DashboardStats {
   total_deportistas: number;
@@ -59,6 +60,16 @@ export interface DashboardExportSummary {
 export const dashboardApi = {
   stats: () => http.get<DashboardStats>("/dashboard/stats/"),
   charts: () => http.get<DashboardCharts>("/dashboard/charts/"),
-  /** JSON summary used to build the PDF client-side (not a PDF file). */
-  exportSummary: () => http.get<DashboardExportSummary>("/dashboard/export/pdf/"),
+  /**
+   * JSON summary used to build the PDF client-side (not a PDF file).
+   * `dashboard/export/` is the current endpoint; `dashboard/export/pdf/` is the
+   * deprecated alias, used only if the backend doesn't have the new one yet.
+   */
+  exportSummary: () =>
+    http.get<DashboardExportSummary>("/dashboard/export/").catch((err: unknown) => {
+      if (err instanceof ApiError && err.status === 404) {
+        return http.get<DashboardExportSummary>("/dashboard/export/pdf/");
+      }
+      throw err;
+    }),
 };

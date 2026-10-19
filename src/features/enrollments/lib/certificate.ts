@@ -2,7 +2,7 @@ import type { Enrollment } from "@/types/entities";
 
 /**
  * Fields the backend may use for the authenticated certificate download URL
- * (docs/api-contract-notes.md §4). The first non-empty one wins, so the UI
+ * (docs/api-contract-notes.md §4; the backend ships `certificado_medico_url`). The first non-empty one wins, so the UI
  * follows whatever name the API ships without another frontend change.
  */
 export const CERTIFICATE_URL_FIELDS = [
@@ -23,6 +23,7 @@ type CertificateFields = Partial<Record<(typeof CERTIFICATE_URL_FIELDS)[number],
  * `certificado_medico_adjunto` is a storage path under /media/.
  */
 export function certificateUrl(enrollment: Enrollment & CertificateFields): string | null {
+  if (enrollment.has_certificado_medico === false) return null;
   for (const field of CERTIFICATE_URL_FIELDS) {
     const value = enrollment[field];
     if (typeof value === "string" && value.trim()) return value.trim();
