@@ -171,3 +171,9 @@ public/styles.css
 public/client.js
 public/client.js.map
 
+
+# Local AI-assistant settings (machine-specific paths; never commit)
+.claude/
+
+# Test coverage output
+coverage/
