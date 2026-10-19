@@ -1,36 +1,28 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import {
-  Camera,
-  CheckCircle,
-  RefreshCw,
-  ShieldAlert,
-  ShieldCheck,
-  UserCheck,
-  Users,
-  XCircle,
-} from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { RefreshCw, ShieldAlert, Users } from "lucide-react";
 
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/common/EmptyState";
 import { PageHeader } from "@/components/common/PageHeader";
-import { ScrollReveal } from "@/components/common/ScrollReveal";
+
 import ConsentStep from "@/features/technical-evaluation/components/ConsentStep";
 import KickSelection from "@/features/technical-evaluation/components/KickSelection";
 import RecordingCapture from "@/features/technical-evaluation/components/RecordingCapture";
-import EvaluationResultsView from "@/features/technical-evaluation/components/EvaluationResults";
+import LinkedMinorsCard from "@/features/technical-evaluation/components/LinkedMinorsCard";
+import ResultsBlock from "@/features/technical-evaluation/components/ResultsBlock";
+import StartEvaluationCard from "@/features/technical-evaluation/components/StartEvaluationCard";
+import { useEvaluationSession } from "@/features/technical-evaluation/hooks/useEvaluationSession";
 import {
   technicalEvaluationApi,
   type AthleteConsent,
   type ConsentStatus,
-  type EvaluationSession,
   type KickType,
 } from "@/features/technical-evaluation/api/technicalEvaluationApi";
 import { useApiErrorHandler } from "@/feedback/useApiErrorHandler";
 import { useFeedback } from "@/feedback/useFeedback";
-import { useRealtime, useRealtimeEvent } from "@/features/realtime";
+
 import { useAuthStore } from "@/features/auth/store/authStore";
 import { athletesApi } from "@/features/athletes/api/athletesApi";
 import type { Athlete } from "@/types/entities";
@@ -57,10 +49,12 @@ export default function TechnicalEvaluationPage() {
   }, [step]);
   const [myAthlete, setMyAthlete] = useState<Athlete | null>(null);
   const [kickType, setKickType] = useState<KickType | null>(null);
-  const [sessionId, setSessionId] = useState<number | null>(null);
-  const [session, setSession] = useState<EvaluationSession | null>(null);
-  const [loadingSession, setLoadingSession] = useState(false);
-  const { status: realtimeStatus, reconnectNonce } = useRealtime();
+  const {
+    session,
+    loadingSession,
+    begin: beginSession,
+    clear: clearSession,
+  } = useEvaluationSession(step === "results");
   const [consentInfo, setConsentInfo] = useState<ConsentInfo | null>(null);
   const [loadingConsent, setLoadingConsent] = useState(true);
   const [linkedMinors, setLinkedMinors] = useState<AthleteConsent[]>([]);
@@ -124,107 +118,20 @@ export default function TechnicalEvaluationPage() {
   };
 
   const handleRecordingComplete = (id: number) => {
-    setSessionId(id);
-    setSession(null);
-    setLoadingSession(true);
+    beginSession(id);
     setStep("results");
   };
-
-  // Fetch the authoritative session. The WS `tech_eval.updated` payload is
-  // trimmed (no recommendations text), so on any update we load the full row.
-  // `allowToast` gates the failure toast to the polling fallback path only —
-  // when the socket is open, the durable `notification.created` event fires the
-  // toast via the bell, so we mustn't double-toast here.
-  const fetchSession = useCallback(
-    async (id: number, allowToast: boolean) => {
-      try {
-        const s = await technicalEvaluationApi.getSession(id);
-        setSession(s);
-        if (s.status === "completed" || s.status === "failed") {
-          setLoadingSession(false);
-          if (s.status === "failed" && allowToast) {
-            showToast({
-              title: "Error en el análisis",
-              description: s.recommendations || "No se pudo procesar la patada.",
-              variant: "error",
-            });
-          }
-        }
-        return s.status;
-      } catch {
-        setLoadingSession(false);
-        handleError(new Error("Error al obtener resultados"));
-        return undefined;
-      }
-    },
-    [showToast, handleError],
-  );
-
-  // Latest session id/status for effects that must not re-run on every fetch.
-  const sessionStatusRef = useRef<EvaluationSession["status"] | undefined>(undefined);
-  sessionStatusRef.current = session?.status;
-  const sessionIdRef = useRef<number | null>(null);
-  sessionIdRef.current = sessionId;
-
-  // Live page sync: patch the open session from the realtime event. When the
-  // socket is open this REPLACES the 2s poll. Filtered to the active session.
-  useRealtimeEvent("tech_eval.updated", (env) => {
-    if (sessionId == null || Number(env.id) !== sessionId) return;
-    void fetchSession(sessionId, false);
-  });
-
-  // Initial load + polling fallback. While in the results step with a pending
-  // session: fetch once, then keep polling every 2s ONLY while the socket is
-  // not open. Stops on terminal status, on unmount, and when the socket opens.
-  useEffect(() => {
-    if (step !== "results" || sessionId == null) return;
-    // Read through a ref: tick() handles termination internally, and re-running
-    // on every fetch would loop while the socket is open.
-    const status = sessionStatusRef.current;
-    if (status === "completed" || status === "failed") return;
-
-    let active = true;
-    let timer: ReturnType<typeof setTimeout> | undefined;
-
-    const tick = async () => {
-      if (!active) return;
-      const st = await fetchSession(sessionId, realtimeStatus !== "open");
-      if (!active) return;
-      const done = st === "completed" || st === "failed";
-      if (!done && realtimeStatus !== "open") {
-        timer = setTimeout(tick, 2000);
-      }
-    };
-    void tick();
-
-    return () => {
-      active = false;
-      if (timer) clearTimeout(timer);
-    };
-  }, [step, sessionId, realtimeStatus, fetchSession]);
-
-  // Recover a session whose terminal event was missed while offline.
-  useEffect(() => {
-    // Only a reconnect should trigger this; id/status are read through refs.
-    const id = sessionIdRef.current;
-    if (reconnectNonce === 0 || id == null) return;
-    const status = sessionStatusRef.current;
-    if (status === "completed" || status === "failed") return;
-    void fetchSession(id, false);
-  }, [reconnectNonce, fetchSession]);
 
   const handleReset = () => {
     setStep("choose");
     setKickType(null);
-    setSessionId(null);
-    setSession(null);
+    clearSession();
     setSelectedChild(null);
   };
 
   const handleRetry = () => {
     setStep("record");
-    setSessionId(null);
-    setSession(null);
+    clearSession();
   };
 
   const handleGrantConsent = async (athleteId: number) => {
@@ -316,113 +223,20 @@ export default function TechnicalEvaluationPage() {
           </Card>
         ) : (
           <>
-            <ScrollReveal>
-              <Card>
-                <CardHeader>
-                  <CardTitle className="font-display text-lg font-semibold tracking-tight">
-                    Deportistas vinculados
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ul className="divide-y divide-divider">
-                    {linkedMinors.map((minor) => (
-                      <li
-                        key={minor.athlete_id}
-                        className="flex flex-col gap-3 py-3 sm:flex-row sm:items-center sm:justify-between"
-                      >
-                        <div className="flex items-start gap-3">
-                          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-md bg-primary/10 text-primary">
-                            <UserCheck className="h-4 w-4" />
-                          </span>
-                          <div className="min-w-0">
-                            <p className="font-medium text-text">{minor.athlete_name}</p>
-                            <p className="text-xs text-faint">
-                              {minor.consent_timestamp
-                                ? `Autorizado el ${new Date(
-                                    minor.consent_timestamp,
-                                  ).toLocaleString()}`
-                                : "Sin autorización"}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex flex-wrap items-center gap-2">
-                          {minor.consent_granted ? (
-                            <>
-                              <Badge variant="success">
-                                <CheckCircle className="mr-1 h-3 w-3" />
-                                Autorizado
-                              </Badge>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => handleRevokeConsent(minor.athlete_id)}
-                              >
-                                Revocar
-                              </Button>
-                            </>
-                          ) : (
-                            <>
-                              <Badge variant="outline-muted">
-                                <XCircle className="mr-1 h-3 w-3" />
-                                Sin autorizar
-                              </Badge>
-                              <Button
-                                size="sm"
-                                onClick={() => handleGrantConsent(minor.athlete_id)}
-                              >
-                                Autorizar
-                              </Button>
-                            </>
-                          )}
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                </CardContent>
-              </Card>
-            </ScrollReveal>
+            <LinkedMinorsCard
+              minors={linkedMinors}
+              onGrant={handleGrantConsent}
+              onRevoke={handleRevokeConsent}
+            />
 
             {step === "choose" && (
-              <ScrollReveal>
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="font-display text-lg font-semibold tracking-tight">
-                      Iniciar evaluación
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    {authorizedMinors.length === 0 ? (
-                      <EmptyState
-                        icon={ShieldCheck}
-                        title="Falta autorización"
-                        description="Autoriza al menos a un deportista vinculado para comenzar una evaluación técnica."
-                      />
-                    ) : (
-                      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                        {authorizedMinors.map((minor) => (
-                          <button
-                            key={minor.athlete_id}
-                            type="button"
-                            onClick={() => {
-                              setSelectedChild(minor);
-                              setStep("kick");
-                            }}
-                            className="group flex items-center gap-3 rounded-lg border border-border bg-surface p-4 text-left transition-interactive hover:-translate-y-0.5 hover:border-primary/40 hover:bg-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
-                          >
-                            <span className="grid h-10 w-10 place-items-center rounded-md bg-primary/10 text-primary transition-interactive group-hover:bg-primary/15">
-                              <Camera className="h-4 w-4" />
-                            </span>
-                            <div className="min-w-0">
-                              <p className="font-medium text-text">{minor.athlete_name}</p>
-                              <p className="text-xs text-muted">Iniciar evaluación</p>
-                            </div>
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </ScrollReveal>
+              <StartEvaluationCard
+                minors={authorizedMinors}
+                onSelect={(minor) => {
+                  setSelectedChild(minor);
+                  setStep("kick");
+                }}
+              />
             )}
 
             {showFlow && (
@@ -555,63 +369,4 @@ export default function TechnicalEvaluationPage() {
       </div>
     </div>
   );
-}
-
-interface ResultsBlockProps {
-  loading: boolean;
-  session: EvaluationSession | null;
-  onReset: () => void;
-  onRetry: () => void;
-}
-
-function ResultsBlock({ loading, session, onReset, onRetry }: ResultsBlockProps) {
-  if (loading) {
-    return (
-      <Card>
-        <CardContent className="flex flex-col items-center gap-4 py-12 text-center">
-          <div className="h-12 w-12 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-          <div>
-            <p className="font-display text-base font-semibold tracking-tight text-text">
-              Analizando patada…
-            </p>
-            <p className="mt-1 text-sm text-muted">
-              Procesando video para calcular métricas de rendimiento.
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  if (session?.results) {
-    return <EvaluationResultsView results={session.results} />;
-  }
-
-  if (session?.status === "failed") {
-    return (
-      <Card>
-        <EmptyState
-          icon={ShieldAlert}
-          title="No se pudo procesar la evaluación"
-          description={
-            session.recommendations ||
-            "Ocurrió un error al analizar la grabación. Intenta registrar la patada nuevamente."
-          }
-          action={
-            <div className="flex flex-wrap items-center gap-2">
-              <Button onClick={onRetry}>
-                <RefreshCw className="h-4 w-4" />
-                Reintentar
-              </Button>
-              <Button variant="outline" onClick={onReset}>
-                Nueva evaluación
-              </Button>
-            </div>
-          }
-        />
-      </Card>
-    );
-  }
-
-  return null;
 }
