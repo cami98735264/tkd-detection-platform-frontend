@@ -30,7 +30,10 @@ const SECURITY = {
   "security.2fa_enabled": { title: "Verificación en dos pasos activada", variant: "success" },
   "security.2fa_disabled": { title: "Verificación en dos pasos desactivada", variant: "warning" },
   "security.2fa_recovery_used": { title: "Código de recuperación utilizado", variant: "warning" },
-  "security.2fa_recovery_regenerated": { title: "Códigos de recuperación regenerados", variant: "info" },
+  "security.2fa_recovery_regenerated": {
+    title: "Códigos de recuperación regenerados",
+    variant: "info",
+  },
   "security.new_2fa_device": { title: "Nuevo dispositivo de confianza", variant: "info" },
 } as const;
 

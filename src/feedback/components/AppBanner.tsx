@@ -15,12 +15,7 @@ const VARIANT_ICON = {
   info: Info,
 } as const;
 
-export default function AppBanner({
-  title,
-  description,
-  variant = "info",
-  onClose,
-}: Props) {
+export default function AppBanner({ title, description, variant = "info", onClose }: Props) {
   const Icon = VARIANT_ICON[variant];
 
   return (

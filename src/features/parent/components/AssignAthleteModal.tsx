@@ -39,11 +39,7 @@ export default function AssignAthleteModal({
   onSubmit,
 }: Props) {
   return (
-    <FormModal
-      open={open}
-      onOpenChange={onOpenChange}
-      title="Vincular Deportista a Acudiente"
-    >
+    <FormModal open={open} onOpenChange={onOpenChange} title="Vincular Deportista a Acudiente">
       {!open ? null : (
         <Formik
           initialValues={{

@@ -36,9 +36,7 @@ const columns: Column<Edition>[] = [
     key: "end_date",
     header: "Fecha fin",
     render: (r) => (
-      <span className="text-muted">
-        {r.end_date ? formatDateForDisplay(r.end_date) : "—"}
-      </span>
+      <span className="text-muted">{r.end_date ? formatDateForDisplay(r.end_date) : "—"}</span>
     ),
     hideOnMobile: true,
   },

@@ -39,9 +39,7 @@ const columns: Column<Evaluation>[] = [
     key: "result_summary",
     header: "Resumen",
     hideOnMobile: true,
-    render: (r) => (
-      <span className="text-muted line-clamp-1">{r.result_summary || "—"}</span>
-    ),
+    render: (r) => <span className="text-muted line-clamp-1">{r.result_summary || "—"}</span>,
   },
   {
     key: "metrics",
@@ -69,17 +67,20 @@ export default function EvaluationsPage() {
   const [editing, setEditing] = useState<Evaluation | null>(null);
   const [viewingMetrics, setViewingMetrics] = useState<Evaluation | null>(null);
 
-  const fetchData = useCallback((p: number) => {
-    setLoading(true);
-    evaluationsApi
-      .list(p)
-      .then((res) => {
-        setData(res.results);
-        setCount(res.count);
-      })
-      .catch(handleError)
-      .finally(() => setLoading(false));
-  }, [handleError]);
+  const fetchData = useCallback(
+    (p: number) => {
+      setLoading(true);
+      evaluationsApi
+        .list(p)
+        .then((res) => {
+          setData(res.results);
+          setCount(res.count);
+        })
+        .catch(handleError)
+        .finally(() => setLoading(false));
+    },
+    [handleError],
+  );
 
   useEffect(() => {
     fetchData(page);
@@ -217,7 +218,9 @@ export default function EvaluationsPage() {
           )}
           <MetricsModal
             open={!!viewingMetrics}
-            onOpenChange={(v) => { if (!v) setViewingMetrics(null); }}
+            onOpenChange={(v) => {
+              if (!v) setViewingMetrics(null);
+            }}
             evaluation={viewingMetrics}
           />
         </>

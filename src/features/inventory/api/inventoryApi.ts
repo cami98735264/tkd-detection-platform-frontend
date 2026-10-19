@@ -17,13 +17,16 @@ export interface CreateInventoryData {
 
 export const inventoryApi = {
   list: (page = 1, search = "") =>
-    http.get<PaginatedResponse<InventoryItem>>(`/inventory/?page=${page}&search=${encodeURIComponent(search)}`),
+    http.get<PaginatedResponse<InventoryItem>>(
+      `/inventory/?page=${page}&search=${encodeURIComponent(search)}`,
+    ),
 
   get: (id: number) => http.get<InventoryItem>(`/inventory/${id}/`),
 
   create: (data: CreateInventoryData) => http.post<InventoryItem>("/inventory/", data),
 
-  update: (id: number, data: CreateInventoryData) => http.put<InventoryItem>(`/inventory/${id}/`, data),
+  update: (id: number, data: CreateInventoryData) =>
+    http.put<InventoryItem>(`/inventory/${id}/`, data),
 
   delete: (id: number) => http.delete(`/inventory/${id}/`),
 };

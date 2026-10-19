@@ -11,12 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { EmptyState } from "./EmptyState";
 
@@ -89,9 +84,7 @@ function fieldOf(row: object, key: string): unknown {
   return (row as Record<string, unknown>)[key];
 }
 
-export default function DataTable<T extends object>(
-  props: DataTableProps<T>
-) {
+export default function DataTable<T extends object>(props: DataTableProps<T>) {
   const {
     columns,
     data,
@@ -134,10 +127,7 @@ export default function DataTable<T extends object>(
     mobile ? columns.filter((c) => !c.hideOnMobile) : columns;
 
   return (
-    <div
-      className="animate-fade-in"
-      style={{ animationDuration: "var(--duration-slow)" }}
-    >
+    <div className="animate-fade-in" style={{ animationDuration: "var(--duration-slow)" }}>
       {/* Desktop / no-mobile-card path */}
       <div className={cn(mobileCard && "hidden md:block")}>
         <div className="overflow-hidden rounded-lg border border-border">
@@ -152,15 +142,13 @@ export default function DataTable<T extends object>(
                     {col.header}
                   </TableHead>
                 ))}
-                {showActions && (
-                  <TableHead className="text-right">Acciones</TableHead>
-                )}
+                {showActions && <TableHead className="text-right">Acciones</TableHead>}
               </TableRow>
             </TableHeader>
             <TableBody>
               {data.map((row, idx) => (
                 <TableRow
-                  key={rowKey ? rowKey(row) : (fieldOf(row, "id") as Key | undefined) ?? idx}
+                  key={rowKey ? rowKey(row) : ((fieldOf(row, "id") as Key | undefined) ?? idx)}
                   className="animate-slide-up-fade"
                   style={{ animationDelay: `${Math.min(idx, 5) * 60}ms` }}
                 >
@@ -170,7 +158,7 @@ export default function DataTable<T extends object>(
                       className={cn(
                         DENSITY_CELL[density],
                         ALIGN_CLS[col.align ?? "left"],
-                        col.className
+                        col.className,
                       )}
                     >
                       {col.render ? col.render(row) : String(fieldOf(row, col.key) ?? "—")}
@@ -193,7 +181,7 @@ export default function DataTable<T extends object>(
         <div className="md:hidden space-y-3">
           {data.map((row, idx) => (
             <div
-              key={rowKey ? rowKey(row) : (fieldOf(row, "id") as Key | undefined) ?? idx}
+              key={rowKey ? rowKey(row) : ((fieldOf(row, "id") as Key | undefined) ?? idx)}
               className="rounded-lg border border-border bg-surface p-4 shadow-subtle animate-slide-up-fade"
               style={{ animationDelay: `${Math.min(idx, 5) * 60}ms` }}
             >
@@ -211,13 +199,7 @@ export default function DataTable<T extends object>(
   );
 }
 
-function RowActionButtons<T>({
-  row,
-  actions,
-}: {
-  row: T;
-  actions: RowAction<T>[];
-}) {
+function RowActionButtons<T>({ row, actions }: { row: T; actions: RowAction<T>[] }) {
   return (
     <TooltipProvider delayDuration={250}>
       <div className="inline-flex items-center justify-end gap-0.5">
@@ -236,8 +218,7 @@ function RowActionButtons<T>({
                     aria-label={a.label}
                     className={cn(
                       "h-8 w-8",
-                      a.variant === "destructive" &&
-                        "bg-transparent text-error hover:bg-error/10"
+                      a.variant === "destructive" && "bg-transparent text-error hover:bg-error/10",
                     )}
                   >
                     {Icon && <Icon className="h-4 w-4" />}
@@ -257,11 +238,16 @@ function RowActionButtons<T>({
  * new rowActions config so existing call sites keep working without churn.
  * Remove after Phase 5 migration completes.
  */
-function mergeLegacyActions<T extends object>(
-  props: DataTableProps<T>
-): RowAction<T>[] {
-  const { rowActions, onEdit, onDelete, onConfirm, onViewConfirmations, confirmLabel, viewConfirmationsLabel } =
-    props;
+function mergeLegacyActions<T extends object>(props: DataTableProps<T>): RowAction<T>[] {
+  const {
+    rowActions,
+    onEdit,
+    onDelete,
+    onConfirm,
+    onViewConfirmations,
+    confirmLabel,
+    viewConfirmationsLabel,
+  } = props;
   if (rowActions && rowActions.length > 0) return rowActions;
 
   const out: RowAction<T>[] = [];
@@ -277,10 +263,7 @@ function mergeLegacyActions<T extends object>(
   if (onConfirm) {
     out.push({
       id: "confirm",
-      label:
-        typeof confirmLabel === "function"
-          ? "Confirmar"
-          : (confirmLabel ?? "Confirmar"),
+      label: typeof confirmLabel === "function" ? "Confirmar" : (confirmLabel ?? "Confirmar"),
       icon: CheckCircle,
       onClick: onConfirm,
       variant: "tonal",

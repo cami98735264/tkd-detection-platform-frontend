@@ -33,8 +33,7 @@ export default function SkeletonOverlay({ video, enabled }: Props) {
       // normalized landmarks land at the right pixel coordinates.
       if (
         video.videoWidth > 0 &&
-        (canvas.width !== video.videoWidth ||
-          canvas.height !== video.videoHeight)
+        (canvas.width !== video.videoWidth || canvas.height !== video.videoHeight)
       ) {
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
@@ -47,11 +46,10 @@ export default function SkeletonOverlay({ video, enabled }: Props) {
         const result = detect(video, now);
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         if (result?.landmarks?.[0]) {
-          drawer.drawConnectors(
-            result.landmarks[0],
-            PoseLandmarker.POSE_CONNECTIONS,
-            { color: "#22c55e", lineWidth: 3 },
-          );
+          drawer.drawConnectors(result.landmarks[0], PoseLandmarker.POSE_CONNECTIONS, {
+            color: "#22c55e",
+            lineWidth: 3,
+          });
           drawer.drawLandmarks(result.landmarks[0], {
             color: "#fef3c7",
             radius: 3,

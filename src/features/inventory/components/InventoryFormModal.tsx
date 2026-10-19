@@ -38,11 +38,14 @@ export default function InventoryFormModal({ open, onOpenChange, item, onSubmit 
 
   useEffect(() => {
     if (open) {
-      itemTypesApi.list(1).then((res) => {
-        setItemTypes(res.results);
-      }).catch(() => {
-        // fallback to static list on error
-      });
+      itemTypesApi
+        .list(1)
+        .then((res) => {
+          setItemTypes(res.results);
+        })
+        .catch(() => {
+          // fallback to static list on error
+        });
     }
   }, [open]);
 
@@ -52,7 +55,11 @@ export default function InventoryFormModal({ open, onOpenChange, item, onSubmit 
     : [...itemTypes.map((t) => t.name), "Otro"];
 
   return (
-    <FormModal open={open} onOpenChange={onOpenChange} title={isEdit ? "Editar Ítem" : "Nuevo Ítem"}>
+    <FormModal
+      open={open}
+      onOpenChange={onOpenChange}
+      title={isEdit ? "Editar Ítem" : "Nuevo Ítem"}
+    >
       {!open ? null : (
         <Formik
           initialValues={{
@@ -107,7 +114,9 @@ export default function InventoryFormModal({ open, onOpenChange, item, onSubmit 
                 <ErrorMessage name="description" component="p" className="text-sm text-error" />
               </div>
               <div className="flex justify-end gap-3 pt-4">
-                <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
+                <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                  Cancelar
+                </Button>
                 <Button type="submit" disabled={isSubmitting}>
                   {isSubmitting ? "Guardando..." : isEdit ? "Actualizar" : "Crear"}
                 </Button>

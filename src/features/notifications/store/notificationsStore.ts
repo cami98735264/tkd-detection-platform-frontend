@@ -130,9 +130,7 @@ export const useNotificationsStore = create<NotificationsState>()((set, get) => 
     if (!target || target.read_at) return; // already read / unknown
     const nowIso = new Date().toISOString();
     set({
-      notifications: prev.map((n) =>
-        n.id === id ? { ...n, read_at: nowIso } : n,
-      ),
+      notifications: prev.map((n) => (n.id === id ? { ...n, read_at: nowIso } : n)),
       unreadCount: Math.max(0, get().unreadCount - 1),
     });
     try {
@@ -152,9 +150,7 @@ export const useNotificationsStore = create<NotificationsState>()((set, get) => 
     if (prevUnread === 0) return;
     const nowIso = new Date().toISOString();
     set({
-      notifications: prev.map((n) =>
-        n.read_at ? n : { ...n, read_at: nowIso },
-      ),
+      notifications: prev.map((n) => (n.read_at ? n : { ...n, read_at: nowIso })),
       unreadCount: 0,
     });
     try {

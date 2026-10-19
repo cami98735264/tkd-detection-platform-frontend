@@ -79,18 +79,30 @@ export const navConfig: Record<RoleName, NavGroup[]> = {
       heading: "Mi entrenamiento",
       items: [
         { to: "/dashboard/deportista/mis-programas", label: "Mis programas", icon: BookOpen },
-        { to: "/dashboard/deportista/mi-inscripcion", label: "Mi inscripción", icon: ClipboardList },
+        {
+          to: "/dashboard/deportista/mi-inscripcion",
+          label: "Mi inscripción",
+          icon: ClipboardList,
+        },
         { to: "/dashboard/deportista/entrenamientos", label: "Entrenamientos", icon: Dumbbell },
       ],
     },
     {
       heading: "Seguimiento",
       items: [
-        { to: "/dashboard/deportista/mis-evaluaciones", label: "Mis evaluaciones", icon: CheckCircle },
+        {
+          to: "/dashboard/deportista/mis-evaluaciones",
+          label: "Mis evaluaciones",
+          icon: CheckCircle,
+        },
         { to: "/dashboard/asistencia", label: "Mi asistencia", icon: ClipboardCheck },
         { to: "/dashboard/reuniones", label: "Reuniones", icon: Calendar },
         { to: "/dashboard/evaluacion-tecnica", label: "Evaluación técnica", icon: Camera },
-        { to: "/dashboard/deportista/historial-patadas", label: "Historial de patadas", icon: History },
+        {
+          to: "/dashboard/deportista/historial-patadas",
+          label: "Historial de patadas",
+          icon: History,
+        },
       ],
     },
     sharedFooter,
@@ -107,11 +119,19 @@ export const navConfig: Record<RoleName, NavGroup[]> = {
     {
       heading: "Seguimiento",
       items: [
-        { to: "/dashboard/acudiente/mis-hijos/evaluaciones", label: "Evaluaciones", icon: CheckCircle },
+        {
+          to: "/dashboard/acudiente/mis-hijos/evaluaciones",
+          label: "Evaluaciones",
+          icon: CheckCircle,
+        },
         { to: "/dashboard/asistencia", label: "Asistencia", icon: ClipboardCheck },
         { to: "/dashboard/reuniones", label: "Confirmar reuniones", icon: Calendar },
         { to: "/dashboard/evaluacion-tecnica", label: "Evaluación técnica", icon: Camera },
-        { to: "/dashboard/acudiente/historial-patadas", label: "Historial de patadas", icon: History },
+        {
+          to: "/dashboard/acudiente/historial-patadas",
+          label: "Historial de patadas",
+          icon: History,
+        },
       ],
     },
     sharedFooter,

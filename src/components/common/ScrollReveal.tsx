@@ -20,10 +20,7 @@ export function ScrollReveal({ children, className, threshold = 0.15 }: Props) {
   const ref = useRef<HTMLDivElement>(null);
   const seen = useInViewOnce(ref, threshold);
   return (
-    <div
-      ref={ref}
-      className={cn(seen ? "animate-slide-up-fade" : "opacity-0", className)}
-    >
+    <div ref={ref} className={cn(seen ? "animate-slide-up-fade" : "opacity-0", className)}>
       {children}
     </div>
   );

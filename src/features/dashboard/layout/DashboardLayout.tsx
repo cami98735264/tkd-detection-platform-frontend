@@ -18,11 +18,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Sheet,
-  SheetContent,
-  SheetTitle,
-} from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { Logo } from "@/components/common/Logo";
 import { ThemeToggle } from "@/components/common/ThemeToggle";
 import { NotificationBell } from "@/features/notifications/components/NotificationBell";
@@ -179,9 +175,7 @@ function SidebarLink({ item }: { item: NavItem }) {
             className={[
               "absolute left-0 top-1/2 h-5 w-0.5 -translate-y-1/2 rounded-r bg-primary",
               "transition-[opacity,transform] duration-(--duration-normal) ease-(--ease-spring)",
-              isActive
-                ? "opacity-100 translate-x-0"
-                : "opacity-0 -translate-x-1",
+              isActive ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-1",
             ].join(" ")}
           />
           <Icon className="h-4 w-4 shrink-0" />
@@ -242,9 +236,7 @@ function Topbar({ onOpenMobileNav, onLogout, role, user }: TopbarProps) {
               <span className="grid h-8 w-8 place-items-center rounded-full bg-primary text-primary-foreground text-xs font-semibold">
                 {initials}
               </span>
-              <span className="hidden sm:inline text-sm font-medium text-text">
-                {firstName}
-              </span>
+              <span className="hidden sm:inline text-sm font-medium text-text">{firstName}</span>
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
@@ -260,10 +252,7 @@ function Topbar({ onOpenMobileNav, onLogout, role, user }: TopbarProps) {
               </Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onSelect={onLogout}
-              className="text-error focus:text-error"
-            >
+            <DropdownMenuItem onSelect={onLogout} className="text-error focus:text-error">
               <LogOut className="h-4 w-4" />
               Cerrar sesión
             </DropdownMenuItem>

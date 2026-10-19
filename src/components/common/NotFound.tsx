@@ -12,9 +12,7 @@ export default function NotFound() {
     <main className="min-h-screen bg-bg text-text">
       <div className="mx-auto flex min-h-screen max-w-xl flex-col items-center justify-center px-6 py-16 text-center">
         <Logo className="h-32 w-32" alt="Warriors TKD" />
-        <p className="mt-6 font-display text-7xl font-semibold tracking-tight text-text">
-          404
-        </p>
+        <p className="mt-6 font-display text-7xl font-semibold tracking-tight text-text">404</p>
         <p className="mt-2 text-xs font-semibold uppercase tracking-[0.18em] text-primary">
           Sin coincidencias
         </p>
@@ -22,8 +20,8 @@ export default function NotFound() {
           La página que buscabas no existe
         </h1>
         <p className="mt-3 max-w-sm text-sm text-muted">
-          Es posible que el enlace esté roto o que la sección haya sido movida.
-          Vuelve al inicio para continuar.
+          Es posible que el enlace esté roto o que la sección haya sido movida. Vuelve al inicio
+          para continuar.
         </p>
         <div className="mt-8 flex flex-col gap-3 sm:flex-row">
           <Button asChild size="lg">

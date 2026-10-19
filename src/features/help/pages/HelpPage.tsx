@@ -121,9 +121,7 @@ export default function HelpPage() {
                         </span>
                       )}
                     </div>
-                    <p className="mt-1.5 text-sm leading-relaxed text-muted">
-                      {section.body}
-                    </p>
+                    <p className="mt-1.5 text-sm leading-relaxed text-muted">{section.body}</p>
                   </div>
                 </div>
               </CardContent>

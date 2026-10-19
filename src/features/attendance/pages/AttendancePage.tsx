@@ -74,7 +74,12 @@ export default function AttendancePage() {
     (p: number) => {
       setLoading(true);
       attendanceApi
-        .list({ athlete_id: athleteId ?? undefined, start_date: startDate, end_date: endDate, page: p })
+        .list({
+          athlete_id: athleteId ?? undefined,
+          start_date: startDate,
+          end_date: endDate,
+          page: p,
+        })
         .then((res) => {
           setData(res.results);
           setCount(res.count);
@@ -152,11 +157,9 @@ export default function AttendancePage() {
       empty={{
         icon: CalendarRange,
         title: "Sin registros de asistencia",
-        description:
-          "Ajusta el rango de fechas o vuelve después del próximo entrenamiento.",
+        description: "Ajusta el rango de fechas o vuelve después del próximo entrenamiento.",
       }}
       pagination={{ count, page, onChange: setPage }}
     />
   );
 }
-

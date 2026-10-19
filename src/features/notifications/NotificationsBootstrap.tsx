@@ -21,9 +21,7 @@ const TOAST_DEDUPE_MS = 4_000;
 export function NotificationsBootstrap() {
   const { showToast } = useFeedback();
   const role = useAuthStore((s) => s.user?.role);
-  const isAuthed = useAuthStore(
-    (s) => s.status === "ready" && s.isAuthenticated,
-  );
+  const isAuthed = useAuthStore((s) => s.status === "ready" && s.isAuthenticated);
 
   const init = useNotificationsStore((s) => s.init);
   const refresh = useNotificationsStore((s) => s.refresh);

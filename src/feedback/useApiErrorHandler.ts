@@ -20,8 +20,7 @@ export function useApiErrorHandler() {
       return;
     }
 
-    const message =
-      error instanceof Error ? error.message : "Error inesperado";
+    const message = error instanceof Error ? error.message : "Error inesperado";
 
     ctx.showToast({
       title: "Error",

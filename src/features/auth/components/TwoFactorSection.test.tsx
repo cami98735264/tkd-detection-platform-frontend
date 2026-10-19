@@ -3,8 +3,14 @@ import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 
 const h = vi.hoisted(() => ({
   user: {
-    id: 1, email: "a@b.com", full_name: "A B", is_staff: false,
-    role: "sportsman", email_verified: true, pending_email: null, has_2fa: false,
+    id: 1,
+    email: "a@b.com",
+    full_name: "A B",
+    is_staff: false,
+    role: "sportsman",
+    email_verified: true,
+    pending_email: null,
+    has_2fa: false,
   },
   setAuthenticated: vi.fn(),
   showToast: vi.fn(),
@@ -39,12 +45,20 @@ import TwoFactorSection from "./TwoFactorSection";
 beforeEach(() => {
   vi.clearAllMocks();
   h.user = {
-    id: 1, email: "a@b.com", full_name: "A B", is_staff: false,
-    role: "sportsman", email_verified: true, pending_email: null, has_2fa: false,
+    id: 1,
+    email: "a@b.com",
+    full_name: "A B",
+    is_staff: false,
+    role: "sportsman",
+    email_verified: true,
+    pending_email: null,
+    has_2fa: false,
   };
   h.api.status.mockResolvedValue({
-    enabled: false, confirmed_at: null,
-    recovery_codes_remaining: 0, trusted_devices_count: 0,
+    enabled: false,
+    confirmed_at: null,
+    recovery_codes_remaining: 0,
+    trusted_devices_count: 0,
   });
   h.api.listTrustedDevices.mockResolvedValue([]);
   h.me.mockResolvedValue(h.user);
@@ -94,8 +108,10 @@ describe("TwoFactorSection — enabled state", () => {
   it("shows remaining recovery count and management actions", async () => {
     h.user.has_2fa = true;
     h.api.status.mockResolvedValue({
-      enabled: true, confirmed_at: "2026-01-01T00:00:00Z",
-      recovery_codes_remaining: 7, trusted_devices_count: 0,
+      enabled: true,
+      confirmed_at: "2026-01-01T00:00:00Z",
+      recovery_codes_remaining: 7,
+      trusted_devices_count: 0,
     });
     render(<TwoFactorSection />);
     expect(await screen.findByText("7")).toBeTruthy();

@@ -32,9 +32,7 @@ beforeEach(() => {
 
 describe("twoFactorApi envelope unwrapping (2fa-contract §4)", () => {
   it("setup unwraps {otpauth_uri, secret, issuer}", async () => {
-    post.mockResolvedValue(
-      envelope({ otpauth_uri: "otpauth://x", secret: "S", issuer: "TKD" }),
-    );
+    post.mockResolvedValue(envelope({ otpauth_uri: "otpauth://x", secret: "S", issuer: "TKD" }));
     const res = await twoFactorApi.setup();
     expect(res).toEqual({ otpauth_uri: "otpauth://x", secret: "S", issuer: "TKD" });
     expect(post).toHaveBeenCalledWith("/auth/2fa/setup/");
@@ -51,8 +49,10 @@ describe("twoFactorApi envelope unwrapping (2fa-contract §4)", () => {
     post.mockReset();
     get.mockResolvedValue(
       envelope({
-        enabled: true, confirmed_at: "2026-01-01T00:00:00Z",
-        recovery_codes_remaining: 9, trusted_devices_count: 2,
+        enabled: true,
+        confirmed_at: "2026-01-01T00:00:00Z",
+        recovery_codes_remaining: 9,
+        trusted_devices_count: 2,
       }),
     );
     const res = await twoFactorApi.status();
@@ -66,7 +66,8 @@ describe("twoFactorApi envelope unwrapping (2fa-contract §4)", () => {
     const res = await twoFactorApi.regenerateRecoveryCodes({ password: "p", code: "123456" });
     expect(res).toEqual(["X", "Y", "Z"]);
     expect(post).toHaveBeenCalledWith("/auth/2fa/recovery-codes/regenerate/", {
-      password: "p", code: "123456",
+      password: "p",
+      code: "123456",
     });
   });
 
@@ -74,7 +75,9 @@ describe("twoFactorApi envelope unwrapping (2fa-contract §4)", () => {
     post.mockResolvedValue(envelope(null));
     await twoFactorApi.disable({ password: "p", code: "123456", sign_out_everywhere: true });
     expect(post).toHaveBeenCalledWith("/auth/2fa/disable/", {
-      password: "p", code: "123456", sign_out_everywhere: true,
+      password: "p",
+      code: "123456",
+      sign_out_everywhere: true,
     });
   });
 
@@ -112,8 +115,14 @@ describe("authApi.login 2FA branch (2fa-contract §5)", () => {
 
   it("authenticates normally when no 2FA is required", async () => {
     const user = {
-      id: 1, email: "a@b.com", full_name: "A B", is_staff: false,
-      role: "sportsman" as const, email_verified: true, pending_email: null, has_2fa: false,
+      id: 1,
+      email: "a@b.com",
+      full_name: "A B",
+      is_staff: false,
+      role: "sportsman" as const,
+      email_verified: true,
+      pending_email: null,
+      has_2fa: false,
     };
     post.mockResolvedValue(undefined); // bare login body, no 2FA flag
     get.mockResolvedValue(user);
@@ -126,14 +135,26 @@ describe("authApi.login 2FA branch (2fa-contract §5)", () => {
 describe("authApi.verifyTwoFactor (2fa-contract §4)", () => {
   it("posts the challenge + code, then me() + setAuthenticated", async () => {
     const user = {
-      id: 1, email: "a@b.com", full_name: "A B", is_staff: false,
-      role: "sportsman" as const, email_verified: true, pending_email: null, has_2fa: true,
+      id: 1,
+      email: "a@b.com",
+      full_name: "A B",
+      is_staff: false,
+      role: "sportsman" as const,
+      email_verified: true,
+      pending_email: null,
+      has_2fa: true,
     };
     post.mockResolvedValue(undefined); // bare verify body (cookies set server-side)
     get.mockResolvedValue(user);
-    await authApi.verifyTwoFactor({ challengeToken: "chal.jwt", code: "123456", rememberDevice: true });
+    await authApi.verifyTwoFactor({
+      challengeToken: "chal.jwt",
+      code: "123456",
+      rememberDevice: true,
+    });
     expect(post).toHaveBeenCalledWith("/auth/2fa/verify/", {
-      challenge_token: "chal.jwt", code: "123456", remember_device: true,
+      challenge_token: "chal.jwt",
+      code: "123456",
+      remember_device: true,
     });
     expect(get).toHaveBeenCalledWith("/auth/me/");
     expect(setAuthenticated).toHaveBeenCalledWith(user);

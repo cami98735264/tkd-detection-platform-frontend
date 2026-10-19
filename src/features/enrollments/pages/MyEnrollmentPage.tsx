@@ -72,21 +72,15 @@ export default function MyEnrollmentPage() {
               <CardContent>
                 <dl className="grid grid-cols-2 gap-x-6 gap-y-4 text-sm">
                   <div>
-                    <dt className="text-xs uppercase tracking-wider text-faint">
-                      Fecha de inicio
-                    </dt>
+                    <dt className="text-xs uppercase tracking-wider text-faint">Fecha de inicio</dt>
                     <dd className="mt-0.5 font-medium text-text">
                       {formatDateForDisplay(enrollment.start_date)}
                     </dd>
                   </div>
                   <div>
-                    <dt className="text-xs uppercase tracking-wider text-faint">
-                      Fecha de fin
-                    </dt>
+                    <dt className="text-xs uppercase tracking-wider text-faint">Fecha de fin</dt>
                     <dd className="mt-0.5 font-medium text-text">
-                      {enrollment.end_date
-                        ? formatDateForDisplay(enrollment.end_date)
-                        : "—"}
+                      {enrollment.end_date ? formatDateForDisplay(enrollment.end_date) : "—"}
                     </dd>
                   </div>
                   {enrollment.blood_type && (
@@ -94,16 +88,12 @@ export default function MyEnrollmentPage() {
                       <dt className="text-xs uppercase tracking-wider text-faint">
                         Tipo de sangre
                       </dt>
-                      <dd className="mt-0.5 font-medium text-text">
-                        {enrollment.blood_type}
-                      </dd>
+                      <dd className="mt-0.5 font-medium text-text">{enrollment.blood_type}</dd>
                     </div>
                   )}
                   {enrollment.notes && (
                     <div className="col-span-2">
-                      <dt className="text-xs uppercase tracking-wider text-faint">
-                        Notas
-                      </dt>
+                      <dt className="text-xs uppercase tracking-wider text-faint">Notas</dt>
                       <dd className="mt-0.5 text-text">{enrollment.notes}</dd>
                     </div>
                   )}

@@ -23,10 +23,7 @@ const createSchema = Yup.object({
     .of(
       Yup.object({
         metric_name: Yup.string().required("Nombre requerido"),
-        score: Yup.number()
-          .min(0, "Mín. 0")
-          .max(100, "Máx. 100")
-          .required("Puntaje requerido"),
+        score: Yup.number().min(0, "Mín. 0").max(100, "Máx. 100").required("Puntaje requerido"),
         notes: Yup.string().nullable().defined(),
       }),
     )
@@ -40,10 +37,7 @@ const editSchema = Yup.object({
     .of(
       Yup.object({
         metric_name: Yup.string().required("Nombre requerido"),
-        score: Yup.number()
-          .min(0, "Mín. 0")
-          .max(100, "Máx. 100")
-          .required("Puntaje requerido"),
+        score: Yup.number().min(0, "Mín. 0").max(100, "Máx. 100").required("Puntaje requerido"),
         notes: Yup.string().nullable().defined(),
       }),
     )
@@ -58,10 +52,7 @@ const editFullSchema = Yup.object({
       Yup.object({
         id: Yup.number().nullable(),
         metric_name: Yup.string().required("Nombre requerido"),
-        score: Yup.number()
-          .min(0, "Mín. 0")
-          .max(100, "Máx. 100")
-          .required("Puntaje requerido"),
+        score: Yup.number().min(0, "Mín. 0").max(100, "Máx. 100").required("Puntaje requerido"),
         notes: Yup.string().nullable().defined(),
       }),
     )
@@ -89,8 +80,14 @@ export default function EvaluationFormModal({
 
   useEffect(() => {
     if (open) {
-      athletesApi.list(1, "", "", false, 100).then((r) => setAthletes(r.results)).catch(() => {});
-      programsApi.list(1).then((r) => setPrograms(r.results)).catch(() => {});
+      athletesApi
+        .list(1, "", "", false, 100)
+        .then((r) => setAthletes(r.results))
+        .catch(() => {});
+      programsApi
+        .list(1)
+        .then((r) => setPrograms(r.results))
+        .catch(() => {});
     }
   }, [open]);
 
@@ -122,11 +119,7 @@ export default function EvaluationFormModal({
               <div className="space-y-1">
                 <Label>Resumen del resultado</Label>
                 <Field as={Textarea} name="result_summary" rows={3} />
-                <ErrorMessage
-                  name="result_summary"
-                  component="p"
-                  className="text-sm text-error"
-                />
+                <ErrorMessage name="result_summary" component="p" className="text-sm text-error" />
               </div>
               <div className="space-y-1">
                 <Label>Notas</Label>
@@ -141,7 +134,7 @@ export default function EvaluationFormModal({
                 </Button>
                 <Button
                   type="submit"
-                 
+
                   disabled={isSubmitting}
                 >
                   {isSubmitting ? "Guardando..." : "Actualizar"}
@@ -159,12 +152,13 @@ export default function EvaluationFormModal({
             evaluated_at: evaluation?.evaluated_at ?? "",
             result_summary: evaluation?.result_summary ?? "",
             notes: evaluation?.notes ?? "",
-            metrics: evaluation?.metrics?.map((m) => ({
-              id: m.id,
-              metric_name: m.metric_name,
-              score: m.score,
-              notes: m.notes ?? "",
-            })) ?? [],
+            metrics:
+              evaluation?.metrics?.map((m) => ({
+                id: m.id,
+                metric_name: m.metric_name,
+                score: m.score,
+                notes: m.notes ?? "",
+              })) ?? [],
           }}
           enableReinitialize
           validationSchema={editFullSchema}
@@ -172,7 +166,9 @@ export default function EvaluationFormModal({
             await onSubmit({
               athlete: Number(values.athlete) || evaluation?.athlete_id,
               program: values.program ? Number(values.program) : null,
-              evaluated_at: values.evaluated_at ? values.evaluated_at.slice(0, 10) : evaluation?.evaluated_at?.slice(0, 10),
+              evaluated_at: values.evaluated_at
+                ? values.evaluated_at.slice(0, 10)
+                : evaluation?.evaluated_at?.slice(0, 10),
               result_summary: values.result_summary,
               notes: values.notes || null,
               metrics: values.metrics.map((m) => ({
@@ -228,7 +224,11 @@ export default function EvaluationFormModal({
               <div className="space-y-1">
                 <Label>Resumen del resultado</Label>
                 <Field as={Textarea} name="result_summary" rows={2} />
-                <ErrorMessage name="result_summary" component="p" className="text-sm text-red-500" />
+                <ErrorMessage
+                  name="result_summary"
+                  component="p"
+                  className="text-sm text-red-500"
+                />
               </div>
 
               <div className="space-y-1">
@@ -250,9 +250,18 @@ export default function EvaluationFormModal({
                         <Plus size={14} className="mr-1" /> Agregar
                       </Button>
                     </div>
-                    <ErrorMessage name="metrics">{(msg) => typeof msg === "string" ? <p className="text-sm text-red-500">{msg}</p> : null}</ErrorMessage>
+                    <ErrorMessage name="metrics">
+                      {(msg) =>
+                        typeof msg === "string" ? (
+                          <p className="text-sm text-red-500">{msg}</p>
+                        ) : null
+                      }
+                    </ErrorMessage>
                     {(values.metrics ?? []).map((_, idx) => (
-                      <div key={idx} className="grid gap-2 md:grid-cols-[1fr_80px_1fr_auto] items-start border p-3 rounded-md">
+                      <div
+                        key={idx}
+                        className="grid gap-2 md:grid-cols-[1fr_80px_1fr_auto] items-start border p-3 rounded-md"
+                      >
                         <div>
                           <Label className="text-xs">Nombre</Label>
                           <Field as={Input} name={`metrics.${idx}.metric_name`} />
@@ -262,7 +271,13 @@ export default function EvaluationFormModal({
                         </div>
                         <div>
                           <Label className="text-xs">Puntaje</Label>
-                          <Field as={Input} type="number" name={`metrics.${idx}.score`} min={0} max={100} />
+                          <Field
+                            as={Input}
+                            type="number"
+                            name={`metrics.${idx}.score`}
+                            min={0}
+                            max={100}
+                          />
                           <p className="text-xs text-red-500 min-h-[1rem]">
                             <ErrorMessage name={`metrics.${idx}.score`} />
                           </p>
@@ -272,7 +287,13 @@ export default function EvaluationFormModal({
                           <Field as={Input} name={`metrics.${idx}.notes`} />
                           <div className="min-h-[1rem]" />
                         </div>
-                        <Button type="button" variant="ghost" size="sm" className="text-red-600 mt-5" onClick={() => remove(idx)}>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="text-red-600 mt-5"
+                          onClick={() => remove(idx)}
+                        >
                           <Trash2 size={14} />
                         </Button>
                       </div>
@@ -285,7 +306,11 @@ export default function EvaluationFormModal({
                 <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                   Cancelar
                 </Button>
-                <Button type="submit" className="bg-green-600 hover:bg-green-700" disabled={isSubmitting}>
+                <Button
+                  type="submit"
+                  className="bg-green-600 hover:bg-green-700"
+                  disabled={isSubmitting}
+                >
                   {isSubmitting ? "Guardando..." : "Actualizar"}
                 </Button>
               </div>
@@ -357,11 +382,7 @@ export default function EvaluationFormModal({
               <div className="space-y-1">
                 <Label>Resumen del resultado</Label>
                 <Field as={Textarea} name="result_summary" rows={2} />
-                <ErrorMessage
-                  name="result_summary"
-                  component="p"
-                  className="text-sm text-error"
-                />
+                <ErrorMessage name="result_summary" component="p" className="text-sm text-error" />
               </div>
 
               <div className="space-y-1">
@@ -379,14 +400,16 @@ export default function EvaluationFormModal({
                         type="button"
                         variant="outline"
                         size="sm"
-                        onClick={() =>
-                          push({ metric_name: "", score: "", notes: "" })
-                        }
+                        onClick={() => push({ metric_name: "", score: "", notes: "" })}
                       >
                         <Plus size={14} className="mr-1" /> Agregar
                       </Button>
                     </div>
-                    <ErrorMessage name="metrics">{(msg) => typeof msg === "string" ? <p className="text-sm text-error">{msg}</p> : null}</ErrorMessage>
+                    <ErrorMessage name="metrics">
+                      {(msg) =>
+                        typeof msg === "string" ? <p className="text-sm text-error">{msg}</p> : null
+                      }
+                    </ErrorMessage>
                     {(values.metrics ?? []).map((_, idx) => (
                       <div
                         key={idx}
@@ -440,7 +463,7 @@ export default function EvaluationFormModal({
                 </Button>
                 <Button
                   type="submit"
-                 
+
                   disabled={isSubmitting}
                 >
                   {isSubmitting ? "Guardando..." : "Crear"}

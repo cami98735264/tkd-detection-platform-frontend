@@ -50,9 +50,8 @@ export default function ConfirmEmailChange() {
           title="Correo actualizado"
           message={
             <>
-              Tu nuevo correo {newEmail ? <strong>{newEmail}</strong> : null} quedó
-              confirmado. Por seguridad cerramos todas tus sesiones; vuelve a
-              iniciar sesión.
+              Tu nuevo correo {newEmail ? <strong>{newEmail}</strong> : null} quedó confirmado. Por
+              seguridad cerramos todas tus sesiones; vuelve a iniciar sesión.
             </>
           }
         >

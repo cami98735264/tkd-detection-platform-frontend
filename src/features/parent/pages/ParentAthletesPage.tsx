@@ -40,7 +40,10 @@ const columns: Column<ParentAthlete>[] = [
         <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
           {r.athlete_belt ? <span>Cin: {r.athlete_belt}</span> : null}
           {r.athlete_belt ? <span>|</span> : null}
-          <Badge variant={r.athlete_status === "active" ? "default" : "secondary"} className="text-xs">
+          <Badge
+            variant={r.athlete_status === "active" ? "default" : "secondary"}
+            className="text-xs"
+          >
             {r.athlete_status === "active" ? "Activo" : r.athlete_status}
           </Badge>
         </div>
@@ -90,10 +93,7 @@ export default function ParentAthletesPage() {
   }, [page, fetchData]);
 
   const openAssignModal = useCallback(() => {
-    Promise.all([
-      usersApi.list({ role: "parent" }),
-      athletesApi.list(1, "", "active"),
-    ])
+    Promise.all([usersApi.list({ role: "parent" }), athletesApi.list(1, "", "active")])
       .then(([parentsRes, athletesRes]) => {
         setParents(parentsRes.results);
         setAthletes(athletesRes.results);
@@ -152,12 +152,7 @@ export default function ParentAthletesPage() {
 
       <Card>
         <CardContent className="p-2 sm:p-4">
-          <DataTable
-            columns={columns}
-            data={data}
-            loading={loading}
-            onDelete={handleDelete}
-          />
+          <DataTable columns={columns} data={data} loading={loading} onDelete={handleDelete} />
           <Pagination count={count} page={page} onPageChange={setPage} />
         </CardContent>
       </Card>

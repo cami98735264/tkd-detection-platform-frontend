@@ -126,9 +126,7 @@ export default function AcceptInvitation() {
           <h2 className="mt-2 font-display text-3xl font-semibold tracking-tight text-text">
             Completa tu cuenta
           </h2>
-          <p className="mt-2 text-sm text-muted">
-            Define tu contraseña para activar tu acceso.
-          </p>
+          <p className="mt-2 text-sm text-muted">Define tu contraseña para activar tu acceso.</p>
         </header>
 
         <Formik

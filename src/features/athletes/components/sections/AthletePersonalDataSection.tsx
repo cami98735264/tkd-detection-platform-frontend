@@ -61,7 +61,10 @@ export default function AthletePersonalDataSection({
   const [categories, setCategories] = useState<CompetitionCategory[]>([]);
 
   useEffect(() => {
-    beltsApi.list(1).then((res) => setBelts(res.results)).catch(() => {});
+    beltsApi
+      .list(1)
+      .then((res) => setBelts(res.results))
+      .catch(() => {});
     categoriesApi
       .list(1)
       .then((res) => setCategories(res.results))
@@ -92,9 +95,7 @@ export default function AthletePersonalDataSection({
           onChange={(e) => onChange({ full_name: e.target.value })}
           placeholder="Nombre y apellido"
         />
-        {errors?.full_name && (
-          <p className="text-sm text-error">{errors.full_name}</p>
-        )}
+        {errors?.full_name && <p className="text-sm text-error">{errors.full_name}</p>}
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
@@ -111,9 +112,7 @@ export default function AthletePersonalDataSection({
               Edad: {age} años {age < 18 ? "(menor de edad)" : ""}
             </p>
           )}
-          {errors?.date_of_birth && (
-            <p className="text-sm text-error">{errors.date_of_birth}</p>
-          )}
+          {errors?.date_of_birth && <p className="text-sm text-error">{errors.date_of_birth}</p>}
         </div>
         {showStatus && (
           <div className="space-y-1.5">

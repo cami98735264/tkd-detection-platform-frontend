@@ -74,12 +74,7 @@ function FormErrorSummary() {
   );
 }
 
-export default function ProgramFormModal({
-  open,
-  onOpenChange,
-  program,
-  onSubmit,
-}: Props) {
+export default function ProgramFormModal({ open, onOpenChange, program, onSubmit }: Props) {
   const isEdit = !!program;
 
   return (
@@ -88,88 +83,92 @@ export default function ProgramFormModal({
       onOpenChange={onOpenChange}
       title={isEdit ? "Editar Programa" : "Nuevo Programa"}
     >
-      {!open ? null : <Formik<FormValues>
-        initialValues={{
-          name: program?.name ?? "",
-          description: program?.description ?? "",
-          schedule: program?.schedule ?? "",
-          capacity: program?.capacity ?? "",
-          active: program?.active ?? true,
-        }}
-        enableReinitialize
-        validationSchema={schema}
-        onSubmit={async (values, { setSubmitting }) => {
-          await onSubmit({
-            name: values.name,
-            description: values.description || null,
-            schedule: values.schedule || null,
-            capacity: values.capacity === "" ? null : Number(values.capacity),
-            active: values.active,
-          });
-          setSubmitting(false);
-        }}
-      >
-        {({ isSubmitting, values, setFieldValue }) => {
-          let parsedSchedule: ScheduleEntry[] = [];
-          try {
-            if (values.schedule) parsedSchedule = JSON.parse(values.schedule);
-          } catch {
-            parsedSchedule = [];
-          }
-          return (
-          <Form className="space-y-4">
-            <FormErrorSummary />
+      {!open ? null : (
+        <Formik<FormValues>
+          initialValues={{
+            name: program?.name ?? "",
+            description: program?.description ?? "",
+            schedule: program?.schedule ?? "",
+            capacity: program?.capacity ?? "",
+            active: program?.active ?? true,
+          }}
+          enableReinitialize
+          validationSchema={schema}
+          onSubmit={async (values, { setSubmitting }) => {
+            await onSubmit({
+              name: values.name,
+              description: values.description || null,
+              schedule: values.schedule || null,
+              capacity: values.capacity === "" ? null : Number(values.capacity),
+              active: values.active,
+            });
+            setSubmitting(false);
+          }}
+        >
+          {({ isSubmitting, values, setFieldValue }) => {
+            let parsedSchedule: ScheduleEntry[] = [];
+            try {
+              if (values.schedule) parsedSchedule = JSON.parse(values.schedule);
+            } catch {
+              parsedSchedule = [];
+            }
+            return (
+              <Form className="space-y-4">
+                <FormErrorSummary />
 
-            <div className="space-y-1">
-              <Label>Nombre</Label>
-              <Field as={Input} name="name" />
-              <FieldError name="name" />
-            </div>
+                <div className="space-y-1">
+                  <Label>Nombre</Label>
+                  <Field as={Input} name="name" />
+                  <FieldError name="name" />
+                </div>
 
-            <div className="space-y-1">
-              <Label>Descripción</Label>
-              <Field as={Textarea} name="description" rows={3} />
-              <FieldError name="description" />
-            </div>
+                <div className="space-y-1">
+                  <Label>Descripción</Label>
+                  <Field as={Textarea} name="description" rows={3} />
+                  <FieldError name="description" />
+                </div>
 
-            <div className="space-y-1">
-              <Label>Horario</Label>
-              <SchedulePicker
-                value={parsedSchedule}
-                onChange={(parsed: ScheduleEntry[]) => setFieldValue("schedule", JSON.stringify(parsed))}
-              />
-              <FieldError name="schedule" />
-            </div>
+                <div className="space-y-1">
+                  <Label>Horario</Label>
+                  <SchedulePicker
+                    value={parsedSchedule}
+                    onChange={(parsed: ScheduleEntry[]) =>
+                      setFieldValue("schedule", JSON.stringify(parsed))
+                    }
+                  />
+                  <FieldError name="schedule" />
+                </div>
 
-            <div className="space-y-1">
-              <Label>Capacidad</Label>
-              <Field as={Input} type="number" name="capacity" min={1} max={999} />
-              <FieldError name="capacity" />
-            </div>
+                <div className="space-y-1">
+                  <Label>Capacidad</Label>
+                  <Field as={Input} type="number" name="capacity" min={1} max={999} />
+                  <FieldError name="capacity" />
+                </div>
 
-            <div className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                id="active"
-                checked={values.active}
-                onChange={(e) => setFieldValue("active", e.target.checked)}
-                className="h-4 w-4"
-              />
-              <Label htmlFor="active">Activo</Label>
-            </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    id="active"
+                    checked={values.active}
+                    onChange={(e) => setFieldValue("active", e.target.checked)}
+                    className="h-4 w-4"
+                  />
+                  <Label htmlFor="active">Activo</Label>
+                </div>
 
-            <div className="flex justify-end gap-3 pt-4">
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-                Cancelar
-              </Button>
-              <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? "Guardando..." : isEdit ? "Actualizar" : "Crear"}
-              </Button>
-            </div>
-          </Form>
-          );
-        }}
-      </Formik>}
+                <div className="flex justify-end gap-3 pt-4">
+                  <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                    Cancelar
+                  </Button>
+                  <Button type="submit" disabled={isSubmitting}>
+                    {isSubmitting ? "Guardando..." : isEdit ? "Actualizar" : "Crear"}
+                  </Button>
+                </div>
+              </Form>
+            );
+          }}
+        </Formik>
+      )}
     </FormModal>
   );
 }

@@ -35,8 +35,7 @@ export const config = {
   apiPrefix: typeof __API_PREFIX__ !== "undefined" ? __API_PREFIX__ : "api/v1",
 
   /** When true, initAuth() short-circuits and marks every session as authenticated. */
-  mockAuth:
-    typeof __MOCK_AUTH__ !== "undefined" ? __MOCK_AUTH__ === "true" : false,
+  mockAuth: typeof __MOCK_AUTH__ !== "undefined" ? __MOCK_AUTH__ === "true" : false,
 
   /**
    * WebSocket origin for the realtime channel (`{wsUrl}/ws/realtime/`).

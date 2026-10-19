@@ -20,13 +20,16 @@ export const editionsApi = {
     active: boolean;
   }) => http.post<Edition>("/editions/", data),
 
-  update: (id: number, data: Partial<{
-    program: number;
-    start_date: string;
-    end_date: string | null;
-    schedule: string | null;
-    active: boolean;
-  }>) => http.put<Edition>(`/editions/${id}/`, data),
+  update: (
+    id: number,
+    data: Partial<{
+      program: number;
+      start_date: string;
+      end_date: string | null;
+      schedule: string | null;
+      active: boolean;
+    }>,
+  ) => http.put<Edition>(`/editions/${id}/`, data),
 
   delete: (id: number) => http.delete(`/editions/${id}/`),
 };

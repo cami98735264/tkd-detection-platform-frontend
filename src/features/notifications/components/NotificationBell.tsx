@@ -51,9 +51,7 @@ export function NotificationBell() {
         <button
           type="button"
           aria-label={
-            unreadCount > 0
-              ? `Notificaciones, ${unreadCount} sin leer`
-              : "Notificaciones"
+            unreadCount > 0 ? `Notificaciones, ${unreadCount} sin leer` : "Notificaciones"
           }
           className="relative grid h-9 w-9 place-items-center rounded-md text-muted hover:bg-surface-2 hover:text-text transition-interactive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
         >
@@ -69,10 +67,7 @@ export function NotificationBell() {
         </button>
       </DropdownMenuTrigger>
 
-      <DropdownMenuContent
-        align="end"
-        className="w-80 max-w-[calc(100vw-1rem)] p-0"
-      >
+      <DropdownMenuContent align="end" className="w-80 max-w-[calc(100vw-1rem)] p-0">
         <div className="flex items-center justify-between gap-2 px-3 py-2.5">
           <p className="text-sm font-semibold text-text">Notificaciones</p>
           <button
@@ -129,11 +124,7 @@ export function NotificationBell() {
                         >
                           {n.title}
                         </p>
-                        {n.body && (
-                          <p className="line-clamp-2 text-xs text-muted">
-                            {n.body}
-                          </p>
-                        )}
+                        {n.body && <p className="line-clamp-2 text-xs text-muted">{n.body}</p>}
                         <p className="mt-0.5 text-[0.6875rem] text-faint">
                           {relativeTimeEs(n.created_at)}
                         </p>

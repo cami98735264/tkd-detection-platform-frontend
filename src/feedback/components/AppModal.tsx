@@ -13,13 +13,7 @@ interface Props extends ModalOptions {
   onOpenChange: (open: boolean) => void;
 }
 
-export default function AppModal({
-  open,
-  onOpenChange,
-  title,
-  description,
-  content,
-}: Props) {
+export default function AppModal({ open, onOpenChange, title, description, content }: Props) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
@@ -28,9 +22,7 @@ export default function AppModal({
       >
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
-          {description && (
-            <DialogDescription>{description}</DialogDescription>
-          )}
+          {description && <DialogDescription>{description}</DialogDescription>}
         </DialogHeader>
 
         {content}

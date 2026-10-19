@@ -78,7 +78,10 @@ describe("notificationsStore", () => {
     store.setState({ notifications: [mk(99)], unreadCount: 0, page: 4 });
     api.unreadCount.mockResolvedValue({ count: 7 });
     api.list.mockResolvedValue({
-      count: 1, next: "http://x/?page=2", previous: null, results: [mk(42)],
+      count: 1,
+      next: "http://x/?page=2",
+      previous: null,
+      results: [mk(42)],
     });
 
     await store.getState().refresh();

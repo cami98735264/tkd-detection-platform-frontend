@@ -3,35 +3,32 @@
  * https://developers.cloudflare.com/workers/wrangler/configuration/
  */
 {
-	"$schema": "node_modules/wrangler/config-schema.json",
-	"name": "tkd-detection-platform-frontend",
-	"main": "dist/index.js",
-	"compatibility_date": "2026-02-19",
-	"compatibility_flags": [
-		"nodejs_compat",
-		"global_fetch_strictly_public"
-	],
-	"assets": {
-		// The path to the directory containing the `index.html` file to be served at `/`
-		"directory": "./public"
-	},
-	"observability": {
-		"enabled": true
-	},
-	/**
-	 * Build-time defaults read by build.mjs / watch.mjs.
-	 * Real secrets (DB passwords, tokens, etc.) go in the CF dashboard, not here.
-	 * https://developers.cloudflare.com/workers/wrangler/configuration/#environment-variables
-	 *
-	 * API_URL is intentionally EMPTY: the client uses same-origin relative URLs
-	 * (`/api/v1/...` and `/ws/realtime/`) and this Worker reverse-proxies them to
-	 * the backend (see BACKEND_HOST in src/index.ts). Keeping the browser on a
-	 * single origin makes the auth cookie first-party. If you ever revert to a
-	 * direct cross-origin backend, set API_URL back to the full backend URL.
-	 */
-	"vars": {
-		"API_URL": "",
-		"API_PREFIX": "api/v1",
-		"MOCK_AUTH": "false"
-	}
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "tkd-detection-platform-frontend",
+  "main": "dist/index.js",
+  "compatibility_date": "2026-02-19",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "assets": {
+    // The path to the directory containing the `index.html` file to be served at `/`
+    "directory": "./public"
+  },
+  "observability": {
+    "enabled": true
+  },
+  /**
+   * Build-time defaults read by build.mjs / watch.mjs.
+   * Real secrets (DB passwords, tokens, etc.) go in the CF dashboard, not here.
+   * https://developers.cloudflare.com/workers/wrangler/configuration/#environment-variables
+   *
+   * API_URL is intentionally EMPTY: the client uses same-origin relative URLs
+   * (`/api/v1/...` and `/ws/realtime/`) and this Worker reverse-proxies them to
+   * the backend (see BACKEND_HOST in src/index.ts). Keeping the browser on a
+   * single origin makes the auth cookie first-party. If you ever revert to a
+   * direct cross-origin backend, set API_URL back to the full backend URL.
+   */
+  "vars": {
+    "API_URL": "",
+    "API_PREFIX": "api/v1",
+    "MOCK_AUTH": "false"
+  }
 }

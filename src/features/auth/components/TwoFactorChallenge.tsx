@@ -156,10 +156,7 @@ export default function TwoFactorChallenge({
         )}
 
         <label className="flex items-center gap-2 text-sm text-muted">
-          <Checkbox
-            checked={remember}
-            onCheckedChange={(v) => setRemember(v === true)}
-          />
+          <Checkbox checked={remember} onCheckedChange={(v) => setRemember(v === true)} />
           Recordar este dispositivo por 30 días
         </label>
 

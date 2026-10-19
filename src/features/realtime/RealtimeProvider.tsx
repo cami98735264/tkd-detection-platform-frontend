@@ -21,9 +21,7 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   // Drive the auth gate. Selector keeps this to the two booleans we care about.
-  const enabled = useAuthStore(
-    (s) => s.status === "ready" && s.isAuthenticated,
-  );
+  const enabled = useAuthStore((s) => s.status === "ready" && s.isAuthenticated);
   useEffect(() => {
     realtimeClient.setEnabled(enabled && !config.mockAuth && !!config.wsUrl);
   }, [enabled]);
@@ -31,16 +29,12 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
   // Refocus → reconnect immediately if the socket isn't already open.
   useEffect(() => {
     const onVisibility = () => {
-      if (
-        document.visibilityState === "visible" &&
-        realtimeClient.getStatus() !== "open"
-      ) {
+      if (document.visibilityState === "visible" && realtimeClient.getStatus() !== "open") {
         realtimeClient.reconnectNow();
       }
     };
     document.addEventListener("visibilitychange", onVisibility);
-    return () =>
-      document.removeEventListener("visibilitychange", onVisibility);
+    return () => document.removeEventListener("visibilitychange", onVisibility);
   }, []);
 
   return <>{children}</>;

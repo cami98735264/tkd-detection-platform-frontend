@@ -6,6 +6,5 @@ export const profileApi = {
   get: () => http.get<Profile>("/profile/"),
 
   /** PUT /profile/ — all required fields must be sent */
-  update: (data: Omit<Profile, "user_id" | "updated_at">) =>
-    http.put<Profile>("/profile/", data),
+  update: (data: Omit<Profile, "user_id" | "updated_at">) => http.put<Profile>("/profile/", data),
 };

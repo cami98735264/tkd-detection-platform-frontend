@@ -48,10 +48,38 @@ export default function AppRouter() {
   return (
     <Routes>
       {/* Auth */}
-      <Route path="/login" element={<GuestRoute><Login /></GuestRoute>} />
-      <Route path="/forgot-password" element={<GuestRoute><ForgotPassword /></GuestRoute>} />
-      <Route path="/reset-password" element={<GuestRoute><ResetPassword /></GuestRoute>} />
-      <Route path="/accept-invitation" element={<GuestRoute><AcceptInvitation /></GuestRoute>} />
+      <Route
+        path="/login"
+        element={
+          <GuestRoute>
+            <Login />
+          </GuestRoute>
+        }
+      />
+      <Route
+        path="/forgot-password"
+        element={
+          <GuestRoute>
+            <ForgotPassword />
+          </GuestRoute>
+        }
+      />
+      <Route
+        path="/reset-password"
+        element={
+          <GuestRoute>
+            <ResetPassword />
+          </GuestRoute>
+        }
+      />
+      <Route
+        path="/accept-invitation"
+        element={
+          <GuestRoute>
+            <AcceptInvitation />
+          </GuestRoute>
+        }
+      />
       {/* Auth-agnostic: the link works whether or not the user is logged in */}
       <Route path="/verify-email" element={<VerifyEmail />} />
       <Route path="/confirm-email-change" element={<ConfirmEmailChange />} />
@@ -67,70 +95,170 @@ export default function AppRouter() {
       >
         <Route index element={<Home />} />
         <Route path="profile" element={<Profile />} />
-        <Route path="deportistas" element={
-          <RoleRoute allowedRoles={["sportsman", "parent", "administrator"]}><AthletesPage /></RoleRoute>
-        } />
-        <Route path="programas" element={
-          <RoleRoute allowedRoles={["sportsman", "parent", "administrator"]}><ProgramsPage /></RoleRoute>
-        } />
+        <Route
+          path="deportistas"
+          element={
+            <RoleRoute allowedRoles={["sportsman", "parent", "administrator"]}>
+              <AthletesPage />
+            </RoleRoute>
+          }
+        />
+        <Route
+          path="programas"
+          element={
+            <RoleRoute allowedRoles={["sportsman", "parent", "administrator"]}>
+              <ProgramsPage />
+            </RoleRoute>
+          }
+        />
         <Route path="programas/:programId/ediciones" element={<EditionsPage />} />
-        <Route path="inscripcion" element={
-          <RoleRoute allowedRoles={["sportsman", "parent", "administrator"]}><EnrollmentsPage /></RoleRoute>
-        } />
-        <Route path="evaluacion" element={
-          <RoleRoute allowedRoles={["administrator"]}><EvaluationsPage /></RoleRoute>
-        } />
-        <Route path="deportista/mis-evaluaciones" element={
-          <RoleRoute allowedRoles={["sportsman"]}><SportsmanEvaluationsPage /></RoleRoute>
-        } />
-        <Route path="acudiente/mis-hijos/evaluaciones" element={
-          <RoleRoute allowedRoles={["parent"]}><ParentEvaluationsPage /></RoleRoute>
-        } />
-        <Route path="deportista/historial-patadas" element={
-          <RoleRoute allowedRoles={["sportsman"]}><KickHistoryPage /></RoleRoute>
-        } />
-        <Route path="acudiente/historial-patadas" element={
-          <RoleRoute allowedRoles={["parent"]}><ParentKickHistoryPage /></RoleRoute>
-        } />
+        <Route
+          path="inscripcion"
+          element={
+            <RoleRoute allowedRoles={["sportsman", "parent", "administrator"]}>
+              <EnrollmentsPage />
+            </RoleRoute>
+          }
+        />
+        <Route
+          path="evaluacion"
+          element={
+            <RoleRoute allowedRoles={["administrator"]}>
+              <EvaluationsPage />
+            </RoleRoute>
+          }
+        />
+        <Route
+          path="deportista/mis-evaluaciones"
+          element={
+            <RoleRoute allowedRoles={["sportsman"]}>
+              <SportsmanEvaluationsPage />
+            </RoleRoute>
+          }
+        />
+        <Route
+          path="acudiente/mis-hijos/evaluaciones"
+          element={
+            <RoleRoute allowedRoles={["parent"]}>
+              <ParentEvaluationsPage />
+            </RoleRoute>
+          }
+        />
+        <Route
+          path="deportista/historial-patadas"
+          element={
+            <RoleRoute allowedRoles={["sportsman"]}>
+              <KickHistoryPage />
+            </RoleRoute>
+          }
+        />
+        <Route
+          path="acudiente/historial-patadas"
+          element={
+            <RoleRoute allowedRoles={["parent"]}>
+              <ParentKickHistoryPage />
+            </RoleRoute>
+          }
+        />
         <Route path="categorias-competencia" element={<CompetitionCategoriesPage />} />
-        <Route path="reportes" element={
-          <RoleRoute allowedRoles={["administrator"]}><ReportesPage /></RoleRoute>
-        } />
-        <Route path="usuarios" element={
-          <RoleRoute allowedRoles={["administrator"]}><UsersPage /></RoleRoute>
-        } />
-        <Route path="reuniones" element={
-          <RoleRoute allowedRoles={["parent", "sportsman", "administrator"]}><MeetingsPage /></RoleRoute>
-        } />
-        <Route path="inventario" element={
-          <RoleRoute allowedRoles={["administrator"]}><InventoryPage /></RoleRoute>
-        } />
-        <Route path="inventario/tipos" element={
-          <RoleRoute allowedRoles={["administrator"]}><ItemsPage /></RoleRoute>
-        } />
+        <Route
+          path="reportes"
+          element={
+            <RoleRoute allowedRoles={["administrator"]}>
+              <ReportesPage />
+            </RoleRoute>
+          }
+        />
+        <Route
+          path="usuarios"
+          element={
+            <RoleRoute allowedRoles={["administrator"]}>
+              <UsersPage />
+            </RoleRoute>
+          }
+        />
+        <Route
+          path="reuniones"
+          element={
+            <RoleRoute allowedRoles={["parent", "sportsman", "administrator"]}>
+              <MeetingsPage />
+            </RoleRoute>
+          }
+        />
+        <Route
+          path="inventario"
+          element={
+            <RoleRoute allowedRoles={["administrator"]}>
+              <InventoryPage />
+            </RoleRoute>
+          }
+        />
+        <Route
+          path="inventario/tipos"
+          element={
+            <RoleRoute allowedRoles={["administrator"]}>
+              <ItemsPage />
+            </RoleRoute>
+          }
+        />
         <Route path="entrenamientos" element={<TrainingsPage />} />
         <Route path="ayuda" element={<HelpPage />} />
-        <Route path="asistencia" element={
-          <RoleRoute allowedRoles={["parent", "sportsman", "administrator"]}><AttendancePage /></RoleRoute>
-        } />
-        <Route path="asistencia/registrar" element={
-          <RoleRoute allowedRoles={["administrator"]}><AttendanceRegisterPage /></RoleRoute>
-        } />
-        <Route path="evaluacion-tecnica" element={
-          <RoleRoute allowedRoles={["parent", "sportsman"]}><TechnicalEvaluationPage /></RoleRoute>
-        } />
-        <Route path="deportista/mis-programas" element={
-          <RoleRoute allowedRoles={["sportsman"]}><MyProgramsPage /></RoleRoute>
-        } />
-        <Route path="deportista/mi-inscripcion" element={
-          <RoleRoute allowedRoles={["sportsman"]}><MyEnrollmentPage /></RoleRoute>
-        } />
-        <Route path="deportista/entrenamientos" element={
-          <RoleRoute allowedRoles={["sportsman"]}><MyTrainingsPage /></RoleRoute>
-        } />
-        <Route path="acudientes" element={
-          <RoleRoute allowedRoles={["administrator"]}><ParentAthletesPage /></RoleRoute>
-        } />
+        <Route
+          path="asistencia"
+          element={
+            <RoleRoute allowedRoles={["parent", "sportsman", "administrator"]}>
+              <AttendancePage />
+            </RoleRoute>
+          }
+        />
+        <Route
+          path="asistencia/registrar"
+          element={
+            <RoleRoute allowedRoles={["administrator"]}>
+              <AttendanceRegisterPage />
+            </RoleRoute>
+          }
+        />
+        <Route
+          path="evaluacion-tecnica"
+          element={
+            <RoleRoute allowedRoles={["parent", "sportsman"]}>
+              <TechnicalEvaluationPage />
+            </RoleRoute>
+          }
+        />
+        <Route
+          path="deportista/mis-programas"
+          element={
+            <RoleRoute allowedRoles={["sportsman"]}>
+              <MyProgramsPage />
+            </RoleRoute>
+          }
+        />
+        <Route
+          path="deportista/mi-inscripcion"
+          element={
+            <RoleRoute allowedRoles={["sportsman"]}>
+              <MyEnrollmentPage />
+            </RoleRoute>
+          }
+        />
+        <Route
+          path="deportista/entrenamientos"
+          element={
+            <RoleRoute allowedRoles={["sportsman"]}>
+              <MyTrainingsPage />
+            </RoleRoute>
+          }
+        />
+        <Route
+          path="acudientes"
+          element={
+            <RoleRoute allowedRoles={["administrator"]}>
+              <ParentAthletesPage />
+            </RoleRoute>
+          }
+        />
         <Route path="feedback-lab" element={<FeedbackLab />} />
         <Route path="*" element={<NotFound />} />
       </Route>

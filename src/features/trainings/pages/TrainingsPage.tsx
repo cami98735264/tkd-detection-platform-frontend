@@ -31,9 +31,7 @@ const columns: Column<Training>[] = [
     key: "descripcion",
     header: "Descripción",
     hideOnMobile: true,
-    render: (r) => (
-      <span className="text-muted line-clamp-1">{r.descripcion || "—"}</span>
-    ),
+    render: (r) => <span className="text-muted line-clamp-1">{r.descripcion || "—"}</span>,
   },
   { key: "fecha", header: "Fecha", render: (r) => formatDate(r.fecha) },
   { key: "time", header: "Hora", hideOnMobile: true },
@@ -173,9 +171,7 @@ export default function TrainingsPage() {
           <p className="text-xs text-muted">
             {formatDate(r.fecha)} · {r.time}
           </p>
-          {r.descripcion && (
-            <p className="text-xs text-faint line-clamp-2">{r.descripcion}</p>
-          )}
+          {r.descripcion && <p className="text-xs text-faint line-clamp-2">{r.descripcion}</p>}
           <p className="inline-flex items-center gap-1 text-xs text-faint tabular-nums">
             <Users className="h-3 w-3" />
             {r.numero_atletas} atletas

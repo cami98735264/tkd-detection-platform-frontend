@@ -77,7 +77,10 @@ export default function CategoriesPage() {
   };
 
   const handleDelete = async (category: CompetitionCategory) => {
-    const ok = await confirm({ title: "Eliminar categoría", description: `¿Eliminar "${category.nombre}"?` });
+    const ok = await confirm({
+      title: "Eliminar categoría",
+      description: `¿Eliminar "${category.nombre}"?`,
+    });
     if (!ok) return;
     try {
       await categoriesApi.delete(category.id);
@@ -95,7 +98,12 @@ export default function CategoriesPage() {
         title="Categorías de competencia"
         description="Administra los rangos de edad, cinturón y peso usados en las competencias."
         actions={
-          <Button onClick={() => { setEditing(null); setModalOpen(true); }}>
+          <Button
+            onClick={() => {
+              setEditing(null);
+              setModalOpen(true);
+            }}
+          >
             <Plus size={18} className="mr-2" /> Nueva
           </Button>
         }
@@ -106,7 +114,10 @@ export default function CategoriesPage() {
             columns={columns}
             data={data}
             loading={loading}
-            onEdit={(row) => { setEditing(row); setModalOpen(true); }}
+            onEdit={(row) => {
+              setEditing(row);
+              setModalOpen(true);
+            }}
             onDelete={handleDelete}
           />
           <Pagination count={count} page={page} onPageChange={setPage} />
@@ -114,7 +125,10 @@ export default function CategoriesPage() {
       </Card>
       <CategoryFormModal
         open={modalOpen}
-        onOpenChange={(v) => { setModalOpen(v); if (!v) setEditing(null); }}
+        onOpenChange={(v) => {
+          setModalOpen(v);
+          if (!v) setEditing(null);
+        }}
         category={editing}
         onSubmit={handleSubmit}
       />

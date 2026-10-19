@@ -13,18 +13,10 @@ interface EvaluationResultsProps {
 
 export default function EvaluationResultsView({ results, onClose }: EvaluationResultsProps) {
   const tone =
-    results.overall_score >= 80
-      ? "success"
-      : results.overall_score >= 60
-        ? "warning"
-        : "error";
+    results.overall_score >= 80 ? "success" : results.overall_score >= 60 ? "warning" : "error";
 
   const scoreClass =
-    tone === "success"
-      ? "text-success"
-      : tone === "warning"
-        ? "text-warning"
-        : "text-error";
+    tone === "success" ? "text-success" : tone === "warning" ? "text-warning" : "text-error";
 
   return (
     <Card>
@@ -59,9 +51,7 @@ export default function EvaluationResultsView({ results, onClose }: EvaluationRe
 
         {results.recommendations && (
           <div className="rounded-md border border-border bg-surface-2 p-4">
-            <p className="font-display font-semibold tracking-tight text-text">
-              Recomendaciones
-            </p>
+            <p className="font-display font-semibold tracking-tight text-text">Recomendaciones</p>
             <p className="mt-1 text-sm text-muted">{results.recommendations}</p>
           </div>
         )}
@@ -74,20 +64,10 @@ export default function EvaluationResultsView({ results, onClose }: EvaluationRe
   );
 }
 
-function MetricCard({
-  label,
-  value,
-  unit,
-}: {
-  label: string;
-  value: number;
-  unit: string;
-}) {
+function MetricCard({ label, value, unit }: { label: string; value: number; unit: string }) {
   return (
     <div className="rounded-lg border border-border bg-surface p-4 text-center">
-      <p className="text-xs font-medium uppercase tracking-wider text-muted">
-        {label}
-      </p>
+      <p className="text-xs font-medium uppercase tracking-wider text-muted">{label}</p>
       <p className="mt-1 font-display text-2xl font-semibold tabular-nums text-text">
         {value}
         <span className="ml-1 text-sm text-faint">{unit}</span>

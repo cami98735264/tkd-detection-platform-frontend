@@ -44,7 +44,12 @@ export function StatsRow({ items, columns = 4, loading, className }: StatsRowPro
         <Card key={`${item.label}-${idx}`} className="overflow-hidden">
           <CardContent className="flex items-start gap-4 p-5">
             {item.icon && (
-              <span className={cn("grid h-10 w-10 place-items-center rounded-lg", TONE_CHIP[item.tone ?? "default"])}>
+              <span
+                className={cn(
+                  "grid h-10 w-10 place-items-center rounded-lg",
+                  TONE_CHIP[item.tone ?? "default"],
+                )}
+              >
                 <item.icon className="h-5 w-5" strokeWidth={2} />
               </span>
             )}
@@ -60,7 +65,7 @@ export function StatsRow({ items, columns = 4, loading, className }: StatsRowPro
                   <span
                     className={cn(
                       "inline-flex items-center gap-0.5 font-medium",
-                      item.delta.direction === "up" ? "text-success" : "text-error"
+                      item.delta.direction === "up" ? "text-success" : "text-error",
                     )}
                   >
                     {item.delta.direction === "up" ? (

@@ -40,30 +40,24 @@ export default function ConsentStep({ onConsented }: ConsentStepProps) {
           Autorización para grabación
         </CardTitle>
         <p className="text-sm text-muted">
-          Para realizar la evaluación técnica necesitamos tu autorización para
-          grabar video durante la sesión de patadas. Los videos se utilizan
-          únicamente para análisis técnico y no se comparten con terceros.
+          Para realizar la evaluación técnica necesitamos tu autorización para grabar video durante
+          la sesión de patadas. Los videos se utilizan únicamente para análisis técnico y no se
+          comparten con terceros.
         </p>
       </CardHeader>
       <CardContent className="space-y-6">
         <label className="flex cursor-pointer items-start gap-4 rounded-lg border border-border bg-surface-2 p-4 transition-interactive hover:border-primary/40">
           <Switch checked={consent} onCheckedChange={setConsent} />
           <div className="min-w-0">
-            <p className="font-medium text-text">
-              Autorizo la grabación de video
-            </p>
+            <p className="font-medium text-text">Autorizo la grabación de video</p>
             <p className="mt-1 text-sm text-muted">
-              Acepto que Warriors TKD Espinal grabe sesiones de evaluación
-              técnica para análisis de rendimiento.
+              Acepto que Warriors TKD Espinal grabe sesiones de evaluación técnica para análisis de
+              rendimiento.
             </p>
           </div>
         </label>
 
-        <Button
-          className="w-full"
-          disabled={!consent || loading}
-          onClick={handleSubmit}
-        >
+        <Button className="w-full" disabled={!consent || loading} onClick={handleSubmit}>
           {loading ? "Guardando…" : "Continuar"}
         </Button>
       </CardContent>

@@ -13,7 +13,11 @@ import { itemTypesApi, type ItemType } from "@/features/inventory/api/itemTypesA
 
 const columns: Column<ItemType>[] = [
   { key: "name", header: "Nombre" },
-  { key: "created_at", header: "Fecha Creación", render: (r) => new Date(r.created_at).toLocaleDateString() },
+  {
+    key: "created_at",
+    header: "Fecha Creación",
+    render: (r) => new Date(r.created_at).toLocaleDateString(),
+  },
 ];
 
 export default function ItemsPage() {
@@ -92,7 +96,12 @@ export default function ItemsPage() {
         title="Tipos de ítem"
         description="Configura los tipos de material que se usan para clasificar el inventario."
         actions={
-          <Button onClick={() => { setEditing(null); setModalOpen(true); }}>
+          <Button
+            onClick={() => {
+              setEditing(null);
+              setModalOpen(true);
+            }}
+          >
             <Plus size={18} className="mr-2" /> Nuevo Tipo
           </Button>
         }
@@ -103,7 +112,10 @@ export default function ItemsPage() {
             columns={columns}
             data={data}
             loading={loading}
-            onEdit={(row) => { setEditing(row); setModalOpen(true); }}
+            onEdit={(row) => {
+              setEditing(row);
+              setModalOpen(true);
+            }}
             onDelete={handleDelete}
           />
           <Pagination count={count} page={page} onPageChange={setPage} />
@@ -111,7 +123,10 @@ export default function ItemsPage() {
       </Card>
       <ItemTypeFormModal
         open={modalOpen}
-        onOpenChange={(v) => { setModalOpen(v); if (!v) setEditing(null); }}
+        onOpenChange={(v) => {
+          setModalOpen(v);
+          if (!v) setEditing(null);
+        }}
         item={editing}
         onSubmit={handleSubmit}
       />

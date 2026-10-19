@@ -47,29 +47,18 @@ export function AuthShell({
   );
 }
 
-function BrandPanel({
-  headline,
-  subcopy,
-}: {
-  headline: ReactNode;
-  subcopy: ReactNode;
-}) {
+function BrandPanel({ headline, subcopy }: { headline: ReactNode; subcopy: ReactNode }) {
   const rotatingHeadlines: ReactNode[] = [
     headline,
-    (
-      <>
-        Entrenamientos,
-        <br />
-        personalizados.
-      </>
-    ),
-    (
-      <>
-        Evaluaciones,
-        <br />
-        y progreso.
-      </>
-    ),
+    <>
+      Entrenamientos,
+      <br />
+      personalizados.
+    </>,
+    <>
+      Evaluaciones,
+      <br />y progreso.
+    </>,
   ];
 
   const [index, setIndex] = useState(0);
@@ -139,9 +128,7 @@ function BrandPanel({
             {currentHeadline}
           </h1>
         </div>
-        <p className="mt-6 max-w-md text-sm leading-relaxed text-muted">
-          {subcopy}
-        </p>
+        <p className="mt-6 max-w-md text-sm leading-relaxed text-muted">{subcopy}</p>
 
         <div className="mt-10 flex items-center gap-3">
           {rotatingHeadlines.map((_, i) => (

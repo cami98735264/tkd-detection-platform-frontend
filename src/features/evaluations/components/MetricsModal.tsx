@@ -16,10 +16,14 @@ export default function MetricsModal({ open, onOpenChange, evaluation }: Props) 
       <div className="space-y-4">
         <div className="flex justify-between items-center">
           <p className="text-sm text-muted-foreground">
-            Deportista: <span className="font-medium text-foreground">{evaluation.athlete_name}</span>
+            Deportista:{" "}
+            <span className="font-medium text-foreground">{evaluation.athlete_name}</span>
           </p>
           <p className="text-sm text-muted-foreground">
-            Fecha: <span className="font-medium text-foreground">{new Date(evaluation.evaluated_at).toLocaleDateString()}</span>
+            Fecha:{" "}
+            <span className="font-medium text-foreground">
+              {new Date(evaluation.evaluated_at).toLocaleDateString()}
+            </span>
           </p>
         </div>
 
@@ -52,8 +56,8 @@ export default function MetricsModal({ open, onOpenChange, evaluation }: Props) 
                         m.score >= 80
                           ? "text-green-600 border-green-300"
                           : m.score >= 60
-                          ? "text-yellow-600 border-yellow-300"
-                          : "text-red-600 border-red-300"
+                            ? "text-yellow-600 border-yellow-300"
+                            : "text-red-600 border-red-300"
                       }
                     >
                       {m.score}

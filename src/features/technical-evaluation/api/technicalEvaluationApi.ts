@@ -1,12 +1,7 @@
 import { http } from "@/lib/http";
 
 export type KickType =
-  | "Ap Chagui"
-  | "Yop Chagui"
-  | "Dollyo Chagui"
-  | "Tuit Chagui"
-  | "An Tario Chagui"
-  | "Furio Chagui";
+  "Ap Chagui" | "Yop Chagui" | "Dollyo Chagui" | "Tuit Chagui" | "An Tario Chagui" | "Furio Chagui";
 
 export interface ConsentStatus {
   consent_granted: boolean;
@@ -62,11 +57,9 @@ export const technicalEvaluationApi = {
     return http.get<EvaluationSession[]>(`/technical-evaluation/sessions/${params}`);
   },
 
-  getSession: (id: number) =>
-    http.get<EvaluationSession>(`/technical-evaluation/sessions/${id}/`),
+  getSession: (id: number) => http.get<EvaluationSession>(`/technical-evaluation/sessions/${id}/`),
 
-  deleteSession: (id: number) =>
-    http.delete(`/technical-evaluation/sessions/${id}/`),
+  deleteSession: (id: number) => http.delete(`/technical-evaluation/sessions/${id}/`),
 
   createSession: (kickType: KickType, recordingUrl: string, athleteId?: number) =>
     http.post<EvaluationSession>(

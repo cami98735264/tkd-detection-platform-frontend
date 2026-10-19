@@ -76,27 +76,33 @@ export default function AsyncSelectField({
   const loadingRef = useRef(false);
   const initializedRef = useRef(false);
 
-  const load = useCallback((input: string, page: number, append: boolean) => {
-    if (loadingRef.current && !append) return;
-    loadingRef.current = true;
-    setLoading(!append);
+  const load = useCallback(
+    (input: string, page: number, append: boolean) => {
+      if (loadingRef.current && !append) return;
+      loadingRef.current = true;
+      setLoading(!append);
 
-    loadOptions(input, page).then(result => {
-      if (append) {
-        setOptions(prev => [...prev, ...result.options]);
-      } else {
-        setOptions(result.options);
-      }
-      setHasMore(result.hasMore);
-      pageRef.current = page;
-      inputRef.current = input;
-      loadingRef.current = false;
-    }).catch(() => {
-      loadingRef.current = false;
-    }).finally(() => {
-      setLoading(false);
-    });
-  }, [loadOptions]);
+      loadOptions(input, page)
+        .then((result) => {
+          if (append) {
+            setOptions((prev) => [...prev, ...result.options]);
+          } else {
+            setOptions(result.options);
+          }
+          setHasMore(result.hasMore);
+          pageRef.current = page;
+          inputRef.current = input;
+          loadingRef.current = false;
+        })
+        .catch(() => {
+          loadingRef.current = false;
+        })
+        .finally(() => {
+          setLoading(false);
+        });
+    },
+    [loadOptions],
+  );
 
   // Initial load on mount
   useEffect(() => {
@@ -105,10 +111,7 @@ export default function AsyncSelectField({
     load("", 1, false);
   }, [load]);
 
-  const handleChange = (
-    newValue: SingleValue<Option>,
-    _actionMeta: ActionMeta<Option>
-  ) => {
+  const handleChange = (newValue: SingleValue<Option>, _actionMeta: ActionMeta<Option>) => {
     onChange(newValue?.value ?? null);
   };
 
@@ -124,7 +127,7 @@ export default function AsyncSelectField({
   };
 
   const resolvedValue =
-    options.find(o => o.value === value) ||
+    options.find((o) => o.value === value) ||
     (selectedOption?.value === value ? selectedOption : null);
 
   return (
@@ -139,7 +142,7 @@ export default function AsyncSelectField({
         isSearchable
         isDisabled={isDisabled}
         loadingMessage={() => "Cargando..."}
-        noOptionsMessage={() => loading ? "Cargando..." : "Sin opciones"}
+        noOptionsMessage={() => (loading ? "Cargando..." : "Sin opciones")}
         isLoading={loading}
         styles={selectStyles}
         classNamePrefix="rs"

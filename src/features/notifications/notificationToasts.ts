@@ -15,18 +15,14 @@ function str(value: unknown): string | null {
  * pushes, never during the initial REST backfill, so users aren't spammed on
  * load. Resource `*.updated` events never reach here (they don't toast).
  */
-export function buildNotificationToast(
-  n: Notification,
-  role: Role,
-): ToastOptions | null {
+export function buildNotificationToast(n: Notification, role: Role): ToastOptions | null {
   switch (n.type) {
     case "tech_eval.completed":
       if (role === "sportsman" || role === "parent") {
         const athlete = str(n.data?.athlete_name);
         return {
           title: "Tu evaluación de patada está lista",
-          description:
-            role === "parent" && athlete ? `Deportista: ${athlete}` : undefined,
+          description: role === "parent" && athlete ? `Deportista: ${athlete}` : undefined,
           variant: "success",
         };
       }

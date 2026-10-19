@@ -37,17 +37,20 @@ export default function ProgramsPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Program | null>(null);
 
-  const fetchData = useCallback((p: number) => {
-    setLoading(true);
-    programsApi
-      .list(p)
-      .then((res) => {
-        setData(res.results);
-        setCount(res.count);
-      })
-      .catch(handleError)
-      .finally(() => setLoading(false));
-  }, [handleError]);
+  const fetchData = useCallback(
+    (p: number) => {
+      setLoading(true);
+      programsApi
+        .list(p)
+        .then((res) => {
+          setData(res.results);
+          setCount(res.count);
+        })
+        .catch(handleError)
+        .finally(() => setLoading(false));
+    },
+    [handleError],
+  );
 
   const loadParentPrograms = useCallback(() => {
     setLoading(true);
@@ -90,7 +93,8 @@ export default function ProgramsPage() {
       key: "capacity",
       header: "Capacidad",
       hideOnMobile: true,
-      render: (r) => (r.capacity != null ? r.capacity : <span className="text-faint">Sin límite</span>),
+      render: (r) =>
+        r.capacity != null ? r.capacity : <span className="text-faint">Sin límite</span>,
     },
     {
       key: "active",

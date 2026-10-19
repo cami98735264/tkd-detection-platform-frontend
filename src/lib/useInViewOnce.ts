@@ -7,10 +7,7 @@ import { useEffect, useState, type RefObject } from "react";
  * Skips observation entirely when the user prefers reduced motion: returns
  * `true` immediately so consumers can render at their final state.
  */
-export function useInViewOnce(
-  ref: RefObject<Element | null>,
-  threshold = 0.15,
-): boolean {
+export function useInViewOnce(ref: RefObject<Element | null>, threshold = 0.15): boolean {
   const [seen, setSeen] = useState(false);
 
   useEffect(() => {

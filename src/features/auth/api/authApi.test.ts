@@ -108,8 +108,13 @@ describe("authApi request endpoints (contract §1/§4 — generic, data:null)", 
 describe("authApi bare auth endpoints stay non-enveloped (contract §0/§7 note 1)", () => {
   it("login posts raw creds, then me() + setAuthenticated (no unwrap)", async () => {
     const user = {
-      id: 9, email: "a@b.com", full_name: "A B", is_staff: false,
-      role: "sportsman" as const, email_verified: true, pending_email: null,
+      id: 9,
+      email: "a@b.com",
+      full_name: "A B",
+      is_staff: false,
+      role: "sportsman" as const,
+      email_verified: true,
+      pending_email: null,
     };
     post.mockResolvedValue(undefined); // bare /auth/login/ response
     get.mockResolvedValue(user); // bare /auth/me/ response (NOT an envelope)
@@ -123,8 +128,13 @@ describe("authApi bare auth endpoints stay non-enveloped (contract §0/§7 note 
 
   it("me returns the bare user object verbatim", async () => {
     const user = {
-      id: 1, email: "x@y.com", full_name: "X Y", is_staff: true,
-      role: "administrator" as const, email_verified: false, pending_email: "new@y.com",
+      id: 1,
+      email: "x@y.com",
+      full_name: "X Y",
+      is_staff: true,
+      role: "administrator" as const,
+      email_verified: false,
+      pending_email: "new@y.com",
     };
     get.mockResolvedValue(user);
     await expect(authApi.me()).resolves.toEqual(user);
@@ -142,8 +152,13 @@ describe("authApi bare auth endpoints stay non-enveloped (contract §0/§7 note 
 describe("authApi.acceptInvitation flow (contract §4)", () => {
   it("POSTs accept, then me(), then setAuthenticated, and returns the user", async () => {
     const user = {
-      id: 5, email: "invitee@x.com", full_name: "Invitee", is_staff: false,
-      role: "sportsman" as const, email_verified: true, pending_email: null,
+      id: 5,
+      email: "invitee@x.com",
+      full_name: "Invitee",
+      is_staff: false,
+      role: "sportsman" as const,
+      email_verified: true,
+      pending_email: null,
     };
     post.mockResolvedValue(envelope({ user })); // accept envelope
     get.mockResolvedValue(user); // subsequent me()

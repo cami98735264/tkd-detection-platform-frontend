@@ -35,7 +35,8 @@ export const evaluationsApi = {
 
   create: (data: EvaluationCreatePayload) => http.post<Evaluation>("/evaluations/", data),
 
-  update: (id: number, data: EvaluationUpdatePayload) => http.patch<Evaluation>(`/evaluations/${id}/`, data),
+  update: (id: number, data: EvaluationUpdatePayload) =>
+    http.patch<Evaluation>(`/evaluations/${id}/`, data),
 
   delete: (id: number) => http.delete(`/evaluations/${id}/`),
 };

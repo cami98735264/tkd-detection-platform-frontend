@@ -12,4 +12,3 @@ declare namespace Cloudflare {
     ORIGIN_SECRET: string;
   }
 }
-

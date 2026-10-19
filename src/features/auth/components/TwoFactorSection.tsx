@@ -222,9 +222,7 @@ export default function TwoFactorSection() {
                 ) : null}
               </div>
               {trusted.length === 0 ? (
-                <p className="text-sm text-muted-foreground">
-                  No tienes dispositivos recordados.
-                </p>
+                <p className="text-sm text-muted-foreground">No tienes dispositivos recordados.</p>
               ) : (
                 <ul className="space-y-2">
                   {trusted.map((d) => (
@@ -261,8 +259,8 @@ export default function TwoFactorSection() {
         {step === "scan" && setup ? (
           <div className="space-y-4">
             <p className="text-sm text-muted-foreground">
-              Escanea este código QR con tu aplicación de autenticación (Google
-              Authenticator, Authy, etc.).
+              Escanea este código QR con tu aplicación de autenticación (Google Authenticator,
+              Authy, etc.).
             </p>
             <div className="flex justify-center rounded-lg border border-border bg-white p-4">
               <QRCodeSVG
@@ -321,7 +319,11 @@ export default function TwoFactorSection() {
                   setCodeError(null);
                 }}
               />
-              {codeError ? <p role="alert" className="text-sm text-error">{codeError}</p> : null}
+              {codeError ? (
+                <p role="alert" className="text-sm text-error">
+                  {codeError}
+                </p>
+              ) : null}
             </div>
             <div className="flex justify-between">
               <Button type="button" variant="outline" onClick={() => setStep("scan")}>
@@ -337,19 +339,31 @@ export default function TwoFactorSection() {
         {step === "recovery" ? (
           <div className="space-y-4">
             <p className="text-sm text-muted-foreground">
-              Guarda estos códigos de recuperación en un lugar seguro. Son la única
-              forma de entrar si pierdes tu aplicación. <strong>No volverán a mostrarse.</strong>
+              Guarda estos códigos de recuperación en un lugar seguro. Son la única forma de entrar
+              si pierdes tu aplicación. <strong>No volverán a mostrarse.</strong>
             </p>
             <ul className="grid grid-cols-2 gap-2 rounded-lg border border-border bg-muted/30 p-4">
               {recoveryCodes.map((c) => (
-                <li key={c} className="font-mono text-sm">{c}</li>
+                <li key={c} className="font-mono text-sm">
+                  {c}
+                </li>
               ))}
             </ul>
             <div className="flex flex-wrap gap-2">
-              <Button type="button" variant="outline" size="sm" onClick={() => copyCodes(recoveryCodes)}>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => copyCodes(recoveryCodes)}
+              >
                 <Copy className="mr-2 h-4 w-4" /> Copiar
               </Button>
-              <Button type="button" variant="outline" size="sm" onClick={() => downloadCodes(recoveryCodes)}>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => downloadCodes(recoveryCodes)}
+              >
                 <Download className="mr-2 h-4 w-4" /> Descargar
               </Button>
             </div>
@@ -409,7 +423,14 @@ interface ReAuthDialogProps {
   onConfirm: (v: { password: string; code: string; signOutEverywhere: boolean }) => Promise<void>;
 }
 
-function ReAuthDialog({ open, onOpenChange, title, confirmLabel, withSignOut, onConfirm }: ReAuthDialogProps) {
+function ReAuthDialog({
+  open,
+  onOpenChange,
+  title,
+  confirmLabel,
+  withSignOut,
+  onConfirm,
+}: ReAuthDialogProps) {
   const { handleError } = useApiErrorHandler();
   const [password, setPassword] = useState("");
   const [code, setCode] = useState("");
@@ -456,8 +477,7 @@ function ReAuthDialog({ open, onOpenChange, title, confirmLabel, withSignOut, on
     >
       <form className="space-y-4" noValidate onSubmit={submit}>
         <p className="text-sm text-muted-foreground">
-          Confirma con tu contraseña y un código de tu aplicación (o un código de
-          recuperación).
+          Confirma con tu contraseña y un código de tu aplicación (o un código de recuperación).
         </p>
         <div className="space-y-1.5" data-field="password">
           <Label htmlFor="reauth_password">Contraseña actual</Label>
@@ -484,7 +504,11 @@ function ReAuthDialog({ open, onOpenChange, title, confirmLabel, withSignOut, on
             Cerrar sesión en todos los dispositivos
           </label>
         ) : null}
-        {error ? <p role="alert" className="text-sm text-error">{error}</p> : null}
+        {error ? (
+          <p role="alert" className="text-sm text-error">
+            {error}
+          </p>
+        ) : null}
         <div className="flex justify-end gap-3">
           <Button
             type="button"

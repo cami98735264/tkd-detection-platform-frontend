@@ -34,10 +34,7 @@ import { programsApi } from "@/features/programs/api/programsApi";
 import { enrollmentsApi } from "@/features/enrollments/api/enrollmentsApi";
 import { evaluationsApi } from "@/features/evaluations/api/evaluationsApi";
 import { attendanceApi } from "@/features/attendance/api/attendanceApi";
-import {
-  userActivityApi,
-  type UserActivity,
-} from "@/features/users/api/userActivityApi";
+import { userActivityApi, type UserActivity } from "@/features/users/api/userActivityApi";
 import { parentAthletesApi } from "@/features/parent/api/parentAthletesApi";
 import { useApiErrorHandler } from "@/feedback/useApiErrorHandler";
 import { useAuthReady } from "@/features/auth/hooks/useAuthReady";
@@ -59,9 +56,7 @@ function startOfMonthIso(): string {
 
 function endOfMonthIso(): string {
   const d = new Date();
-  return new Date(d.getFullYear(), d.getMonth() + 1, 0)
-    .toISOString()
-    .split("T")[0];
+  return new Date(d.getFullYear(), d.getMonth() + 1, 0).toISOString().split("T")[0];
 }
 
 export default function Home() {
@@ -118,14 +113,9 @@ export default function Home() {
   }, [authReady, isSportsman, handleError]);
 
   const attendanceRate = summary?.attendance_rate ?? 0;
-  const rateTone =
-    attendanceRate >= 80 ? "success" : attendanceRate >= 60 ? "warning" : "error";
+  const rateTone = attendanceRate >= 80 ? "success" : attendanceRate >= 60 ? "warning" : "error";
   const rateBarClass =
-    attendanceRate >= 80
-      ? "bg-success"
-      : attendanceRate >= 60
-        ? "bg-warning"
-        : "bg-error";
+    attendanceRate >= 80 ? "bg-success" : attendanceRate >= 60 ? "bg-warning" : "bg-error";
 
   // Admin stats
   useEffect(() => {
@@ -144,8 +134,7 @@ export default function Home() {
       const attRecords = att.status === "fulfilled" ? att.value.results : [];
       const attTotal = attRecords.length;
       const attPresent = attRecords.filter((r) => r.status === "present").length;
-      const attendanceRate =
-        attTotal > 0 ? Math.round((attPresent / attTotal) * 100) : null;
+      const attendanceRate = attTotal > 0 ? Math.round((attPresent / attTotal) * 100) : null;
 
       setStats([
         {
@@ -219,12 +208,9 @@ export default function Home() {
       enrollmentsApi.getMyEnrollments(),
       evaluationsApi.list(1),
     ]).then(([childrenRes, enrollRes, evalRes]) => {
-      const childCount =
-        childrenRes.status === "fulfilled" ? childrenRes.value.length : 0;
-      const enrollmentCount =
-        enrollRes.status === "fulfilled" ? enrollRes.value.length : 0;
-      const evalCount =
-        evalRes.status === "fulfilled" ? evalRes.value.count : 0;
+      const childCount = childrenRes.status === "fulfilled" ? childrenRes.value.length : 0;
+      const enrollmentCount = enrollRes.status === "fulfilled" ? enrollRes.value.length : 0;
+      const evalCount = evalRes.status === "fulfilled" ? evalRes.value.count : 0;
       setStats([
         { label: "Deportistas", value: childCount, icon: Users },
         {
@@ -269,23 +255,43 @@ export default function Home() {
       ]
     : isSportsman
       ? [
-          { label: "Asistencia", icon: ClipboardCheck, to: "/dashboard/asistencia", description: "Mi asistencia" },
-          { label: "Entrenamientos", icon: Dumbbell, to: "/dashboard/deportista/entrenamientos", description: "Próximas sesiones" },
-          { label: "Reuniones", icon: Calendar, to: "/dashboard/reuniones", description: "Confirmar asistencia" },
-          { label: "Evaluación técnica", icon: Camera, to: "/dashboard/evaluacion-tecnica", description: "Registrar patadas" },
-        ]
-    : isParent
-      ? [
-          { label: "Reuniones", icon: Calendar, to: "/dashboard/reuniones" },
-          { label: "Asistencia", icon: ClipboardCheck, to: "/dashboard/asistencia" },
+          {
+            label: "Asistencia",
+            icon: ClipboardCheck,
+            to: "/dashboard/asistencia",
+            description: "Mi asistencia",
+          },
+          {
+            label: "Entrenamientos",
+            icon: Dumbbell,
+            to: "/dashboard/deportista/entrenamientos",
+            description: "Próximas sesiones",
+          },
+          {
+            label: "Reuniones",
+            icon: Calendar,
+            to: "/dashboard/reuniones",
+            description: "Confirmar asistencia",
+          },
           {
             label: "Evaluación técnica",
             icon: Camera,
             to: "/dashboard/evaluacion-tecnica",
+            description: "Registrar patadas",
           },
-          { label: "Mi perfil", icon: User, to: "/dashboard/profile" },
         ]
-      : [];
+      : isParent
+        ? [
+            { label: "Reuniones", icon: Calendar, to: "/dashboard/reuniones" },
+            { label: "Asistencia", icon: ClipboardCheck, to: "/dashboard/asistencia" },
+            {
+              label: "Evaluación técnica",
+              icon: Camera,
+              to: "/dashboard/evaluacion-tecnica",
+            },
+            { label: "Mi perfil", icon: User, to: "/dashboard/profile" },
+          ]
+        : [];
 
   return (
     <div className="space-y-6">
@@ -295,15 +301,15 @@ export default function Home() {
           isParent
             ? "Resumen de tu actividad como acudiente."
             : isSportsman
-            ? "Tu panel de seguimiento como deportista."
-            : "Resumen general de la academia."
+              ? "Tu panel de seguimiento como deportista."
+              : "Resumen general de la academia."
         }
         eyebrow={isParent ? "Acudiente" : isSportsman ? "Mi entrenamiento" : "Inicio"}
       />
 
       {/* Sportsman hero band */}
-      {isSportsman && (
-        athleteLoading ? (
+      {isSportsman &&
+        (athleteLoading ? (
           <Skeleton className="h-32 w-full" />
         ) : athlete ? (
           <Card className="overflow-hidden border-primary/20 bg-gradient-to-br from-primary/8 via-surface to-surface-2">
@@ -339,8 +345,7 @@ export default function Home() {
               description="Aún no tienes un perfil de atleta vinculado a tu cuenta. Contacta al administrador para completar tu inscripción."
             />
           </Card>
-        )
-      )}
+        ))}
 
       {stats === null ? (
         <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
@@ -416,10 +421,13 @@ export default function Home() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className={isSportsman
-                ? "grid grid-cols-2 md:grid-cols-4 gap-3"
-                : "grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3"
-              }>
+              <div
+                className={
+                  isSportsman
+                    ? "grid grid-cols-2 md:grid-cols-4 gap-3"
+                    : "grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3"
+                }
+              >
                 {quickActions.map((action) => {
                   const Icon = action.icon;
                   return (
@@ -475,45 +483,38 @@ export default function Home() {
               <Activity className="h-4 w-4 text-muted" />
             </CardHeader>
             <CardContent>
-            {activityLoading ? (
-              <div className="space-y-2.5">
-                {[0, 1, 2, 3].map((i) => (
-                  <Skeleton key={i} className="h-12 w-full" />
-                ))}
-              </div>
-            ) : recentActivity.length === 0 ? (
-              <EmptyState
-                icon={Inbox}
-                title="Sin actividad reciente"
-                description="A medida que el equipo opere el sistema, los eventos aparecerán aquí."
-              />
-            ) : (
-              <ul className="divide-y divide-divider">
-                {recentActivity.map((activity) => (
-                  <li
-                    key={activity.id}
-                    className="flex items-center justify-between gap-4 py-3"
-                  >
-                    <div className="min-w-0">
-                      <p className="font-medium text-text truncate">
-                        {activity.user_name}
-                      </p>
-                      <p className="text-sm text-muted truncate">
-                        {activity.action}
-                      </p>
-                    </div>
-                    <div className="text-right shrink-0">
-                      <span className="rounded-md border border-border px-2 py-0.5 text-xs font-medium text-muted">
-                        {activity.user_role}
-                      </span>
-                      <p className="mt-1 text-xs text-faint">
-                        {new Date(activity.created_at).toLocaleDateString()}
-                      </p>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            )}
+              {activityLoading ? (
+                <div className="space-y-2.5">
+                  {[0, 1, 2, 3].map((i) => (
+                    <Skeleton key={i} className="h-12 w-full" />
+                  ))}
+                </div>
+              ) : recentActivity.length === 0 ? (
+                <EmptyState
+                  icon={Inbox}
+                  title="Sin actividad reciente"
+                  description="A medida que el equipo opere el sistema, los eventos aparecerán aquí."
+                />
+              ) : (
+                <ul className="divide-y divide-divider">
+                  {recentActivity.map((activity) => (
+                    <li key={activity.id} className="flex items-center justify-between gap-4 py-3">
+                      <div className="min-w-0">
+                        <p className="font-medium text-text truncate">{activity.user_name}</p>
+                        <p className="text-sm text-muted truncate">{activity.action}</p>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <span className="rounded-md border border-border px-2 py-0.5 text-xs font-medium text-muted">
+                          {activity.user_role}
+                        </span>
+                        <p className="mt-1 text-xs text-faint">
+                          {new Date(activity.created_at).toLocaleDateString()}
+                        </p>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </CardContent>
           </Card>
         </ScrollReveal>

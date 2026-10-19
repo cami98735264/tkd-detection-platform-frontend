@@ -57,13 +57,20 @@ function translateErrorMessage(message: string): string {
   const msg = message.toLowerCase();
 
   // Blank / required
-  if (msg.includes("may not be blank") || msg.includes("blank") || msg.includes("this field is required")) {
+  if (
+    msg.includes("may not be blank") ||
+    msg.includes("blank") ||
+    msg.includes("this field is required")
+  ) {
     return "Este campo no puede estar vacío";
   }
   if (msg.includes("field is required")) return "Este campo es obligatorio";
 
   // Authentication / credentials
-  if (msg.includes("invalid") && (msg.includes("email") || msg.includes("password") || msg.includes("credential"))) {
+  if (
+    msg.includes("invalid") &&
+    (msg.includes("email") || msg.includes("password") || msg.includes("credential"))
+  ) {
     return "Correo electrónico o contraseña inválidos";
   }
   if (msg.includes("invalid email or password")) return "Correo electrónico o contraseña inválidos";
@@ -71,11 +78,13 @@ function translateErrorMessage(message: string): string {
   if (msg.includes("wrong password")) return "Contraseña incorrecta";
   if (msg.includes("invalid token") || msg.includes("token invalid")) return "Token inválido";
   if (msg.includes("expired token") || msg.includes("token expired")) return "El token ha expirado";
-  if (msg.includes("session expired") || msg.includes("sesión expirada")) return "Sesión expirada. Por favor ingresá de nuevo.";
+  if (msg.includes("session expired") || msg.includes("sesión expirada"))
+    return "Sesión expirada. Por favor ingresá de nuevo.";
 
   // Authorization / permissions
   if (msg.includes("unauthorized") || msg.includes("not authorized")) return "No autorizado";
-  if (msg.includes("forbidden") || msg.includes("permission denied")) return "No tenés permisos para realizar esta acción";
+  if (msg.includes("forbidden") || msg.includes("permission denied"))
+    return "No tenés permisos para realizar esta acción";
   if (msg.includes("access denied")) return "Acceso denegado";
 
   // Resource states
@@ -83,9 +92,14 @@ function translateErrorMessage(message: string): string {
     return "Recurso no encontrado";
   }
   if (msg.includes("already exists") || msg.includes("already exist")) return "Ya existe";
-  if (msg.includes("duplicate") || msg.includes("unique constraint")) return "Ya existe un registro con estos datos";
+  if (msg.includes("duplicate") || msg.includes("unique constraint"))
+    return "Ya existe un registro con estos datos";
   if (msg.includes("conflict")) return "Conflicto con datos existentes";
-  if (msg.includes("in use") || msg.includes("cannot be deleted") || msg.includes("is being used")) {
+  if (
+    msg.includes("in use") ||
+    msg.includes("cannot be deleted") ||
+    msg.includes("is being used")
+  ) {
     return "No se puede eliminar porque está en uso";
   }
 
@@ -95,16 +109,21 @@ function translateErrorMessage(message: string): string {
   if (msg.includes("invalid url")) return "URL inválida";
   if (msg.includes("too short")) return "Es demasiado corto";
   if (msg.includes("too long")) return "Es demasiado largo";
-  if (msg.includes("minimum") && msg.includes("character")) return "No alcanza la cantidad mínima de caracteres";
-  if (msg.includes("maximum") && msg.includes("character")) return "Supera la cantidad máxima de caracteres";
+  if (msg.includes("minimum") && msg.includes("character"))
+    return "No alcanza la cantidad mínima de caracteres";
+  if (msg.includes("maximum") && msg.includes("character"))
+    return "Supera la cantidad máxima de caracteres";
 
   // Network / server
   if (msg.includes("timeout") || msg.includes("timed out")) return "Tiempo de espera agotado";
-  if (msg.includes("connection refused") || msg.includes("connection error")) return "Error de conexión";
+  if (msg.includes("connection refused") || msg.includes("connection error"))
+    return "Error de conexión";
   if (msg.includes("network error") || msg.includes("network")) return "Error de red";
   if (msg.includes("server error") || msg.includes("internal error")) return "Error del servidor";
-  if (msg.includes("service unavailable") || msg.includes("unavailable")) return "Servicio no disponible";
-  if (msg.includes("too many requests") || msg.includes("rate limit")) return "Demasiadas solicitudes. Intentá más tarde.";
+  if (msg.includes("service unavailable") || msg.includes("unavailable"))
+    return "Servicio no disponible";
+  if (msg.includes("too many requests") || msg.includes("rate limit"))
+    return "Demasiadas solicitudes. Intentá más tarde.";
   if (msg.includes("rate_limit")) return "Demasiadas solicitudes. Intentá más tarde.";
 
   // Generic fallback for "Invalid ..." without specific match
@@ -161,7 +180,9 @@ export function formatApiErrorBody(body: ApiErrorBody): string {
         if (item && typeof item === "object") {
           const record = item as Record<string, unknown>;
           const athleteId = record.athlete_id;
-          const message = formatApiErrorValue(record.error ?? record.message ?? record.detail ?? item);
+          const message = formatApiErrorValue(
+            record.error ?? record.message ?? record.detail ?? item,
+          );
           if (athleteId !== undefined && message) {
             return `Atleta ${String(athleteId)}: ${message}`;
           }

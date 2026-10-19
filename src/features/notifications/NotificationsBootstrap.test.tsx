@@ -41,9 +41,15 @@ vi.mock("@/features/notifications/notificationToasts", () => ({
 import { NotificationsBootstrap } from "./NotificationsBootstrap";
 
 const notif = {
-  id: 1, type: "tech_eval.completed", title: "Listo", body: "",
-  resource: "tech_eval_session", resource_id: 10, data: {},
-  read_at: null, created_at: "2026-05-30T00:00:00Z",
+  id: 1,
+  type: "tech_eval.completed",
+  title: "Listo",
+  body: "",
+  resource: "tech_eval_session",
+  resource_id: 10,
+  data: {},
+  read_at: null,
+  created_at: "2026-05-30T00:00:00Z",
 };
 
 beforeEach(() => {
@@ -74,7 +80,13 @@ describe("NotificationsBootstrap", () => {
     const handler = h.handlers.get("notification.created")!;
     expect(handler).toBeTypeOf("function");
 
-    handler({ type: "notification.created", resource: "notification", id: 1, data: notif, ts: "t" });
+    handler({
+      type: "notification.created",
+      resource: "notification",
+      id: 1,
+      data: notif,
+      ts: "t",
+    });
 
     expect(h.pushLive).toHaveBeenCalledWith(notif);
     expect(h.buildToast).toHaveBeenCalledWith(notif, "sportsman");
@@ -84,7 +96,13 @@ describe("NotificationsBootstrap", () => {
   it("dedupes rapid repeats of the same notification (single toast)", () => {
     render(<NotificationsBootstrap />);
     const handler = h.handlers.get("notification.created")!;
-    const env = { type: "notification.created", resource: "notification", id: 1, data: notif, ts: "t" };
+    const env = {
+      type: "notification.created",
+      resource: "notification",
+      id: 1,
+      data: notif,
+      ts: "t",
+    };
 
     handler(env);
     handler(env); // same type:resource_id within the dedupe window

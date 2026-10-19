@@ -1,11 +1,6 @@
 import { useEffect, useState } from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
@@ -43,9 +38,7 @@ function getInitials(name: string): string {
 
 const passwordSchema = Yup.object({
   current_password: Yup.string().required("Contraseña actual obligatoria"),
-  new_password: Yup.string()
-    .min(8, "Mínimo 8 caracteres")
-    .required("Nueva contraseña obligatoria"),
+  new_password: Yup.string().min(8, "Mínimo 8 caracteres").required("Nueva contraseña obligatoria"),
   confirm_password: Yup.string()
     .oneOf([Yup.ref("new_password")], "Las contraseñas deben coincidir")
     .required("Confirmación obligatoria"),
@@ -120,17 +113,14 @@ export default function Profile() {
             {profile && (
               <div className="border-t border-divider pt-4 mt-4 text-sm space-y-2 text-left">
                 <p>
-                  <span className="font-semibold">Documento:</span>{" "}
-                  {profile.documento || "—"}
+                  <span className="font-semibold">Documento:</span> {profile.documento || "—"}
                 </p>
                 <p>
-                  <span className="font-semibold">Teléfono:</span>{" "}
-                  {profile.telefono || "—"}
+                  <span className="font-semibold">Teléfono:</span> {profile.telefono || "—"}
                 </p>
                 {profile.address && (
                   <p>
-                    <span className="font-semibold">Dirección:</span>{" "}
-                    {profile.address}
+                    <span className="font-semibold">Dirección:</span> {profile.address}
                   </p>
                 )}
               </div>
@@ -163,8 +153,7 @@ export default function Profile() {
                     setProfile(updated);
                     showToast({
                       title: "Perfil actualizado",
-                      description:
-                        "Los cambios se guardaron correctamente.",
+                      description: "Los cambios se guardaron correctamente.",
                       variant: "success",
                     });
                     setIsEditing(false);
@@ -181,25 +170,13 @@ export default function Profile() {
                     <div className="grid gap-4 md:grid-cols-2">
                       <div className="space-y-1">
                         <Label>Nombres</Label>
-                        <Field
-                          as={Input}
-                          name="nombres"
-                          disabled={!isEditing}
-                        />
-                        <ErrorMessage
-                          name="nombres"
-                          component="p"
-                          className="text-sm text-error"
-                        />
+                        <Field as={Input} name="nombres" disabled={!isEditing} />
+                        <ErrorMessage name="nombres" component="p" className="text-sm text-error" />
                       </div>
 
                       <div className="space-y-1">
                         <Label>Apellidos</Label>
-                        <Field
-                          as={Input}
-                          name="apellidos"
-                          disabled={!isEditing}
-                        />
+                        <Field as={Input} name="apellidos" disabled={!isEditing} />
                         <ErrorMessage
                           name="apellidos"
                           component="p"
@@ -209,11 +186,7 @@ export default function Profile() {
 
                       <div className="space-y-1">
                         <Label>Teléfono</Label>
-                        <Field
-                          as={Input}
-                          name="telefono"
-                          disabled={!isEditing}
-                        />
+                        <Field as={Input} name="telefono" disabled={!isEditing} />
                         <ErrorMessage
                           name="telefono"
                           component="p"
@@ -223,11 +196,7 @@ export default function Profile() {
 
                       <div className="space-y-1">
                         <Label>Documento</Label>
-                        <Field
-                          as={Input}
-                          name="documento"
-                          disabled={!isEditing}
-                        />
+                        <Field as={Input} name="documento" disabled={!isEditing} />
                         <ErrorMessage
                           name="documento"
                           component="p"
@@ -237,12 +206,7 @@ export default function Profile() {
 
                       <div className="space-y-1">
                         <Label>Fecha de nacimiento</Label>
-                        <Field
-                          as={Input}
-                          type="date"
-                          name="date_of_birth"
-                          disabled={!isEditing}
-                        />
+                        <Field as={Input} type="date" name="date_of_birth" disabled={!isEditing} />
                         <ErrorMessage
                           name="date_of_birth"
                           component="p"
@@ -252,16 +216,8 @@ export default function Profile() {
 
                       <div className="space-y-1">
                         <Label>Dirección</Label>
-                        <Field
-                          as={Input}
-                          name="address"
-                          disabled={!isEditing}
-                        />
-                        <ErrorMessage
-                          name="address"
-                          component="p"
-                          className="text-sm text-error"
-                        />
+                        <Field as={Input} name="address" disabled={!isEditing} />
+                        <ErrorMessage name="address" component="p" className="text-sm text-error" />
                       </div>
                     </div>
 
@@ -270,7 +226,7 @@ export default function Profile() {
                       {!isEditing ? (
                         <Button
                           type="button"
-                         
+
                           onClick={() => setIsEditing(true)}
                         >
                           Editar
@@ -287,14 +243,10 @@ export default function Profile() {
 
                           <Button
                             type="submit"
-                           
-                            disabled={
-                              isSubmitting || !isValid || !dirty
-                            }
+
+                            disabled={isSubmitting || !isValid || !dirty}
                           >
-                            {isSubmitting
-                              ? "Guardando..."
-                              : "Guardar Cambios"}
+                            {isSubmitting ? "Guardando..." : "Guardar Cambios"}
                           </Button>
                         </>
                       )}
@@ -310,10 +262,7 @@ export default function Profile() {
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>Seguridad</CardTitle>
 
-              <Button
-                variant="outline"
-                onClick={() => setPasswordModalOpen(true)}
-              >
+              <Button variant="outline" onClick={() => setPasswordModalOpen(true)}>
                 Cambiar contraseña
               </Button>
             </CardHeader>
@@ -366,7 +315,11 @@ export default function Profile() {
                 <div className="space-y-1">
                   <Label>Contraseña Actual</Label>
                   <Field as={PasswordInput} name="current_password" />
-                  <ErrorMessage name="current_password" component="p" className="text-sm text-error" />
+                  <ErrorMessage
+                    name="current_password"
+                    component="p"
+                    className="text-sm text-error"
+                  />
                 </div>
                 <div className="space-y-1">
                   <Label>Nueva Contraseña</Label>
@@ -376,10 +329,18 @@ export default function Profile() {
                 <div className="space-y-1">
                   <Label>Confirmar Nueva Contraseña</Label>
                   <Field as={PasswordInput} name="confirm_password" />
-                  <ErrorMessage name="confirm_password" component="p" className="text-sm text-error" />
+                  <ErrorMessage
+                    name="confirm_password"
+                    component="p"
+                    className="text-sm text-error"
+                  />
                 </div>
                 <div className="flex justify-end gap-3 pt-4">
-                  <Button type="button" variant="outline" onClick={() => setPasswordModalOpen(false)}>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setPasswordModalOpen(false)}
+                  >
                     Cancelar
                   </Button>
                   <Button type="submit" disabled={isSubmitting}>

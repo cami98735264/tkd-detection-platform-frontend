@@ -1,13 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Toaster, toast } from "sonner";
 
-import {
-  ModalOptions,
-  ConfirmOptions,
-  ToastOptions,
-  AlertOptions,
-  BannerOptions,
-} from "./types";
+import { ModalOptions, ConfirmOptions, ToastOptions, AlertOptions, BannerOptions } from "./types";
 
 import AppModal from "./components/AppModal";
 import AppAlert from "./components/AppAlert";
@@ -34,11 +28,7 @@ function useHtmlTheme(): "light" | "dark" {
 
 import { FeedbackContext, type FeedbackContextType } from "./FeedbackContext";
 
-export function FeedbackProvider({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export function FeedbackProvider({ children }: { children: React.ReactNode }) {
   const [modal, setModal] = useState<ModalOptions | null>(null);
   const [alert, setAlert] = useState<AlertOptions | null>(null);
   const [banner, setBanner] = useState<BannerOptions | null>(null);
@@ -99,22 +89,11 @@ export function FeedbackProvider({
 
   return (
     <FeedbackContext.Provider value={contextValue}>
-      {banner && (
-        <AppBanner
-          {...banner}
-          onClose={() => setBanner(null)}
-        />
-      )}
+      {banner && <AppBanner {...banner} onClose={() => setBanner(null)} />}
 
       {children}
 
-      {modal && (
-        <AppModal
-          open={true}
-          onOpenChange={() => setModal(null)}
-          {...modal}
-        />
-      )}
+      {modal && <AppModal open={true} onOpenChange={() => setModal(null)} {...modal} />}
 
       {alert && (
         <AppModal
@@ -140,8 +119,7 @@ export function FeedbackProvider({
         theme={toasterTheme}
         toastOptions={{
           classNames: {
-            toast:
-              "bg-surface text-text border border-border shadow-overlay rounded-lg",
+            toast: "bg-surface text-text border border-border shadow-overlay rounded-lg",
             title: "font-medium text-text",
             description: "text-muted text-sm",
             actionButton: "bg-primary text-primary-foreground",

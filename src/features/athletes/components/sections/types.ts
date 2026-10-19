@@ -98,10 +98,7 @@ export function buildRegistrationPayload(
   }
 
   if (parent) {
-    payload.parent_relationship = parent.parent_relationship as
-      | "mother"
-      | "father"
-      | "guardian";
+    payload.parent_relationship = parent.parent_relationship as "mother" | "father" | "guardian";
     if (parent.parent_mode === "link") {
       payload.parent_user_id = parent.parent_user_id;
     } else {

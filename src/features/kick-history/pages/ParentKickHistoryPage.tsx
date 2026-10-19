@@ -14,7 +14,6 @@ import { Button } from "@/components/ui/button";
 import { Camera } from "lucide-react";
 import { Link } from "react-router-dom";
 
-
 export default function ParentKickHistoryPage() {
   const { handleError } = useApiErrorHandler();
   const [linkedMinors, setLinkedMinors] = useState<AthleteConsent[]>([]);
@@ -39,9 +38,7 @@ export default function ParentKickHistoryPage() {
   const authorizedMinors = linkedMinors.filter((m) => m.consent_granted);
 
   const handleSelectChild = useCallback((minor: AthleteConsent) => {
-    setSelectedChild((prev) =>
-      prev?.athlete_id === minor.athlete_id ? null : minor,
-    );
+    setSelectedChild((prev) => (prev?.athlete_id === minor.athlete_id ? null : minor));
   }, []);
 
   if (loadingConsent) {
@@ -110,7 +107,9 @@ export default function ParentKickHistoryPage() {
                   className="flex items-center gap-2 rounded-lg border border-border bg-surface px-3 py-2 text-sm transition-interactive hover:border-primary/40 hover:bg-primary/5"
                 >
                   <span>{minor.athlete_name}</span>
-                  <Badge variant="success" className="text-xs">Autorizado</Badge>
+                  <Badge variant="success" className="text-xs">
+                    Autorizado
+                  </Badge>
                 </button>
               ))}
             </div>
@@ -134,16 +133,8 @@ export default function ParentKickHistoryPage() {
 
       {(authorizedMinors.length === 1 || selectedChild) && (
         <EvaluationHistory
-          athleteId={
-            selectedChild
-              ? selectedChild.athlete_id
-              : authorizedMinors[0].athlete_id
-          }
-          childName={
-            selectedChild
-              ? selectedChild.athlete_name
-              : authorizedMinors[0].athlete_name
-          }
+          athleteId={selectedChild ? selectedChild.athlete_id : authorizedMinors[0].athlete_id}
+          childName={selectedChild ? selectedChild.athlete_name : authorizedMinors[0].athlete_name}
           eyebrow="Acudiente"
         />
       )}

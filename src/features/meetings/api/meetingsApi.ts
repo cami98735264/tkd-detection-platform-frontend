@@ -29,8 +29,7 @@ export interface MeetingConfirmation {
 }
 
 export const meetingsApi = {
-  list: (page = 1) =>
-    http.get<PaginatedResponse<Meeting>>(`/meetings/?page=${page}`),
+  list: (page = 1) => http.get<PaginatedResponse<Meeting>>(`/meetings/?page=${page}`),
 
   get: (id: number) => http.get<Meeting>(`/meetings/${id}/`),
 
@@ -40,11 +39,9 @@ export const meetingsApi = {
 
   delete: (id: number) => http.delete(`/meetings/${id}/`),
 
-  confirmAttendance: (id: number) =>
-    http.post<Meeting>(`/meetings/${id}/confirm-attendance/`, {}),
+  confirmAttendance: (id: number) => http.post<Meeting>(`/meetings/${id}/confirm-attendance/`, {}),
 
-  cancelConfirmation: (id: number) =>
-    http.delete(`/meetings/${id}/cancel-confirmation/`),
+  cancelConfirmation: (id: number) => http.delete(`/meetings/${id}/cancel-confirmation/`),
 
   listConfirmations: (id: number) =>
     http.get<MeetingConfirmation[]>(`/meetings/${id}/confirmations/`),

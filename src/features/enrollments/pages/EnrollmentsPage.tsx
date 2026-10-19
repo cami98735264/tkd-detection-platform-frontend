@@ -47,26 +47,25 @@ export default function EnrollmentsPage() {
   const [athleteMap, setAthleteMap] = useState<Record<number, string>>({});
   const [programMap, setProgramMap] = useState<Record<number, string>>({});
 
-  const fetchData = useCallback((p: number) => {
-    setLoading(true);
-    Promise.all([
-      enrollmentsApi.list(p),
-      athletesApi.list(1),
-      programsApi.list(1),
-    ])
-      .then(([enrollRes, athRes, progRes]) => {
-        setData(enrollRes.results);
-        setCount(enrollRes.count);
-        const aMap: Record<number, string> = {};
-        athRes.results.forEach((a) => (aMap[a.id] = a.full_name));
-        setAthleteMap(aMap);
-        const pMap: Record<number, string> = {};
-        progRes.results.forEach((p) => (pMap[p.id] = p.name));
-        setProgramMap(pMap);
-      })
-      .catch(handleError)
-      .finally(() => setLoading(false));
-  }, [handleError]);
+  const fetchData = useCallback(
+    (p: number) => {
+      setLoading(true);
+      Promise.all([enrollmentsApi.list(p), athletesApi.list(1), programsApi.list(1)])
+        .then(([enrollRes, athRes, progRes]) => {
+          setData(enrollRes.results);
+          setCount(enrollRes.count);
+          const aMap: Record<number, string> = {};
+          athRes.results.forEach((a) => (aMap[a.id] = a.full_name));
+          setAthleteMap(aMap);
+          const pMap: Record<number, string> = {};
+          progRes.results.forEach((p) => (pMap[p.id] = p.name));
+          setProgramMap(pMap);
+        })
+        .catch(handleError)
+        .finally(() => setLoading(false));
+    },
+    [handleError],
+  );
 
   const fetchMyEnrollments = useCallback(() => {
     setLoading(true);
@@ -136,10 +135,7 @@ export default function EnrollmentsPage() {
             variant="outline"
             size="sm"
             onClick={() =>
-              window.open(
-                `${config.apiUrl}/media/${r.certificado_medico_adjunto}`,
-                "_blank",
-              )
+              window.open(`${config.apiUrl}/media/${r.certificado_medico_adjunto}`, "_blank")
             }
           >
             <FileText className="h-3.5 w-3.5" />

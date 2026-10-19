@@ -16,9 +16,7 @@ import { useApiErrorHandler } from "@/feedback/useApiErrorHandler";
 import type { RoleName } from "@/config/permissions";
 
 const schema = Yup.object({
-  email: Yup.string()
-    .email("Correo electrónico no válido")
-    .required("El correo es obligatorio"),
+  email: Yup.string().email("Correo electrónico no válido").required("El correo es obligatorio"),
   password: Yup.string().required("La contraseña es obligatoria"),
 });
 
@@ -139,12 +137,7 @@ export default function Login() {
                 <ErrorMessage name="password" component={FieldErrorText} />
               </div>
 
-              <Button
-                type="submit"
-                disabled={isSubmitting}
-                className="w-full"
-                size="lg"
-              >
+              <Button type="submit" disabled={isSubmitting} className="w-full" size="lg">
                 {isSubmitting ? "Ingresando..." : "Iniciar sesión"}
               </Button>
             </Form>

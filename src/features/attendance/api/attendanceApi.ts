@@ -58,13 +58,9 @@ export const attendanceApi = {
   },
 
   bulkCreate: (payload: AttendanceBulkPayload) =>
-    http.post<AttendanceBulkResult>(
-      `/attendances/bulk/`,
-      payload
-    ),
+    http.post<AttendanceBulkResult>(`/attendances/bulk/`, payload),
 
-  confirm: (id: number) =>
-    http.post<AttendanceRecord>(`/attendances/${id}/confirm/`, {}),
+  confirm: (id: number) => http.post<AttendanceRecord>(`/attendances/${id}/confirm/`, {}),
 
   summary: (params: { athlete_id?: number; edition_id?: number }) => {
     const query = new URLSearchParams();

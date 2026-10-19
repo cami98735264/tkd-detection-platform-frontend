@@ -90,8 +90,7 @@ const columns: Column<EvaluationSession>[] = [
 ];
 
 function ScoreBadge({ score }: { score: number }) {
-  const tone =
-    score >= 80 ? "success" : score >= 60 ? "warning" : "destructive";
+  const tone = score >= 80 ? "success" : score >= 60 ? "warning" : "destructive";
   return (
     <Badge variant={tone} className="font-semibold">
       {score}/100
@@ -115,16 +114,19 @@ export default function EvaluationHistory({
   const [selectedSession, setSelectedSession] = useState<EvaluationSession | null>(null);
   const resultsRef = useRef<HTMLDivElement>(null);
 
-  const fetchAll = useCallback((_page: number) => {
-    setLoading(true);
-    technicalEvaluationApi
-      .listSessions(athleteId)
-      .then((sessions) => {
-        setAllSessions(sessions);
-      })
-      .catch(handleError)
-      .finally(() => setLoading(false));
-  }, [athleteId, handleError]);
+  const fetchAll = useCallback(
+    (_page: number) => {
+      setLoading(true);
+      technicalEvaluationApi
+        .listSessions(athleteId)
+        .then((sessions) => {
+          setAllSessions(sessions);
+        })
+        .catch(handleError)
+        .finally(() => setLoading(false));
+    },
+    [athleteId, handleError],
+  );
 
   const fetchSessionDetail = useCallback(
     (id: number) => {
@@ -202,9 +204,7 @@ export default function EvaluationHistory({
     setSelectedSession(null);
   };
 
-  const title = childName
-    ? `Historial de ${childName}`
-    : "Historial de evaluaciones técnicas";
+  const title = childName ? `Historial de ${childName}` : "Historial de evaluaciones técnicas";
 
   const description = childName
     ? "Evolución de las patadas registradas."

@@ -7,8 +7,7 @@ import {
 
 // Same model that the backend uses, fetched from Google's CDN at runtime so
 // the bundler doesn't have to ship it.
-const WASM_BASE =
-  "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.35/wasm";
+const WASM_BASE = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.35/wasm";
 const MODEL_URL =
   "https://storage.googleapis.com/mediapipe-models/pose_landmarker/" +
   "pose_landmarker_lite/float16/latest/pose_landmarker_lite.task";

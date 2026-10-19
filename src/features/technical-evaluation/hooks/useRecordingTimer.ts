@@ -1,9 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 
-export function useRecordingTimer(
-  durationSeconds: number,
-  onComplete: () => void,
-) {
+export function useRecordingTimer(durationSeconds: number, onComplete: () => void) {
   const [secondsLeft, setSecondsLeft] = useState(durationSeconds);
   const [isRunning, setIsRunning] = useState(false);
 

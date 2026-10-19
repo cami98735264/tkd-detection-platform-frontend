@@ -14,7 +14,11 @@ const columns: Column<InventoryItem>[] = [
   { key: "name", header: "Nombre" },
   { key: "quantity", header: "Cantidad" },
   { key: "description", header: "Descripción" },
-  { key: "created_at", header: "Fecha Sistema", render: (r) => new Date(r.created_at).toLocaleDateString() },
+  {
+    key: "created_at",
+    header: "Fecha Sistema",
+    render: (r) => new Date(r.created_at).toLocaleDateString(),
+  },
 ];
 
 export default function InventoryPage() {
@@ -83,7 +87,12 @@ export default function InventoryPage() {
         title="Inventario"
         description="Gestiona el equipo y materiales disponibles para la academia."
         actions={
-          <Button onClick={() => { setEditing(null); setModalOpen(true); }}>
+          <Button
+            onClick={() => {
+              setEditing(null);
+              setModalOpen(true);
+            }}
+          >
             <Plus size={18} className="mr-2" /> Nuevo Ítem
           </Button>
         }
@@ -94,7 +103,10 @@ export default function InventoryPage() {
             columns={columns}
             data={data}
             loading={loading}
-            onEdit={(row) => { setEditing(row); setModalOpen(true); }}
+            onEdit={(row) => {
+              setEditing(row);
+              setModalOpen(true);
+            }}
             onDelete={handleDelete}
           />
           <Pagination count={count} page={page} onPageChange={setPage} />
@@ -102,7 +114,10 @@ export default function InventoryPage() {
       </Card>
       <InventoryFormModal
         open={modalOpen}
-        onOpenChange={(v) => { setModalOpen(v); if (!v) setEditing(null); }}
+        onOpenChange={(v) => {
+          setModalOpen(v);
+          if (!v) setEditing(null);
+        }}
         item={editing}
         onSubmit={handleSubmit}
       />

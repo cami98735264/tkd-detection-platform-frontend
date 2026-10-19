@@ -10,9 +10,7 @@ import { Label } from "@/components/ui/label";
 
 function readPrimaryColor(): string {
   if (typeof window === "undefined") return "#b94236";
-  const v = getComputedStyle(document.documentElement)
-    .getPropertyValue("--primary")
-    .trim();
+  const v = getComputedStyle(document.documentElement).getPropertyValue("--primary").trim();
   return v || "#b94236";
 }
 
@@ -37,20 +35,10 @@ const DAY_LABELS: Record<string, string> = {
   sunday: "Domingo",
 };
 
-const DAY_KEYS = [
-  "monday",
-  "tuesday",
-  "wednesday",
-  "thursday",
-  "friday",
-  "saturday",
-  "sunday",
-];
+const DAY_KEYS = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
 
 export default function SchedulePicker({ value, onChange }: Props) {
-  const [selectedDays, setSelectedDays] = useState<string[]>(
-    value.flatMap(e => e.days)
-  );
+  const [selectedDays, setSelectedDays] = useState<string[]>(value.flatMap((e) => e.days));
   const [startTime, setStartTime] = useState(value[0]?.startTime ?? "18:00");
   const [endTime, setEndTime] = useState(value[0]?.endTime ?? "19:30");
   const [eventColor, setEventColor] = useState<string>(readPrimaryColor);
@@ -64,8 +52,8 @@ export default function SchedulePicker({ value, onChange }: Props) {
   }, []);
 
   const toggleDay = (day: string) => {
-    setSelectedDays(prev =>
-      prev.includes(day) ? prev.filter(d => d !== day) : [...prev, day]
+    setSelectedDays((prev) =>
+      prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day],
     );
   };
 
@@ -75,20 +63,20 @@ export default function SchedulePicker({ value, onChange }: Props) {
   };
 
   const events = value.flatMap((entry, idx) =>
-    entry.days.map(day => ({
+    entry.days.map((day) => ({
       id: `${idx}-${day}`,
       daysOfWeek: [DAY_KEYS.indexOf(day) + 1],
       startTime: entry.startTime,
       endTime: entry.endTime,
       display: "time",
       color: eventColor,
-    }))
+    })),
   );
 
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap gap-2">
-        {DAY_KEYS.map(day => (
+        {DAY_KEYS.map((day) => (
           <Button
             key={day}
             type="button"
@@ -103,19 +91,11 @@ export default function SchedulePicker({ value, onChange }: Props) {
       <div className="flex gap-3 items-end">
         <div className="space-y-1">
           <Label>Hora inicio</Label>
-          <Input
-            type="time"
-            value={startTime}
-            onChange={e => setStartTime(e.target.value)}
-          />
+          <Input type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} />
         </div>
         <div className="space-y-1">
           <Label>Hora fin</Label>
-          <Input
-            type="time"
-            value={endTime}
-            onChange={e => setEndTime(e.target.value)}
-          />
+          <Input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} />
         </div>
         <Button
           type="button"
@@ -131,8 +111,8 @@ export default function SchedulePicker({ value, onChange }: Props) {
           {value.map((entry, idx) => (
             <div key={idx} className="flex justify-between items-center">
               <span className="text-sm">
-                {entry.days.map(d => DAY_LABELS[d]).join(", ")} — {entry.startTime}{" "}
-                a {entry.endTime}
+                {entry.days.map((d) => DAY_LABELS[d]).join(", ")} — {entry.startTime} a{" "}
+                {entry.endTime}
               </span>
               <Button
                 type="button"

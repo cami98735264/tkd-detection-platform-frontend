@@ -35,7 +35,13 @@ function setAdapter(handler: (config: AxiosRequestConfig) => Reply) {
     const { status, data = {}, headers = {} } = handler(config);
     const response = { data, status, statusText: "", headers, config, request: {} };
     if (status >= 400) {
-      throw new AxiosError("Request failed", String(status), config as never, {}, response as never);
+      throw new AxiosError(
+        "Request failed",
+        String(status),
+        config as never,
+        {},
+        response as never,
+      );
     }
     return response;
   };
@@ -58,7 +64,9 @@ describe("http 401 refresh (contract §0/§7 note 7)", () => {
         return { status: 200, data: {} };
       }
       seen[url] = (seen[url] ?? 0) + 1;
-      return seen[url] === 1 ? { status: 401, data: { detail: "x" } } : { status: 200, data: { ok: url } };
+      return seen[url] === 1
+        ? { status: 401, data: { detail: "x" } }
+        : { status: 200, data: { ok: url } };
     });
 
     const [a, b] = await Promise.all([http.get("/p1"), http.get("/p2")]);

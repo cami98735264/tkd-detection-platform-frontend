@@ -1,5 +1,5 @@
 export function renderApp(_url: string): string {
-	return `<!doctype html>
+  return `<!doctype html>
 <html lang="en">
 	<head>
 		<meta charset="UTF-8" />

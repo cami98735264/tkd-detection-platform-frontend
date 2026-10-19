@@ -26,8 +26,7 @@ function blobToDataUrl(blob: Blob): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onloadend = () => resolve(reader.result as string);
-    reader.onerror = () =>
-      reject(reader.error ?? new Error("FileReader failed"));
+    reader.onerror = () => reject(reader.error ?? new Error("FileReader failed"));
     reader.readAsDataURL(blob);
   });
 }
@@ -41,23 +40,16 @@ export default function RecordingCapture({
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
 
-  const {
-    stream,
-    error: camError,
-    hasPermission,
-    requestCamera,
-    stopCamera,
-  } = useCameraAccess();
+  const { stream, error: camError, hasPermission, requestCamera, stopCamera } = useCameraAccess();
 
-  const [phase, setPhase] = useState<
-    "idle" | "countdown" | "recording" | "uploading"
-  >("idle");
+  const [phase, setPhase] = useState<"idle" | "countdown" | "recording" | "uploading">("idle");
   const [countdown, setCountdown] = useState(PRECOUNTDOWN_SECS);
 
-  const { secondsLeft, progress, start: startTimer } = useRecordingTimer(
-    RECORD_SECS,
-    () => stopRecording(),
-  );
+  const {
+    secondsLeft,
+    progress,
+    start: startTimer,
+  } = useRecordingTimer(RECORD_SECS, () => stopRecording());
 
   // The current <video> element. Tracked in state (rather than a ref) so the
   // SkeletonOverlay can react when the element changes.
@@ -80,10 +72,7 @@ export default function RecordingCapture({
   const overlayEnabled = !!stream;
 
   const stopRecording = useCallback(() => {
-    if (
-      mediaRecorderRef.current &&
-      mediaRecorderRef.current.state !== "inactive"
-    ) {
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
       mediaRecorderRef.current.stop();
     }
     stopCamera();
@@ -115,11 +104,7 @@ export default function RecordingCapture({
 
       try {
         const base64 = await blobToDataUrl(blob);
-        const session = await technicalEvaluationApi.createSession(
-          kickType,
-          base64,
-          athleteId,
-        );
+        const session = await technicalEvaluationApi.createSession(kickType, base64, athleteId);
         onComplete(session.id);
       } catch (err) {
         const message =
@@ -173,9 +158,7 @@ export default function RecordingCapture({
               <p className="font-display text-base font-semibold tracking-tight text-text">
                 Subiendo y analizando…
               </p>
-              <p className="mt-1 text-sm text-muted">
-                Esto puede tardar unos segundos.
-              </p>
+              <p className="mt-1 text-sm text-muted">Esto puede tardar unos segundos.</p>
             </div>
           </div>
         </CardContent>
@@ -193,8 +176,7 @@ export default function RecordingCapture({
             Grabar patada
           </CardTitle>
           <p className="text-sm text-muted">
-            Técnica seleccionada:{" "}
-            <span className="font-medium text-text">{kickType}</span>
+            Técnica seleccionada: <span className="font-medium text-text">{kickType}</span>
           </p>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -250,8 +232,7 @@ export default function RecordingCapture({
         </CardTitle>
         {phase === "idle" && (
           <p className="text-sm text-muted">
-            Técnica seleccionada:{" "}
-            <span className="font-medium text-text">{kickType}</span>
+            Técnica seleccionada: <span className="font-medium text-text">{kickType}</span>
           </p>
         )}
       </CardHeader>
@@ -286,18 +267,13 @@ export default function RecordingCapture({
         {phase === "idle" && (
           <>
             <div className="rounded-md border border-border bg-surface-2/50 p-3 text-xs text-muted">
-              <p className="font-medium text-text">
-                Para un análisis preciso:
-              </p>
+              <p className="font-medium text-text">Para un análisis preciso:</p>
               <ul className="mt-1 list-disc space-y-0.5 pl-4">
                 <li>
-                  Coloca la cámara <span className="text-text">de costado</span>{" "}
-                  al deportista, a la altura de la cadera.
+                  Coloca la cámara <span className="text-text">de costado</span> al deportista, a la
+                  altura de la cadera.
                 </li>
-                <li>
-                  Distancia de ~3 m, con el cuerpo completo (cabeza a pies)
-                  visible.
-                </li>
+                <li>Distancia de ~3 m, con el cuerpo completo (cabeza a pies) visible.</li>
                 <li>Buena iluminación y fondo sin obstáculos.</li>
               </ul>
             </div>
@@ -305,16 +281,14 @@ export default function RecordingCapture({
               Comenzar grabación
             </Button>
             <p className="text-center text-xs text-faint">
-              Al iniciar, tendrás {PRECOUNTDOWN_SECS} segundos para colocarte y{" "}
-              {RECORD_SECS} segundos para ejecutar la patada.
+              Al iniciar, tendrás {PRECOUNTDOWN_SECS} segundos para colocarte y {RECORD_SECS}{" "}
+              segundos para ejecutar la patada.
             </p>
           </>
         )}
 
         {phase === "countdown" && (
-          <p className="text-center text-sm text-muted">
-            Prepárate para ejecutar la patada
-          </p>
+          <p className="text-center text-sm text-muted">Prepárate para ejecutar la patada</p>
         )}
 
         {phase === "recording" && (
@@ -329,8 +303,7 @@ export default function RecordingCapture({
                   REC
                 </span>
                 <span className="font-display tabular-nums text-text">
-                  {secondsLeft}s{" "}
-                  <span className="text-faint">/ {RECORD_SECS}s</span>
+                  {secondsLeft}s <span className="text-faint">/ {RECORD_SECS}s</span>
                 </span>
               </div>
               <div

@@ -53,11 +53,9 @@ export const athletesApi = {
    * Atomic admin-only registration: creates (or links) sportsman user, athlete,
    * and parent user + ParentAthlete link in a single transaction on the backend.
    */
-  register: (data: AthleteRegistrationPayload) =>
-    http.post<Athlete>("/athletes/register/", data),
+  register: (data: AthleteRegistrationPayload) => http.post<Athlete>("/athletes/register/", data),
 
-  update: (id: number, data: AthleteWritePayload) =>
-    http.put<Athlete>(`/athletes/${id}/`, data),
+  update: (id: number, data: AthleteWritePayload) => http.put<Athlete>(`/athletes/${id}/`, data),
 
   delete: (id: number) => http.delete(`/athletes/${id}/`),
 };

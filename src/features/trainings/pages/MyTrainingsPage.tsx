@@ -20,9 +20,7 @@ export default function MyTrainingsPage() {
     Promise.all([enrollmentsApi.getMyEnrollments(), trainingsApi.list(1)])
       .then(([enrollRes, trainRes]) => {
         const enrolledProgramIds = new Set(enrollRes.map((e) => e.program));
-        setTrainings(
-          trainRes.results.filter((t) => enrolledProgramIds.has(t.program)),
-        );
+        setTrainings(trainRes.results.filter((t) => enrolledProgramIds.has(t.program)));
       })
       .catch(handleError)
       .finally(() => setLoading(false));

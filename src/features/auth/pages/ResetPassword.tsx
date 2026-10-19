@@ -92,9 +92,7 @@ export default function ResetPassword() {
           <h2 className="mt-2 font-display text-3xl font-semibold tracking-tight text-text">
             Restablecer contraseña
           </h2>
-          <p className="mt-2 text-sm text-muted">
-            Elige una nueva contraseña para tu cuenta.
-          </p>
+          <p className="mt-2 text-sm text-muted">Elige una nueva contraseña para tu cuenta.</p>
         </header>
 
         <Formik

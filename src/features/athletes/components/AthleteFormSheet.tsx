@@ -40,12 +40,7 @@ interface Props {
   onSuccess?: () => void;
 }
 
-export default function AthleteFormSheet({
-  open,
-  onOpenChange,
-  athlete,
-  onSuccess,
-}: Props) {
+export default function AthleteFormSheet({ open, onOpenChange, athlete, onSuccess }: Props) {
   const { handleError } = useApiErrorHandler();
   const { showToast } = useFeedback();
 
@@ -78,9 +73,7 @@ export default function AthleteFormSheet({
         date_of_birth: athlete.date_of_birth ?? "",
         belt_actual: athlete.belt_actual != null ? String(athlete.belt_actual) : "",
         categoria_competencia:
-          athlete.categoria_competencia != null
-            ? String(athlete.categoria_competencia)
-            : "",
+          athlete.categoria_competencia != null ? String(athlete.categoria_competencia) : "",
         height_cm: athlete.height_cm ?? "",
         status: athlete.status ?? "active",
       });
@@ -92,35 +85,29 @@ export default function AthleteFormSheet({
   const age = calculateAge(personal.date_of_birth);
   const isMinor = age !== null && age < 18;
 
-  const updatePersonal = useCallback(
-    (patch: Partial<AthletePersonalDataState>) => {
-      setPersonal((prev) => ({ ...prev, ...patch }));
-      // Clear field errors as the user edits the corresponding field.
-      setPersonalErrors((prev) => {
-        const next = { ...prev };
-        for (const key of Object.keys(patch) as (keyof AthletePersonalDataState)[]) {
-          delete (next as Record<string, unknown>)[key];
-        }
-        return next;
-      });
-      if ("sportsman_email" in patch) setSportsmanEmailExists(false);
-    },
-    [],
-  );
-  const updateParent = useCallback(
-    (patch: Partial<ParentAccountState>) => {
-      setParent((prev) => ({ ...prev, ...patch }));
-      setParentErrors((prev) => {
-        const next = { ...prev };
-        for (const key of Object.keys(patch) as (keyof ParentAccountState)[]) {
-          delete (next as Record<string, unknown>)[key];
-        }
-        return next;
-      });
-      if ("parent_email" in patch) setParentEmailExists(false);
-    },
-    [],
-  );
+  const updatePersonal = useCallback((patch: Partial<AthletePersonalDataState>) => {
+    setPersonal((prev) => ({ ...prev, ...patch }));
+    // Clear field errors as the user edits the corresponding field.
+    setPersonalErrors((prev) => {
+      const next = { ...prev };
+      for (const key of Object.keys(patch) as (keyof AthletePersonalDataState)[]) {
+        delete (next as Record<string, unknown>)[key];
+      }
+      return next;
+    });
+    if ("sportsman_email" in patch) setSportsmanEmailExists(false);
+  }, []);
+  const updateParent = useCallback((patch: Partial<ParentAccountState>) => {
+    setParent((prev) => ({ ...prev, ...patch }));
+    setParentErrors((prev) => {
+      const next = { ...prev };
+      for (const key of Object.keys(patch) as (keyof ParentAccountState)[]) {
+        delete (next as Record<string, unknown>)[key];
+      }
+      return next;
+    });
+    if ("parent_email" in patch) setParentEmailExists(false);
+  }, []);
 
   const linkExistingSportsmanByEmail = useCallback(async () => {
     const email = personal.sportsman_email.trim();
@@ -131,9 +118,7 @@ export default function AthleteFormSheet({
         role: "sportsman",
         withoutAthlete: true,
       });
-      const match = res.results.find(
-        (u) => u.email.toLowerCase() === email.toLowerCase(),
-      );
+      const match = res.results.find((u) => u.email.toLowerCase() === email.toLowerCase());
       if (!match) {
         showToast({
           title: "Cuenta encontrada pero no disponible",
@@ -162,14 +147,11 @@ export default function AthleteFormSheet({
     if (!email) return;
     try {
       const res = await usersApi.list({ search: email, role: "parent" });
-      const match = res.results.find(
-        (u) => u.email.toLowerCase() === email.toLowerCase(),
-      );
+      const match = res.results.find((u) => u.email.toLowerCase() === email.toLowerCase());
       if (!match) {
         showToast({
           title: "Acudiente no encontrado",
-          description:
-            "El correo ya está en uso pero no corresponde a una cuenta de acudiente.",
+          description: "El correo ya está en uso pero no corresponde a una cuenta de acudiente.",
           variant: "warning",
         });
         return;
@@ -226,9 +208,7 @@ export default function AthleteFormSheet({
         });
         showToast({ title: "Deportista actualizado", variant: "success" });
       } else {
-        await athletesApi.register(
-          buildRegistrationPayload(personal, isMinor ? parent : null),
-        );
+        await athletesApi.register(buildRegistrationPayload(personal, isMinor ? parent : null));
         showToast({ title: "Deportista registrado", variant: "success" });
       }
       onSuccess?.();
@@ -269,9 +249,7 @@ export default function AthleteFormSheet({
         }}
       >
         <SheetHeader>
-          <SheetTitle>
-            {isEdit ? "Editar deportista" : "Registrar deportista"}
-          </SheetTitle>
+          <SheetTitle>{isEdit ? "Editar deportista" : "Registrar deportista"}</SheetTitle>
           <SheetDescription>
             {isEdit
               ? "Actualiza los datos del deportista."
@@ -283,11 +261,7 @@ export default function AthleteFormSheet({
 
         <div
           key={step}
-          className={
-            direction === "right"
-              ? "animate-slide-from-right"
-              : "animate-slide-from-left"
-          }
+          className={direction === "right" ? "animate-slide-from-right" : "animate-slide-from-left"}
         >
           {showStep1 && (
             <AthletePersonalDataSection
@@ -323,15 +297,8 @@ export default function AthleteFormSheet({
           )}
 
           {isLastStep ? (
-            <Button
-              onClick={handleSubmit}
-              disabled={submitting || !personalValid || !parentValid}
-            >
-              {submitting
-                ? "Guardando..."
-                : isEdit
-                  ? "Actualizar"
-                  : "Registrar"}
+            <Button onClick={handleSubmit} disabled={submitting || !personalValid || !parentValid}>
+              {submitting ? "Guardando..." : isEdit ? "Actualizar" : "Registrar"}
             </Button>
           ) : (
             <Button onClick={handleNext} disabled={!personalValid}>
@@ -369,16 +336,12 @@ function Stepper({ step, showGuardian }: { step: 1 | 2; showGuardian: boolean })
               {step > s.id ? <CheckCircle2 size={16} /> : s.id}
             </div>
             {i < steps.length - 1 && (
-              <div
-                className={`w-12 h-0.5 mx-1 ${step > s.id ? "bg-primary" : "bg-border"}`}
-              />
+              <div className={`w-12 h-0.5 mx-1 ${step > s.id ? "bg-primary" : "bg-border"}`} />
             )}
           </div>
         ))}
       </div>
-      <p className="text-center text-sm font-medium mt-3">
-        {steps[step - 1]?.title}
-      </p>
+      <p className="text-center text-sm font-medium mt-3">{steps[step - 1]?.title}</p>
     </div>
   );
 }

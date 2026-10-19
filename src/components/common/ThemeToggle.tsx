@@ -36,11 +36,7 @@ export function ThemeToggle() {
           <DropdownMenuItem
             key={value}
             onSelect={() => setChoice(value)}
-            className={
-              choice === value
-                ? "text-primary font-medium"
-                : ""
-            }
+            className={choice === value ? "text-primary font-medium" : ""}
           >
             <ItemIcon className="h-4 w-4" />
             {label}

@@ -31,9 +31,7 @@ const columns: Column<Evaluation>[] = [
     key: "result_summary",
     header: "Resumen",
     hideOnMobile: true,
-    render: (r) => (
-      <span className="text-muted line-clamp-1">{r.result_summary || "—"}</span>
-    ),
+    render: (r) => <span className="text-muted line-clamp-1">{r.result_summary || "—"}</span>,
   },
   {
     key: "metrics",
@@ -56,17 +54,20 @@ export default function SportsmanEvaluationsPage() {
   const [loading, setLoading] = useState(true);
   const [viewingMetrics, setViewingMetrics] = useState<Evaluation | null>(null);
 
-  const fetchData = useCallback((p: number) => {
-    setLoading(true);
-    evaluationsApi
-      .list(p)
-      .then((res) => {
-        setData(res.results);
-        setCount(res.count);
-      })
-      .catch(handleError)
-      .finally(() => setLoading(false));
-  }, [handleError]);
+  const fetchData = useCallback(
+    (p: number) => {
+      setLoading(true);
+      evaluationsApi
+        .list(p)
+        .then((res) => {
+          setData(res.results);
+          setCount(res.count);
+        })
+        .catch(handleError)
+        .finally(() => setLoading(false));
+    },
+    [handleError],
+  );
 
   useEffect(() => {
     if (!authReady) return;
@@ -96,9 +97,7 @@ export default function SportsmanEvaluationsPage() {
       mobileCard={(r) => (
         <div className="space-y-1">
           <p className="font-medium text-text">{r.evaluator_name}</p>
-          <p className="text-xs text-muted">
-            {new Date(r.evaluated_at).toLocaleDateString()}
-          </p>
+          <p className="text-xs text-muted">{new Date(r.evaluated_at).toLocaleDateString()}</p>
           {r.result_summary && (
             <p className="text-xs text-faint line-clamp-2">{r.result_summary}</p>
           )}
@@ -113,7 +112,9 @@ export default function SportsmanEvaluationsPage() {
       formSheet={
         <MetricsModal
           open={!!viewingMetrics}
-          onOpenChange={(v) => { if (!v) setViewingMetrics(null); }}
+          onOpenChange={(v) => {
+            if (!v) setViewingMetrics(null);
+          }}
           evaluation={viewingMetrics}
         />
       }

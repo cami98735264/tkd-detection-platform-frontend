@@ -57,9 +57,16 @@ const MOCK_STATUS: TwoFactorStatus = {
 };
 
 const MOCK_CODES = [
-  "MOCK-AAAA-1111", "MOCK-BBBB-2222", "MOCK-CCCC-3333", "MOCK-DDDD-4444",
-  "MOCK-EEEE-5555", "MOCK-FFFF-6666", "MOCK-GGGG-7777", "MOCK-HHHH-8888",
-  "MOCK-IIII-9999", "MOCK-JJJJ-0000",
+  "MOCK-AAAA-1111",
+  "MOCK-BBBB-2222",
+  "MOCK-CCCC-3333",
+  "MOCK-DDDD-4444",
+  "MOCK-EEEE-5555",
+  "MOCK-FFFF-6666",
+  "MOCK-GGGG-7777",
+  "MOCK-HHHH-8888",
+  "MOCK-IIII-9999",
+  "MOCK-JJJJ-0000",
 ];
 
 export const twoFactorApi = {
@@ -67,8 +74,7 @@ export const twoFactorApi = {
   setup: async (): Promise<TwoFactorSetup> => {
     if (config.mockAuth) {
       return {
-        otpauth_uri:
-          "otpauth://totp/TKD:mock@warriors.com?secret=JBSWY3DPEHPK3PXP&issuer=TKD",
+        otpauth_uri: "otpauth://totp/TKD:mock@warriors.com?secret=JBSWY3DPEHPK3PXP&issuer=TKD",
         secret: "JBSWY3DPEHPK3PXP",
         issuer: "Warriors TKD",
       };
@@ -80,10 +86,9 @@ export const twoFactorApi = {
   /** POST /auth/2fa/activate/ — confirm the pending secret; returns codes once. */
   activate: async (code: string): Promise<TwoFactorActivateResult> => {
     if (config.mockAuth) return { recovery_codes: MOCK_CODES, activated: true };
-    const res = await http.post<ApiEnvelope<TwoFactorActivateResult>>(
-      "/auth/2fa/activate/",
-      { code },
-    );
+    const res = await http.post<ApiEnvelope<TwoFactorActivateResult>>("/auth/2fa/activate/", {
+      code,
+    });
     return unwrap(res);
   },
 

@@ -17,14 +17,23 @@ interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   meeting?: Meeting | null;
-  onSubmit: (values: { title: string; description: string; date: string; time: string }) => Promise<void>;
+  onSubmit: (values: {
+    title: string;
+    description: string;
+    date: string;
+    time: string;
+  }) => Promise<void>;
 }
 
 export default function MeetingFormModal({ open, onOpenChange, meeting, onSubmit }: Props) {
   const isEdit = !!meeting;
 
   return (
-    <FormModal open={open} onOpenChange={onOpenChange} title={isEdit ? "Editar Reunión" : "Nueva Reunión"}>
+    <FormModal
+      open={open}
+      onOpenChange={onOpenChange}
+      title={isEdit ? "Editar Reunión" : "Nueva Reunión"}
+    >
       {!open ? null : (
         <Formik
           initialValues={{
@@ -63,7 +72,9 @@ export default function MeetingFormModal({ open, onOpenChange, meeting, onSubmit
                 <ErrorMessage name="time" component="p" className="text-sm text-error" />
               </div>
               <div className="flex justify-end gap-3 pt-4">
-                <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
+                <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                  Cancelar
+                </Button>
                 <Button type="submit" disabled={isSubmitting}>
                   {isSubmitting ? "Guardando..." : isEdit ? "Actualizar" : "Crear"}
                 </Button>

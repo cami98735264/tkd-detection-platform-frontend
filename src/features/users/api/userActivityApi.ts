@@ -13,6 +13,5 @@ export interface UserActivity {
 }
 
 export const userActivityApi = {
-  list: (page = 1) =>
-    http.get<PaginatedResponse<UserActivity>>(`/users/actions/?page=${page}`),
+  list: (page = 1) => http.get<PaginatedResponse<UserActivity>>(`/users/actions/?page=${page}`),
 };

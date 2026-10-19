@@ -20,15 +20,18 @@ export const categoriesApi = {
     peso_max: number;
   }) => http.post<CompetitionCategory>("/competition-categories/", data),
 
-  update: (id: number, data: {
-    nombre: string;
-    edad_min: number;
-    edad_max: number;
-    belt_from: number;
-    belt_to: number;
-    peso_min: number;
-    peso_max: number;
-  }) => http.put<CompetitionCategory>(`/competition-categories/${id}/`, data),
+  update: (
+    id: number,
+    data: {
+      nombre: string;
+      edad_min: number;
+      edad_max: number;
+      belt_from: number;
+      belt_to: number;
+      peso_min: number;
+      peso_max: number;
+    },
+  ) => http.put<CompetitionCategory>(`/competition-categories/${id}/`, data),
 
   delete: (id: number) => http.delete(`/competition-categories/${id}/`),
 };

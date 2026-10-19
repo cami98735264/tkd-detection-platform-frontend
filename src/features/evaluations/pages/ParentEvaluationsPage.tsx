@@ -31,9 +31,7 @@ const columns: Column<Evaluation>[] = [
     key: "result_summary",
     header: "Resumen",
     hideOnMobile: true,
-    render: (r) => (
-      <span className="text-muted line-clamp-1">{r.result_summary || "—"}</span>
-    ),
+    render: (r) => <span className="text-muted line-clamp-1">{r.result_summary || "—"}</span>,
   },
   {
     key: "metrics",
@@ -56,17 +54,20 @@ export default function ParentEvaluationsPage() {
   const [loading, setLoading] = useState(true);
   const [viewingMetrics, setViewingMetrics] = useState<Evaluation | null>(null);
 
-  const fetchData = useCallback((p: number) => {
-    setLoading(true);
-    evaluationsApi
-      .list(p)
-      .then((res) => {
-        setData(res.results);
-        setCount(res.count);
-      })
-      .catch(handleError)
-      .finally(() => setLoading(false));
-  }, [handleError]);
+  const fetchData = useCallback(
+    (p: number) => {
+      setLoading(true);
+      evaluationsApi
+        .list(p)
+        .then((res) => {
+          setData(res.results);
+          setCount(res.count);
+        })
+        .catch(handleError)
+        .finally(() => setLoading(false));
+    },
+    [handleError],
+  );
 
   useEffect(() => {
     if (!authReady) return;
@@ -113,7 +114,9 @@ export default function ParentEvaluationsPage() {
       formSheet={
         <MetricsModal
           open={!!viewingMetrics}
-          onOpenChange={(v) => { if (!v) setViewingMetrics(null); }}
+          onOpenChange={(v) => {
+            if (!v) setViewingMetrics(null);
+          }}
           evaluation={viewingMetrics}
         />
       }

@@ -92,12 +92,7 @@ export default function EmailManagementSection() {
               </p>
             </div>
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={resendVerification}
-            disabled={cooldown > 0}
-          >
+          <Button variant="outline" size="sm" onClick={resendVerification} disabled={cooldown > 0}>
             {cooldown > 0 ? `Reintenta en ${cooldown}s` : "Reenviar verificación"}
           </Button>
         </Card>
@@ -121,8 +116,7 @@ export default function EmailManagementSection() {
               <div>
                 <p className="text-sm font-medium">Cambio de correo pendiente</p>
                 <p className="text-sm text-muted-foreground">
-                  Confirma el enlace enviado a <strong>{pending}</strong> para
-                  completar el cambio.
+                  Confirma el enlace enviado a <strong>{pending}</strong> para completar el cambio.
                 </p>
               </div>
             </div>
@@ -139,11 +133,7 @@ export default function EmailManagementSection() {
         )}
       </Card>
 
-      <FormModal
-        open={modalOpen}
-        onOpenChange={setModalOpen}
-        title="Cambiar correo electrónico"
-      >
+      <FormModal open={modalOpen} onOpenChange={setModalOpen} title="Cambiar correo electrónico">
         <Formik
           initialValues={{ new_email: "", current_password: "" }}
           validationSchema={changeSchema}

@@ -1,6 +1,12 @@
 import { createContext } from "react";
 
-import type { AlertOptions, BannerOptions, ConfirmOptions, ModalOptions, ToastOptions } from "./types";
+import type {
+  AlertOptions,
+  BannerOptions,
+  ConfirmOptions,
+  ModalOptions,
+  ToastOptions,
+} from "./types";
 
 export interface FeedbackContextType {
   openModal: (options: ModalOptions) => void;

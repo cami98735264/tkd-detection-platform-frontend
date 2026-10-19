@@ -40,12 +40,7 @@ function parseSchedule(value: string | null | undefined): ScheduleEntry[] {
   }
 }
 
-export default function EditionFormModal({
-  open,
-  onOpenChange,
-  edition,
-  onSubmit,
-}: Props) {
+export default function EditionFormModal({ open, onOpenChange, edition, onSubmit }: Props) {
   const isEdit = !!edition;
 
   return (

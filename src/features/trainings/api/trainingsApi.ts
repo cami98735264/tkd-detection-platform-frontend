@@ -23,8 +23,7 @@ export interface CreateTrainingData {
 }
 
 export const trainingsApi = {
-  list: (page = 1) =>
-    http.get<PaginatedResponse<Training>>(`/routines/?page=${page}`),
+  list: (page = 1) => http.get<PaginatedResponse<Training>>(`/routines/?page=${page}`),
 
   get: (id: number) => http.get<Training>(`/routines/${id}/`),
 

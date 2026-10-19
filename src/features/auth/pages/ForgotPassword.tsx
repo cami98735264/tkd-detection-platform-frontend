@@ -14,9 +14,7 @@ import { AuthShell } from "@/features/auth/components/AuthShell";
 import { useApiErrorHandler } from "@/feedback/useApiErrorHandler";
 
 const schema = Yup.object({
-  email: Yup.string()
-    .email("Correo electrónico no válido")
-    .required("El correo es obligatorio"),
+  email: Yup.string().email("Correo electrónico no válido").required("El correo es obligatorio"),
 });
 
 type View = "form" | "sent";
@@ -46,9 +44,8 @@ export default function ForgotPassword() {
               Revisa tu correo
             </h2>
             <p className="mt-2 text-sm text-muted">
-              Si <span className="font-medium text-text">{submittedEmail}</span> está
-              registrado, recibirás un enlace para restablecer tu contraseña en los
-              próximos minutos.
+              Si <span className="font-medium text-text">{submittedEmail}</span> está registrado,
+              recibirás un enlace para restablecer tu contraseña en los próximos minutos.
             </p>
           </div>
 
@@ -132,12 +129,7 @@ export default function ForgotPassword() {
                 <ErrorMessage name="email" component={FieldErrorText} />
               </div>
 
-              <Button
-                type="submit"
-                disabled={isSubmitting}
-                className="w-full"
-                size="lg"
-              >
+              <Button type="submit" disabled={isSubmitting} className="w-full" size="lg">
                 {isSubmitting ? "Enviando..." : "Enviar instrucciones"}
               </Button>
 

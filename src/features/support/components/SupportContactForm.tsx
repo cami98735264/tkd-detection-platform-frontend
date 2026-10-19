@@ -141,12 +141,7 @@ export default function SupportContactForm() {
             {/* Honeypot — hidden from real users, traps bots (contract §4). */}
             <div aria-hidden="true" className="absolute left-[-9999px] h-0 w-0 overflow-hidden">
               <label htmlFor="support-website">No llenar este campo</label>
-              <Field
-                id="support-website"
-                name="honeypot"
-                tabIndex={-1}
-                autoComplete="off"
-              />
+              <Field id="support-website" name="honeypot" tabIndex={-1} autoComplete="off" />
             </div>
 
             {cooldown > 0 ? (

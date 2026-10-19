@@ -13,8 +13,7 @@ export interface CreateItemTypeData {
 }
 
 export const itemTypesApi = {
-  list: (page = 1) =>
-    http.get<PaginatedResponse<ItemType>>(`/item-types/?page=${page}`),
+  list: (page = 1) => http.get<PaginatedResponse<ItemType>>(`/item-types/?page=${page}`),
 
   get: (id: number) => http.get<ItemType>(`/item-types/${id}/`),
 

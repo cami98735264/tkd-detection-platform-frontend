@@ -26,12 +26,7 @@ const TONE_CLASSES: Record<NonNullable<LogoProps["tone"]>, string> = {
     "[filter:brightness(0)_saturate(100%)_invert(33%)_sepia(63%)_saturate(1854%)_hue-rotate(348deg)_brightness(94%)_contrast(91%)]",
 };
 
-export function Logo({
-  className,
-  alt = "Warriors TKD",
-  tone = "auto",
-  eager = false,
-}: LogoProps) {
+export function Logo({ className, alt = "Warriors TKD", tone = "auto", eager = false }: LogoProps) {
   return (
     <img
       src="/img/logo.png"
@@ -41,11 +36,7 @@ export function Logo({
       loading={eager ? "eager" : "lazy"}
       decoding="async"
       draggable={false}
-      className={cn(
-        "h-12 w-12 select-none object-contain",
-        TONE_CLASSES[tone],
-        className,
-      )}
+      className={cn("h-12 w-12 select-none object-contain", TONE_CLASSES[tone], className)}
     />
   );
 }

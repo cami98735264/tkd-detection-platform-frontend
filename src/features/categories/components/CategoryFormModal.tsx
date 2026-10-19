@@ -12,11 +12,17 @@ import type { CompetitionCategory } from "@/types/entities";
 const schema = Yup.object({
   nombre: Yup.string().required("El nombre es obligatorio"),
   edad_min: Yup.number().min(0).required("Edad mínima obligatoria"),
-  edad_max: Yup.number().min(0).moreThan(Yup.ref("edad_min"), "Debe ser mayor que edad mínima").required("Edad máxima obligatoria"),
+  edad_max: Yup.number()
+    .min(0)
+    .moreThan(Yup.ref("edad_min"), "Debe ser mayor que edad mínima")
+    .required("Edad máxima obligatoria"),
   belt_from: Yup.number().min(0).required("Cinturón inicial obligatorio"),
   belt_to: Yup.number().min(0).required("Cinturón final obligatorio"),
   peso_min: Yup.number().min(0).required("Peso mínimo obligatorio"),
-  peso_max: Yup.number().min(0).moreThan(Yup.ref("peso_min"), "Debe ser mayor que peso mínimo").required("Peso máximo obligatorio"),
+  peso_max: Yup.number()
+    .min(0)
+    .moreThan(Yup.ref("peso_min"), "Debe ser mayor que peso mínimo")
+    .required("Peso máximo obligatorio"),
 });
 
 interface Props {
@@ -42,11 +48,15 @@ export default function CategoryFormModal({ open, onOpenChange, category, onSubm
         options: res.results.map((b) => ({ value: b.id, label: b.nombre })),
         hasMore: res.next !== null,
       })),
-    []
+    [],
   );
 
   return (
-    <FormModal open={open} onOpenChange={onOpenChange} title={isEdit ? "Editar Categoría" : "Nueva Categoría"}>
+    <FormModal
+      open={open}
+      onOpenChange={onOpenChange}
+      title={isEdit ? "Editar Categoría" : "Nueva Categoría"}
+    >
       {!open ? null : (
         <Formik
           initialValues={{
@@ -109,9 +119,7 @@ export default function CategoryFormModal({ open, onOpenChange, category, onSubm
                     onChange={(val) => setFieldValue("belt_to", val)}
                     loadOptions={loadBelts}
                     selectedOption={
-                      category
-                        ? { value: category.belt_to, label: category.belt_to_name }
-                        : null
+                      category ? { value: category.belt_to, label: category.belt_to_name } : null
                     }
                     placeholder="Buscar cinturón..."
                   />
@@ -131,7 +139,9 @@ export default function CategoryFormModal({ open, onOpenChange, category, onSubm
                 </div>
               </div>
               <div className="flex justify-end gap-3 pt-4">
-                <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
+                <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                  Cancelar
+                </Button>
                 <Button type="submit" disabled={isSubmitting}>
                   {isSubmitting ? "Guardando..." : isEdit ? "Actualizar" : "Crear"}
                 </Button>

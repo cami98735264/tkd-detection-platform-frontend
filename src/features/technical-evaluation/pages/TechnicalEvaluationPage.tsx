@@ -51,9 +51,7 @@ export default function TechnicalEvaluationPage() {
   const [step, setStep] = useState<Step>("choose");
   const prevStepRef = useRef<Step>(step);
   const stepDirection: "right" | "left" =
-    STEP_ORDER.indexOf(step) >= STEP_ORDER.indexOf(prevStepRef.current)
-      ? "right"
-      : "left";
+    STEP_ORDER.indexOf(step) >= STEP_ORDER.indexOf(prevStepRef.current) ? "right" : "left";
   useEffect(() => {
     prevStepRef.current = step;
   }, [step]);
@@ -66,9 +64,7 @@ export default function TechnicalEvaluationPage() {
   const [consentInfo, setConsentInfo] = useState<ConsentInfo | null>(null);
   const [loadingConsent, setLoadingConsent] = useState(true);
   const [linkedMinors, setLinkedMinors] = useState<AthleteConsent[]>([]);
-  const [selectedChild, setSelectedChild] = useState<AthleteConsent | null>(
-    null,
-  );
+  const [selectedChild, setSelectedChild] = useState<AthleteConsent | null>(null);
 
   // Load athlete and consent on mount for sportsman
   useEffect(() => {
@@ -97,9 +93,7 @@ export default function TechnicalEvaluationPage() {
   const isAdult = myAthlete?.date_of_birth
     ? (() => {
         const dob = new Date(myAthlete.date_of_birth);
-        const age = Math.floor(
-          (Date.now() - dob.getTime()) / (365.25 * 24 * 60 * 60 * 1000),
-        );
+        const age = Math.floor((Date.now() - dob.getTime()) / (365.25 * 24 * 60 * 60 * 1000));
         return age >= 18;
       })()
     : false;
@@ -151,8 +145,7 @@ export default function TechnicalEvaluationPage() {
           if (s.status === "failed" && allowToast) {
             showToast({
               title: "Error en el análisis",
-              description:
-                s.recommendations || "No se pudo procesar la patada.",
+              description: s.recommendations || "No se pudo procesar la patada.",
               variant: "error",
             });
           }
@@ -270,9 +263,7 @@ export default function TechnicalEvaluationPage() {
     }
   };
 
-  const pageHeaderEyebrow = isParent
-    ? "Acudiente"
-    : undefined;
+  const pageHeaderEyebrow = isParent ? "Acudiente" : undefined;
   const pageHeaderDescription = isParent
     ? "Autoriza la grabación y registra patadas de tus deportistas vinculados."
     : "Registra una patada para analizar ángulo, altura, velocidad y estabilidad.";
@@ -344,9 +335,7 @@ export default function TechnicalEvaluationPage() {
                             <UserCheck className="h-4 w-4" />
                           </span>
                           <div className="min-w-0">
-                            <p className="font-medium text-text">
-                              {minor.athlete_name}
-                            </p>
+                            <p className="font-medium text-text">{minor.athlete_name}</p>
                             <p className="text-xs text-faint">
                               {minor.consent_timestamp
                                 ? `Autorizado el ${new Date(
@@ -366,9 +355,7 @@ export default function TechnicalEvaluationPage() {
                               <Button
                                 size="sm"
                                 variant="outline"
-                                onClick={() =>
-                                  handleRevokeConsent(minor.athlete_id)
-                                }
+                                onClick={() => handleRevokeConsent(minor.athlete_id)}
                               >
                                 Revocar
                               </Button>
@@ -381,9 +368,7 @@ export default function TechnicalEvaluationPage() {
                               </Badge>
                               <Button
                                 size="sm"
-                                onClick={() =>
-                                  handleGrantConsent(minor.athlete_id)
-                                }
+                                onClick={() => handleGrantConsent(minor.athlete_id)}
                               >
                                 Autorizar
                               </Button>
@@ -428,12 +413,8 @@ export default function TechnicalEvaluationPage() {
                               <Camera className="h-4 w-4" />
                             </span>
                             <div className="min-w-0">
-                              <p className="font-medium text-text">
-                                {minor.athlete_name}
-                              </p>
-                              <p className="text-xs text-muted">
-                                Iniciar evaluación
-                              </p>
+                              <p className="font-medium text-text">{minor.athlete_name}</p>
+                              <p className="text-xs text-muted">Iniciar evaluación</p>
                             </div>
                           </button>
                         ))}
@@ -448,22 +429,16 @@ export default function TechnicalEvaluationPage() {
               <div
                 key={step}
                 className={
-                  stepDirection === "right"
-                    ? "animate-slide-from-right"
-                    : "animate-slide-from-left"
+                  stepDirection === "right" ? "animate-slide-from-right" : "animate-slide-from-left"
                 }
               >
-                {step === "kick" && (
-                  <KickSelection onSelected={handleKickSelected} />
-                )}
+                {step === "kick" && <KickSelection onSelected={handleKickSelected} />}
                 {step === "record" && kickType && (
                   <RecordingCapture
                     kickType={kickType}
                     athleteId={selectedChild?.athlete_id}
                     onComplete={handleRecordingComplete}
-                    onError={(msg) =>
-                      showToast({ title: msg, variant: "error" })
-                    }
+                    onError={(msg) => showToast({ title: msg, variant: "error" })}
                   />
                 )}
                 {step === "results" && (
@@ -503,11 +478,7 @@ export default function TechnicalEvaluationPage() {
   }
 
   // Minor sportsman without parent consent
-  if (
-    !isAdult &&
-    consentInfo?.requires_parent_consent &&
-    !consentInfo?.consent_granted
-  ) {
+  if (!isAdult && consentInfo?.requires_parent_consent && !consentInfo?.consent_granted) {
     return (
       <div className="space-y-6">
         <PageHeader
@@ -527,11 +498,7 @@ export default function TechnicalEvaluationPage() {
   }
 
   // Adult sportsman who hasn't consented yet
-  if (
-    isAdult &&
-    step === "choose" &&
-    (!consentInfo || !consentInfo.consent_granted)
-  ) {
+  if (isAdult && step === "choose" && (!consentInfo || !consentInfo.consent_granted)) {
     return (
       <div className="space-y-6">
         <PageHeader
@@ -564,9 +531,7 @@ export default function TechnicalEvaluationPage() {
       <div
         key={step}
         className={
-          stepDirection === "right"
-            ? "animate-slide-from-right"
-            : "animate-slide-from-left"
+          stepDirection === "right" ? "animate-slide-from-right" : "animate-slide-from-left"
         }
       >
         {step === "kick" && <KickSelection onSelected={handleKickSelected} />}

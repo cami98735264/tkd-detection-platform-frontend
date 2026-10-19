@@ -2,17 +2,10 @@ import { Button } from "@/components/ui/button";
 import { useFeedback } from "./useFeedback";
 
 export default function FeedbackLab() {
-  const {
-    openModal,
-    showToast,
-    confirm,
-    showAlert,
-    showBanner,
-  } = useFeedback();
+  const { openModal, showToast, confirm, showAlert, showBanner } = useFeedback();
 
   return (
     <div className="p-10 space-y-4">
-
       {/* TOAST */}
       <Button
         onClick={() =>
@@ -97,7 +90,6 @@ export default function FeedbackLab() {
       >
         Mostrar aviso
       </Button>
-
     </div>
   );
 }

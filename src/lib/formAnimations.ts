@@ -29,9 +29,7 @@ export function flagAndShakeInvalidFields(
     .forEach((wrapper) => wrapper.removeAttribute("data-invalid"));
 
   Object.keys(errors).forEach((name) => {
-    const wrapper = formEl.querySelector<HTMLElement>(
-      `[data-field="${CSS.escape(name)}"]`,
-    );
+    const wrapper = formEl.querySelector<HTMLElement>(`[data-field="${CSS.escape(name)}"]`);
     if (wrapper) wrapper.setAttribute("data-invalid", "true");
   });
 

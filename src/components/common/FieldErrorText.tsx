@@ -9,13 +9,7 @@ interface Props {
 
 export function FieldErrorText({ children, className }: Props) {
   return (
-    <p
-      role="alert"
-      className={cn(
-        "animate-slide-down-fade text-sm text-error",
-        className,
-      )}
-    >
+    <p role="alert" className={cn("animate-slide-down-fade text-sm text-error", className)}>
       {children}
     </p>
   );

@@ -163,11 +163,7 @@ export default function TrainingFormModal({ open, onOpenChange, training, onSubm
                   name="numero_atletas"
                   min="1"
                 />
-                <ErrorMessage
-                  name="numero_atletas"
-                  component="p"
-                  className="text-sm text-error"
-                />
+                <ErrorMessage name="numero_atletas" component="p" className="text-sm text-error" />
               </div>
 
               <div className="flex justify-end gap-3 pt-4">

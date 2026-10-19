@@ -16,18 +16,14 @@ export const notificationsApi = {
     if (opts.page) params.set("page", String(opts.page));
     if (opts.unread) params.set("unread", "true");
     const qs = params.toString();
-    return http.get<PaginatedResponse<Notification>>(
-      `/notifications/${qs ? `?${qs}` : ""}`,
-    );
+    return http.get<PaginatedResponse<Notification>>(`/notifications/${qs ? `?${qs}` : ""}`);
   },
 
   /** GET /notifications/unread_count/ → { count: N }. */
-  unreadCount: () =>
-    http.get<{ count: number }>("/notifications/unread_count/"),
+  unreadCount: () => http.get<{ count: number }>("/notifications/unread_count/"),
 
   /** POST /notifications/{id}/read/ — mark one read (sets read_at). */
-  markRead: (id: number) =>
-    http.post<unknown>(`/notifications/${id}/read/`),
+  markRead: (id: number) => http.post<unknown>(`/notifications/${id}/read/`),
 
   /** POST /notifications/mark_all_read/ — mark all of the user's unread as read. */
   markAllRead: () => http.post<unknown>("/notifications/mark_all_read/"),

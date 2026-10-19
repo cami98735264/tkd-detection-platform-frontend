@@ -95,13 +95,7 @@ export default function InviteUserModal({ open, onOpenChange, onInvited }: Props
           >
             <div className="space-y-1.5" data-field="email">
               <Label htmlFor="invite-email">Correo</Label>
-              <Field
-                as={Input}
-                id="invite-email"
-                name="email"
-                type="email"
-                autoComplete="off"
-              />
+              <Field as={Input} id="invite-email" name="email" type="email" autoComplete="off" />
               <ErrorMessage name="email" component={FieldErrorText} />
             </div>
 

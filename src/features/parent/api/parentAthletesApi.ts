@@ -44,14 +44,12 @@ export const parentAthletesApi = {
 
   list: (page = 1, search = "") =>
     http.get<PaginatedResponse<ParentAthlete>>(
-      `/parent-athletes/?page=${page}&search=${encodeURIComponent(search)}`
+      `/parent-athletes/?page=${page}&search=${encodeURIComponent(search)}`,
     ),
 
-  get: (id: number) =>
-    http.get<ParentAthlete>(`/parent-athletes/${id}/`),
+  get: (id: number) => http.get<ParentAthlete>(`/parent-athletes/${id}/`),
 
-  create: (data: CreateParentAthlete) =>
-    http.post<ParentAthlete>("/parent-athletes/", data),
+  create: (data: CreateParentAthlete) => http.post<ParentAthlete>("/parent-athletes/", data),
 
   /**
    * Atomic admin-only endpoint: creates (or links) a parent User and the
@@ -60,6 +58,5 @@ export const parentAthletesApi = {
   register: (data: RegisterParentAthletePayload) =>
     http.post<ParentAthlete>("/parent-athletes/register/", data),
 
-  delete: (id: number) =>
-    http.delete(`/parent-athletes/${id}/`),
+  delete: (id: number) => http.delete(`/parent-athletes/${id}/`),
 };

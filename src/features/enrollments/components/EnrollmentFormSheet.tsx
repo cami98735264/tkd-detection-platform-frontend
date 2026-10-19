@@ -103,12 +103,7 @@ interface Props {
   onSuccess?: () => void;
 }
 
-export default function EnrollmentFormSheet({
-  open,
-  onOpenChange,
-  editing,
-  onSuccess,
-}: Props) {
+export default function EnrollmentFormSheet({ open, onOpenChange, editing, onSuccess }: Props) {
   const { handleError } = useApiErrorHandler();
   const { showToast } = useFeedback();
 
@@ -134,35 +129,29 @@ export default function EnrollmentFormSheet({
   const [sportsmanEmailExists, setSportsmanEmailExists] = useState(false);
   const [parentEmailExists, setParentEmailExists] = useState(false);
 
-  const updatePersonal = useCallback(
-    (patch: Partial<AthletePersonalDataState>) => {
-      setPersonal((prev) => ({ ...prev, ...patch }));
-      setPersonalErrors((prev) => {
-        const next = { ...prev };
-        for (const key of Object.keys(patch) as (keyof AthletePersonalDataState)[]) {
-          delete (next as Record<string, unknown>)[key];
-        }
-        return next;
-      });
-      if ("sportsman_email" in patch) setSportsmanEmailExists(false);
-    },
-    [],
-  );
+  const updatePersonal = useCallback((patch: Partial<AthletePersonalDataState>) => {
+    setPersonal((prev) => ({ ...prev, ...patch }));
+    setPersonalErrors((prev) => {
+      const next = { ...prev };
+      for (const key of Object.keys(patch) as (keyof AthletePersonalDataState)[]) {
+        delete (next as Record<string, unknown>)[key];
+      }
+      return next;
+    });
+    if ("sportsman_email" in patch) setSportsmanEmailExists(false);
+  }, []);
 
-  const updateParent = useCallback(
-    (patch: Partial<ParentAccountState>) => {
-      setParent((prev) => ({ ...prev, ...patch }));
-      setParentErrors((prev) => {
-        const next = { ...prev };
-        for (const key of Object.keys(patch) as (keyof ParentAccountState)[]) {
-          delete (next as Record<string, unknown>)[key];
-        }
-        return next;
-      });
-      if ("parent_email" in patch) setParentEmailExists(false);
-    },
-    [],
-  );
+  const updateParent = useCallback((patch: Partial<ParentAccountState>) => {
+    setParent((prev) => ({ ...prev, ...patch }));
+    setParentErrors((prev) => {
+      const next = { ...prev };
+      for (const key of Object.keys(patch) as (keyof ParentAccountState)[]) {
+        delete (next as Record<string, unknown>)[key];
+      }
+      return next;
+    });
+    if ("parent_email" in patch) setParentEmailExists(false);
+  }, []);
 
   const linkExistingSportsmanByEmail = useCallback(async () => {
     const email = personal.sportsman_email.trim();
@@ -173,9 +162,7 @@ export default function EnrollmentFormSheet({
         role: "sportsman",
         withoutAthlete: true,
       });
-      const match = res.results.find(
-        (u) => u.email.toLowerCase() === email.toLowerCase(),
-      );
+      const match = res.results.find((u) => u.email.toLowerCase() === email.toLowerCase());
       if (!match) {
         showToast({
           title: "Cuenta encontrada pero no disponible",
@@ -204,14 +191,11 @@ export default function EnrollmentFormSheet({
     if (!email) return;
     try {
       const res = await usersApi.list({ search: email, role: "parent" });
-      const match = res.results.find(
-        (u) => u.email.toLowerCase() === email.toLowerCase(),
-      );
+      const match = res.results.find((u) => u.email.toLowerCase() === email.toLowerCase());
       if (!match) {
         showToast({
           title: "Acudiente no encontrado",
-          description:
-            "El correo ya está en uso pero no corresponde a una cuenta de acudiente.",
+          description: "El correo ya está en uso pero no corresponde a una cuenta de acudiente.",
           variant: "warning",
         });
         return;
@@ -283,26 +267,22 @@ export default function EnrollmentFormSheet({
   /* ------------------------------- Computed ------------------------------- */
 
   const dob =
-    athleteMode === "link" ? linkedAthlete?.date_of_birth ?? null : personal.date_of_birth;
+    athleteMode === "link" ? (linkedAthlete?.date_of_birth ?? null) : personal.date_of_birth;
   const age = calculateAge(dob ?? "");
   const isMinor = age !== null && age < 18;
 
   /* --------------------------- AsyncSelect loaders --------------------------- */
 
   const loadAthletes = useCallback((input: string, page: number) => {
-    return athletesApi
-      .list(page, input, "active", true)
-      .then((res) => ({
-        options: res.results.map((a) => ({ value: a.id, label: a.full_name })),
-        hasMore: res.next !== null,
-      }));
+    return athletesApi.list(page, input, "active", true).then((res) => ({
+      options: res.results.map((a) => ({ value: a.id, label: a.full_name })),
+      hasMore: res.next !== null,
+    }));
   }, []);
 
   const loadPrograms = useCallback((input: string, page: number) => {
     return programsApi.list(page, input).then((res) => ({
-      options: res.results
-        .filter((p) => p.active)
-        .map((p) => ({ value: p.id, label: p.name })),
+      options: res.results.filter((p) => p.active).map((p) => ({ value: p.id, label: p.name })),
       hasMore: res.next !== null,
     }));
   }, []);
@@ -312,7 +292,10 @@ export default function EnrollmentFormSheet({
   const handleAthleteSelect = (id: number | null) => {
     setLinkedAthleteId(id);
     if (id) {
-      athletesApi.get(id).then(setLinkedAthlete).catch(() => {});
+      athletesApi
+        .get(id)
+        .then(setLinkedAthlete)
+        .catch(() => {});
     } else {
       setLinkedAthlete(null);
     }
@@ -400,19 +383,13 @@ export default function EnrollmentFormSheet({
     if (parent.parent_mode === "link") {
       await parentAthletesApi.register({
         athlete: athleteId,
-        parent_relationship: parent.parent_relationship as
-          | "mother"
-          | "father"
-          | "guardian",
+        parent_relationship: parent.parent_relationship as "mother" | "father" | "guardian",
         parent_user_id: parent.parent_user_id,
       });
     } else {
       await parentAthletesApi.register({
         athlete: athleteId,
-        parent_relationship: parent.parent_relationship as
-          | "mother"
-          | "father"
-          | "guardian",
+        parent_relationship: parent.parent_relationship as "mother" | "father" | "guardian",
         parent_full_name: parent.parent_full_name.trim(),
         parent_email: parent.parent_email.trim(),
         parent_password: parent.parent_password,
@@ -542,9 +519,7 @@ export default function EnrollmentFormSheet({
                 {step > s.id ? <CheckCircle2 size={16} /> : s.id}
               </div>
               {i < visibleSteps.length - 1 && (
-                <div
-                  className={`w-12 h-0.5 mx-1 ${step > s.id ? "bg-primary" : "bg-border"}`}
-                />
+                <div className={`w-12 h-0.5 mx-1 ${step > s.id ? "bg-primary" : "bg-border"}`} />
               )}
             </div>
           ))}
@@ -557,11 +532,7 @@ export default function EnrollmentFormSheet({
 
         <div
           key={step}
-          className={
-            direction === "right"
-              ? "animate-slide-from-right"
-              : "animate-slide-from-left"
-          }
+          className={direction === "right" ? "animate-slide-from-right" : "animate-slide-from-left"}
         >
           {step === 1 && (
             <Step1Personal
@@ -633,9 +604,7 @@ export default function EnrollmentFormSheet({
           {step === 3 && (
             <Step3Consents
               athleteName={
-                athleteMode === "link"
-                  ? linkedAthlete?.full_name ?? "—"
-                  : personal.full_name
+                athleteMode === "link" ? (linkedAthlete?.full_name ?? "—") : personal.full_name
               }
               extras={extras}
               setExtras={setExtras}
@@ -692,15 +661,19 @@ interface Step1Props {
   sportsmanEmailExists: boolean;
   onLinkSportsmanEmail: () => void;
   extras: EnrollmentExtras;
-  setExtras: (
-    updater: EnrollmentExtras | ((prev: EnrollmentExtras) => EnrollmentExtras),
-  ) => void;
+  setExtras: (updater: EnrollmentExtras | ((prev: EnrollmentExtras) => EnrollmentExtras)) => void;
   onFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  loadAthletes: (input: string, page: number) => Promise<{
+  loadAthletes: (
+    input: string,
+    page: number,
+  ) => Promise<{
     options: { value: number; label: string }[];
     hasMore: boolean;
   }>;
-  loadPrograms: (input: string, page: number) => Promise<{
+  loadPrograms: (
+    input: string,
+    page: number,
+  ) => Promise<{
     options: { value: number; label: string }[];
     hasMore: boolean;
   }>;
@@ -729,10 +702,7 @@ function Step1Personal({
   return (
     <div className="space-y-4">
       {!isEdit && (
-        <Tabs
-          value={athleteMode}
-          onValueChange={(v) => setAthleteMode(v as AthleteMode)}
-        >
+        <Tabs value={athleteMode} onValueChange={(v) => setAthleteMode(v as AthleteMode)}>
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="link">Deportista existente</TabsTrigger>
             <TabsTrigger value="register">Registrar nuevo</TabsTrigger>
@@ -800,9 +770,7 @@ function Step1Personal({
           <CardHeader>
             <CardTitle className="text-base">Deportista</CardTitle>
           </CardHeader>
-          <CardContent className="text-sm">
-            {linkedAthlete.full_name}
-          </CardContent>
+          <CardContent className="text-sm">{linkedAthlete.full_name}</CardContent>
         </Card>
       )}
 
@@ -876,9 +844,7 @@ function Step1Personal({
 interface Step3Props {
   athleteName: string;
   extras: EnrollmentExtras;
-  setExtras: (
-    updater: EnrollmentExtras | ((prev: EnrollmentExtras) => EnrollmentExtras),
-  ) => void;
+  setExtras: (updater: EnrollmentExtras | ((prev: EnrollmentExtras) => EnrollmentExtras)) => void;
   isMinor: boolean;
   parent: ParentAccountState;
 }
@@ -896,8 +862,7 @@ function Step3Consents({ athleteName, extras, setExtras, isMinor, parent }: Step
               <span className="text-muted-foreground">Deportista:</span> {athleteName}
             </div>
             <div>
-              <span className="text-muted-foreground">Tipo Sangre:</span>{" "}
-              {extras.blood_type || "—"}
+              <span className="text-muted-foreground">Tipo Sangre:</span> {extras.blood_type || "—"}
             </div>
           </div>
           {isMinor && (
@@ -913,8 +878,7 @@ function Step3Consents({ athleteName, extras, setExtras, isMinor, parent }: Step
             </div>
           )}
           <div>
-            <span className="text-muted-foreground">Fecha Inicio:</span>{" "}
-            {extras.start_date}
+            <span className="text-muted-foreground">Fecha Inicio:</span> {extras.start_date}
           </div>
           <div>
             <span className="text-muted-foreground">Certificado Médico:</span>{" "}

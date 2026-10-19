@@ -12,11 +12,7 @@ import { FormSelect } from "@/components/common/FormSelect";
 
 import { usersApi } from "@/features/users/api/usersApi";
 
-import {
-  RELATIONSHIP_OPTIONS,
-  type AccountMode,
-  type ParentAccountState,
-} from "./types";
+import { RELATIONSHIP_OPTIONS, type AccountMode, type ParentAccountState } from "./types";
 
 export interface ParentAccountErrors {
   parent_relationship?: string;
@@ -46,15 +42,13 @@ export default function ParentAccountSection({
   onLinkExistingEmail,
 }: Props) {
   const loadParentUsers = useCallback((input: string, page: number) => {
-    return usersApi
-      .list({ page, search: input, role: "parent" })
-      .then((res) => ({
-        options: res.results.map((u) => ({
-          value: u.id,
-          label: `${u.full_name} (${u.email})`,
-        })),
-        hasMore: res.next !== null,
-      }));
+    return usersApi.list({ page, search: input, role: "parent" }).then((res) => ({
+      options: res.results.map((u) => ({
+        value: u.id,
+        label: `${u.full_name} (${u.email})`,
+      })),
+      hasMore: res.next !== null,
+    }));
   }, []);
 
   return (

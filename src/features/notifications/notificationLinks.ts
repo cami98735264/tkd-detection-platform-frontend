@@ -14,10 +14,7 @@ type Role = AuthUser["role"];
  * role-appropriate list page (the contract's `resource_id` isn't needed for
  * navigation). Returns `null` for unknown resources → no navigation.
  */
-export function resolveNotificationLink(
-  resource: string,
-  role: Role | undefined,
-): string | null {
+export function resolveNotificationLink(resource: string, role: Role | undefined): string | null {
   switch (resource) {
     case "tech_eval_session":
       return "/dashboard/evaluacion-tecnica";

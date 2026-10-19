@@ -26,7 +26,7 @@ export function EmptyState({
       className={cn(
         "flex flex-col items-center justify-center text-center",
         size === "panel" ? "py-12 px-6" : "py-24 px-6",
-        className
+        className,
       )}
     >
       <div
@@ -47,10 +47,7 @@ export function EmptyState({
         </p>
       )}
       {action && (
-        <div
-          className="mt-6 animate-slide-up-fade"
-          style={{ animationDelay: "260ms" }}
-        >
+        <div className="mt-6 animate-slide-up-fade" style={{ animationDelay: "260ms" }}>
           {action}
         </div>
       )}

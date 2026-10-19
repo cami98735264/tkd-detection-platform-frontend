@@ -50,11 +50,7 @@ function refreshTokens(): Promise<void> {
 // Auth endpoints manage their own 401s (not logged in, bad creds, expired
 // refresh) and must never trigger a refresh — that would loop.
 function isAuthEndpoint(url: string): boolean {
-  return (
-    url.includes(`/auth/login`) ||
-    url.includes(`/auth/me`) ||
-    url.includes(`/auth/refresh`)
-  );
+  return url.includes(`/auth/login`) || url.includes(`/auth/me`) || url.includes(`/auth/refresh`);
 }
 
 // ---------------------------------------------------------------------------
@@ -73,9 +69,7 @@ const PROACTIVE_REFRESH_SKEW_MS = 30_000;
 
 function readCookie(name: string): string | null {
   if (typeof document === "undefined") return null;
-  const match = document.cookie.match(
-    new RegExp(`(?:^|; )${name}=([^;]*)`),
-  );
+  const match = document.cookie.match(new RegExp(`(?:^|; )${name}=([^;]*)`));
   return match ? decodeURIComponent(match[1]) : null;
 }
 
@@ -149,8 +143,9 @@ axiosInstance.interceptors.response.use(
     }
 
     // --- Non-401 errors or already-retried 401s ---
-    const errorBody: ApiErrorBody =
-      (error.response?.data as ApiErrorBody) ?? { detail: error.message };
+    const errorBody: ApiErrorBody = (error.response?.data as ApiErrorBody) ?? {
+      detail: error.message,
+    };
 
     // Surface the Retry-After header (seconds) on throttled responses (§2).
     const retryAfterRaw = error.response?.headers?.["retry-after"];

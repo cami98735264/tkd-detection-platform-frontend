@@ -24,4 +24,3 @@ export default function RoleRoute({ children, allowedRoles, redirectTo = "/dashb
 
   return <>{children}</>;
 }
-

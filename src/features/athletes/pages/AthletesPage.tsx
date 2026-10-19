@@ -48,7 +48,11 @@ function StatusBadge({ status }: { status: Athlete["status"] | "active" | "inact
 
 const adminColumns: Column<Athlete>[] = [
   { key: "id", header: "ID", className: "w-16 text-faint", hideOnMobile: true },
-  { key: "full_name", header: "Nombre", render: (r) => <span className="font-medium text-text">{r.full_name}</span> },
+  {
+    key: "full_name",
+    header: "Nombre",
+    render: (r) => <span className="font-medium text-text">{r.full_name}</span>,
+  },
   {
     key: "date_of_birth",
     header: "Fecha nac.",
@@ -146,13 +150,16 @@ export default function AthletesPage() {
 
   const refreshStats = useCallback(() => {
     if (!isAdminUser) return;
-    athletesApi.list(1, "", "", false, 100).then((res) => {
-      setStats({
-        total: res.count,
-        active: res.results.filter((a) => a.status === "active").length,
-        inactive: res.results.filter((a) => a.status === "inactive").length,
-      });
-    }).catch(() => {});
+    athletesApi
+      .list(1, "", "", false, 100)
+      .then((res) => {
+        setStats({
+          total: res.count,
+          active: res.results.filter((a) => a.status === "active").length,
+          inactive: res.results.filter((a) => a.status === "inactive").length,
+        });
+      })
+      .catch(() => {});
   }, [isAdminUser]);
 
   const fetchData = useCallback(() => {
@@ -352,7 +359,10 @@ export default function AthletesPage() {
             </Select>
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="filter-category" className="text-xs uppercase tracking-wider text-muted">
+            <Label
+              htmlFor="filter-category"
+              className="text-xs uppercase tracking-wider text-muted"
+            >
               Categoría
             </Label>
             <Select

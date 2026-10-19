@@ -14,19 +14,22 @@ const ROLES = [
   { value: "administrator", label: "Administrador" },
 ];
 
-const schema = (isEdit: boolean) => Yup.object({
-  email: Yup.string().email("Email inválido").required("El email es obligatorio"),
-  full_name: Yup.string().required("El nombre es obligatorio"),
-  password: isEdit
-    ? Yup.string().test(
-        "min-when-set",
-        "La contraseña debe tener al menos 8 caracteres",
-        (value) => !value || value.length >= 8,
-      )
-    : Yup.string().min(8, "La contraseña debe tener al menos 8 caracteres").required("La contraseña es obligatoria"),
-  role: Yup.string().required("El rol es obligatorio"),
-  is_active: Yup.boolean().default(true),
-});
+const schema = (isEdit: boolean) =>
+  Yup.object({
+    email: Yup.string().email("Email inválido").required("El email es obligatorio"),
+    full_name: Yup.string().required("El nombre es obligatorio"),
+    password: isEdit
+      ? Yup.string().test(
+          "min-when-set",
+          "La contraseña debe tener al menos 8 caracteres",
+          (value) => !value || value.length >= 8,
+        )
+      : Yup.string()
+          .min(8, "La contraseña debe tener al menos 8 caracteres")
+          .required("La contraseña es obligatoria"),
+    role: Yup.string().required("El rol es obligatorio"),
+    is_active: Yup.boolean().default(true),
+  });
 
 interface Props {
   open: boolean;
@@ -41,12 +44,7 @@ interface Props {
   }) => Promise<void>;
 }
 
-export default function UserFormModal({
-  open,
-  onOpenChange,
-  user,
-  onSubmit,
-}: Props) {
+export default function UserFormModal({ open, onOpenChange, user, onSubmit }: Props) {
   const isEdit = !!user;
 
   return (
@@ -76,21 +74,13 @@ export default function UserFormModal({
               <div className="space-y-1">
                 <Label>Nombre completo</Label>
                 <Field as={Input} name="full_name" />
-                <ErrorMessage
-                  name="full_name"
-                  component="p"
-                  className="text-sm text-error"
-                />
+                <ErrorMessage name="full_name" component="p" className="text-sm text-error" />
               </div>
 
               <div className="space-y-1">
                 <Label>Email</Label>
                 <Field as={Input} type="email" name="email" />
-                <ErrorMessage
-                  name="email"
-                  component="p"
-                  className="text-sm text-error"
-                />
+                <ErrorMessage name="email" component="p" className="text-sm text-error" />
               </div>
 
               <div className="space-y-1">
@@ -101,34 +91,22 @@ export default function UserFormModal({
                   autoComplete="new-password"
                   placeholder={isEdit ? "Dejar vacío para no cambiar" : undefined}
                 />
-                <ErrorMessage
-                  name="password"
-                  component="p"
-                  className="text-sm text-error"
-                />
+                <ErrorMessage name="password" component="p" className="text-sm text-error" />
               </div>
 
               <div className="space-y-1">
                 <Label>Rol</Label>
                 <FormikSelect name="role" options={ROLES} placeholder="Seleccionar rol" />
-                <ErrorMessage
-                  name="role"
-                  component="p"
-                  className="text-sm text-error"
-                />
+                <ErrorMessage name="role" component="p" className="text-sm text-error" />
               </div>
 
               <div className="flex justify-end gap-3 pt-4">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => onOpenChange(false)}
-                >
+                <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                   Cancelar
                 </Button>
                 <Button
                   type="submit"
-                 
+
                   disabled={isSubmitting}
                 >
                   {isSubmitting ? "Guardando..." : isEdit ? "Actualizar" : "Crear"}

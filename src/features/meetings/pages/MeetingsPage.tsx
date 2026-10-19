@@ -26,7 +26,11 @@ function formatDate(value: string): string {
 }
 
 const baseColumns: Column<Meeting>[] = [
-  { key: "title", header: "Título", render: (r) => <span className="font-medium text-text">{r.title}</span> },
+  {
+    key: "title",
+    header: "Título",
+    render: (r) => <span className="font-medium text-text">{r.title}</span>,
+  },
   {
     key: "description",
     header: "Descripción",
@@ -225,9 +229,7 @@ export default function MeetingsPage() {
             <p className="text-xs text-muted">
               {formatDate(r.date)} · {r.time}
             </p>
-            {r.description && (
-              <p className="text-xs text-faint line-clamp-2">{r.description}</p>
-            )}
+            {r.description && <p className="text-xs text-faint line-clamp-2">{r.description}</p>}
           </div>
         )}
         empty={{
@@ -277,10 +279,7 @@ export default function MeetingsPage() {
         ) : (
           <ul className="divide-y divide-divider">
             {confirmations.map((c) => (
-              <li
-                key={c.id}
-                className="flex items-center justify-between gap-4 py-3"
-              >
+              <li key={c.id} className="flex items-center justify-between gap-4 py-3">
                 <div className="min-w-0">
                   <p className="font-medium text-text truncate">{c.parent_name}</p>
                   <p className="text-sm text-muted truncate">{c.parent_email}</p>

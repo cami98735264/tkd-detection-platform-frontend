@@ -61,17 +61,20 @@ export default function UsersPage() {
   const [inviteOpen, setInviteOpen] = useState(false);
   const [editing, setEditing] = useState<User | null>(null);
 
-  const fetchData = useCallback((p: number) => {
-    setLoading(true);
-    usersApi
-      .list({ page: p })
-      .then((res) => {
-        setData(res.results);
-        setCount(res.count);
-      })
-      .catch(handleError)
-      .finally(() => setLoading(false));
-  }, [handleError]);
+  const fetchData = useCallback(
+    (p: number) => {
+      setLoading(true);
+      usersApi
+        .list({ page: p })
+        .then((res) => {
+          setData(res.results);
+          setCount(res.count);
+        })
+        .catch(handleError)
+        .finally(() => setLoading(false));
+    },
+    [handleError],
+  );
 
   useEffect(() => {
     fetchData(page);

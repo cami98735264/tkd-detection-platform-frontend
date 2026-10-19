@@ -26,10 +26,7 @@ import { PageHeader } from "@/components/common/PageHeader";
 import { cn } from "@/lib/utils";
 import { axiosInstance } from "@/lib/http";
 import { formatApiErrorValue } from "@/types/api";
-import {
-  attendanceApi,
-  type AttendanceStatus,
-} from "@/features/attendance/api/attendanceApi";
+import { attendanceApi, type AttendanceStatus } from "@/features/attendance/api/attendanceApi";
 import { useApiErrorHandler } from "@/feedback/useApiErrorHandler";
 import { useFeedback } from "@/feedback/useFeedback";
 import type { Program } from "@/types/entities";
@@ -126,9 +123,7 @@ export default function AttendanceRegisterPage() {
   }, [selectedProgramId, handleError]);
 
   const handleStatusChange = (athleteId: number, status: AttendanceStatus) => {
-    setAttendance((prev) =>
-      prev.map((a) => (a.athlete_id === athleteId ? { ...a, status } : a)),
-    );
+    setAttendance((prev) => prev.map((a) => (a.athlete_id === athleteId ? { ...a, status } : a)));
   };
 
   const handleObservacionesChange = (athleteId: number, observaciones: string) => {
@@ -276,24 +271,14 @@ export default function AttendanceRegisterPage() {
           <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <CardTitle className="font-display text-lg font-semibold tracking-tight">
               Deportistas inscritos
-              <span className="ml-2 text-sm font-normal text-muted">
-                ({athletes.length})
-              </span>
+              <span className="ml-2 text-sm font-normal text-muted">({athletes.length})</span>
             </CardTitle>
             <div className="flex flex-wrap gap-2">
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => handleSelectAll("present")}
-              >
+              <Button size="sm" variant="outline" onClick={() => handleSelectAll("present")}>
                 <CheckCircle2 className="h-3.5 w-3.5" />
                 Todos presentes
               </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => handleSelectAll("absent")}
-              >
+              <Button size="sm" variant="outline" onClick={() => handleSelectAll("absent")}>
                 <XCircle className="h-3.5 w-3.5" />
                 Todos ausentes
               </Button>
@@ -315,9 +300,7 @@ export default function AttendanceRegisterPage() {
             ) : (
               <div className="space-y-2.5">
                 {athletes.map((athlete) => {
-                  const existing = attendance.find(
-                    (a) => a.athlete_id === athlete.athlete_id,
-                  );
+                  const existing = attendance.find((a) => a.athlete_id === athlete.athlete_id);
                   const currentStatus = existing?.status || "absent";
                   return (
                     <div
@@ -339,9 +322,7 @@ export default function AttendanceRegisterPage() {
                               key={status}
                               size="sm"
                               variant={isActive ? "default" : "outline"}
-                              onClick={() =>
-                                handleStatusChange(athlete.athlete_id, status)
-                              }
+                              onClick={() => handleStatusChange(athlete.athlete_id, status)}
                               aria-pressed={isActive}
                             >
                               {isActive ? (
@@ -360,10 +341,7 @@ export default function AttendanceRegisterPage() {
                         className="w-full sm:w-56"
                         value={existing?.observaciones || ""}
                         onChange={(e) =>
-                          handleObservacionesChange(
-                            athlete.athlete_id,
-                            e.target.value,
-                          )
+                          handleObservacionesChange(athlete.athlete_id, e.target.value)
                         }
                       />
                     </div>
@@ -398,11 +376,7 @@ export default function AttendanceRegisterPage() {
                 <span className="font-medium text-text">{counts.late}</span>T{" · "}
                 <span className="font-medium text-text">{counts.absent}</span>A
               </p>
-              <Button
-                onClick={handleSubmit}
-                disabled={submitting}
-                className="flex-1"
-              >
+              <Button onClick={handleSubmit} disabled={submitting} className="flex-1">
                 <ClipboardCheck className="h-4 w-4" />
                 {submitting ? "Guardando..." : "Registrar"}
               </Button>

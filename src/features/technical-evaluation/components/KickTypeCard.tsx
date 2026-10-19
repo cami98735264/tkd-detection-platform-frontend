@@ -8,11 +8,7 @@ interface KickTypeCardProps {
   onClick: () => void;
 }
 
-export default function KickTypeCard({
-  name,
-  selected,
-  onClick,
-}: KickTypeCardProps) {
+export default function KickTypeCard({ name, selected, onClick }: KickTypeCardProps) {
   return (
     <button
       type="button"
@@ -26,10 +22,7 @@ export default function KickTypeCard({
       )}
     >
       {selected && (
-        <CheckCircle2
-          className="absolute right-2 top-2 h-4 w-4 text-primary"
-          aria-hidden="true"
-        />
+        <CheckCircle2 className="absolute right-2 top-2 h-4 w-4 text-primary" aria-hidden="true" />
       )}
       <span
         className={cn(

@@ -63,13 +63,7 @@ function StatCard({
   );
 }
 
-function BarChart({
-  data,
-  title,
-}: {
-  data: { label: string; value: number }[];
-  title: string;
-}) {
+function BarChart({ data, title }: { data: { label: string; value: number }[]; title: string }) {
   const max = Math.max(...data.map((d) => d.value), 1);
   return (
     <div className="space-y-2">
@@ -122,7 +116,11 @@ function DonutChart({
                   cy="18"
                   r="15"
                   fill="none"
-                  stroke={["bg-blue-500", "bg-green-500", "bg-yellow-500", "bg-red-500", "bg-purple-500"][i]}
+                  stroke={
+                    ["bg-blue-500", "bg-green-500", "bg-yellow-500", "bg-red-500", "bg-purple-500"][
+                      i
+                    ]
+                  }
                   strokeWidth="4"
                   strokeDasharray={`${dash} ${100 - dash - gap}`}
                   pathLength={100}

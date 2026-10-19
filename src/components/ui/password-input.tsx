@@ -1,17 +1,17 @@
-import * as React from "react"
-import { Eye, EyeOff } from "lucide-react"
+import * as React from "react";
+import { Eye, EyeOff } from "lucide-react";
 
-import { cn } from "@/lib/utils"
-import { Input } from "@/components/ui/input"
+import { cn } from "@/lib/utils";
+import { Input } from "@/components/ui/input";
 
-type PasswordInputProps = React.ComponentProps<"input">
+type PasswordInputProps = React.ComponentProps<"input">;
 
 // The visibility of the text is controlled internally via the eye toggle, so
 // any incoming `type` prop is intentionally ignored.
 
 const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputProps>(
   ({ className, type: _type, ...props }, ref) => {
-    const [show, setShow] = React.useState(false)
+    const [show, setShow] = React.useState(false);
 
     return (
       <div className="relative">
@@ -37,9 +37,9 @@ const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputProps>(
           )}
         </button>
       </div>
-    )
-  }
-)
-PasswordInput.displayName = "PasswordInput"
+    );
+  },
+);
+PasswordInput.displayName = "PasswordInput";
 
-export { PasswordInput }
+export { PasswordInput };

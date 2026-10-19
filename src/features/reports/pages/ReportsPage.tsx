@@ -67,17 +67,20 @@ export default function ReportsPage() {
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
 
-  const fetchData = useCallback((p: number) => {
-    setLoading(true);
-    reportsApi
-      .list(p)
-      .then((res) => {
-        setData(res.results);
-        setCount(res.count);
-      })
-      .catch(handleError)
-      .finally(() => setLoading(false));
-  }, [handleError]);
+  const fetchData = useCallback(
+    (p: number) => {
+      setLoading(true);
+      reportsApi
+        .list(p)
+        .then((res) => {
+          setData(res.results);
+          setCount(res.count);
+        })
+        .catch(handleError)
+        .finally(() => setLoading(false));
+    },
+    [handleError],
+  );
 
   useEffect(() => {
     fetchData(page);
@@ -179,16 +182,13 @@ export default function ReportsPage() {
           <p className="text-xs text-muted">
             {TYPE_LABELS[r.report_type] ?? r.report_type} · {r.created_by_name}
           </p>
-          <p className="text-xs text-faint">
-            {new Date(r.created_at).toLocaleDateString()}
-          </p>
+          <p className="text-xs text-faint">{new Date(r.created_at).toLocaleDateString()}</p>
         </div>
       )}
       empty={{
         icon: BarChart3,
         title: "Sin reportes generados",
-        description:
-          "Genera tu primer reporte de inscripciones, asistencia o rendimiento.",
+        description: "Genera tu primer reporte de inscripciones, asistencia o rendimiento.",
         action: (
           <Button onClick={() => setModalOpen(true)}>
             <FileSpreadsheet className="h-4 w-4" />

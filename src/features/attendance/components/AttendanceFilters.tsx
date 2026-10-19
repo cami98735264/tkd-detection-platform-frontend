@@ -2,7 +2,13 @@ import { useEffect } from "react";
 import { useParentChildrenStore } from "@/features/athletes/store/parentChildrenStore";
 import { usePermissions } from "@/features/auth/hooks/usePermissions";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 type ViewMode = "weekly" | "monthly" | "yearly";
 

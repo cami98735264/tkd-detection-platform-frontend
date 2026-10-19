@@ -21,10 +21,7 @@ export function useRealtime() {
   );
 
   const [reconnectNonce, setReconnectNonce] = useState(0);
-  useEffect(
-    () => realtimeClient.onReconnect(() => setReconnectNonce((n) => n + 1)),
-    [],
-  );
+  useEffect(() => realtimeClient.onReconnect(() => setReconnectNonce((n) => n + 1)), []);
 
   return { status, reconnectNonce };
 }
