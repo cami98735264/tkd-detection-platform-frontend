@@ -12,6 +12,8 @@ export function useApiErrorHandler() {
     if (!ctx) return;
 
     if (error instanceof ApiError) {
+      // Already shown by the global HTTP error toast (src/lib/httpErrors.ts).
+      if (error.notified) return;
       ctx.showToast({
         title: error.isServerError ? "Error del servidor" : "Error",
         description: error.userMessage,

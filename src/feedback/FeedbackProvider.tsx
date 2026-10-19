@@ -26,6 +26,8 @@ function useHtmlTheme(): "light" | "dark" {
   return theme;
 }
 
+import { onHttpError } from "@/lib/httpErrors";
+
 import { FeedbackContext, type FeedbackContextType } from "./FeedbackContext";
 
 export function FeedbackProvider({ children }: { children: React.ReactNode }) {
@@ -69,6 +71,23 @@ export function FeedbackProvider({ children }: { children: React.ReactNode }) {
       setConfirmQueue((prev) => [...prev, { options, resolve }]);
     });
   }, []);
+
+  // Global HTTP failures (offline, timeout, 5xx, 403, 429, expired session)
+  // published by src/lib/http.ts. A fixed id per kind collapses a burst of
+  // failing requests into a single toast instead of a stack of duplicates.
+  useEffect(
+    () =>
+      onHttpError((event) => {
+        const variant =
+          event.kind === "forbidden" || event.kind === "throttled" ? "warning" : "error";
+        toast[variant](event.title, {
+          id: `http-${event.kind}`,
+          description: event.message,
+          duration: 5000,
+        });
+      }),
+    [],
+  );
 
   const contextValue = useMemo<FeedbackContextType>(
     () => ({ openModal, showToast, confirm, showAlert, showBanner }),

@@ -214,6 +214,11 @@ export class ApiError extends Error {
   readonly body: ApiErrorBody;
   /** Seconds from the `Retry-After` header on a 429, when present (contract §2). */
   readonly retryAfter: number | null;
+  /**
+   * Set once the error was already shown to the user by the global HTTP error
+   * toast (src/lib/httpErrors.ts) so per-page handlers don't repeat it.
+   */
+  notified = false;
 
   constructor(status: number, body: ApiErrorBody, retryAfter?: number) {
     super(body.detail ?? `HTTP ${status}`);
@@ -230,6 +235,11 @@ export class ApiError extends Error {
       return error.code;
     }
     return null;
+  }
+
+  /** True when no response arrived (offline, DNS failure, timeout). */
+  get isNetworkError(): boolean {
+    return this.status === 0;
   }
 
   /** True for a throttled (rate-limited) response — contract §2. */

@@ -1,7 +1,8 @@
 import axios, { type AxiosRequestConfig, type AxiosResponse } from "axios";
 import { config } from "@/config/env";
-import { ApiError, type ApiErrorBody } from "@/types/api";
+import { ApiError } from "@/types/api";
 import { useAuthStore } from "@/features/auth/store/authStore";
+import { normalizeHttpError, publishHttpError, SESSION_EXPIRED_MESSAGE } from "./httpErrors";
 
 // ---------------------------------------------------------------------------
 // Axios instance
@@ -106,14 +107,17 @@ axiosInstance.interceptors.request.use(async (cfg) => {
 });
 
 // ---------------------------------------------------------------------------
-// Response interceptor — normalise errors into ApiError, handle token refresh
+// Response interceptor — refresh on 401, then normalize every failure into an
+// ApiError (src/lib/httpErrors.ts) and publish the ones the user can't fix
+// from the current screen (offline, timeout, 5xx, 403, 429, expired session)
+// to the global toast. `{ silent: true }` on a request opts out of the toast.
 // ---------------------------------------------------------------------------
 
 axiosInstance.interceptors.response.use(
   (response) => response,
   async (error: unknown) => {
     if (!axios.isAxiosError(error) || !error.config) {
-      return Promise.reject(error);
+      return Promise.reject(normalizeHttpError(error));
     }
 
     const status = error.response?.status ?? 0;
@@ -135,23 +139,22 @@ axiosInstance.interceptors.response.use(
         // Only clear session; React route guards handle the redirect.
         // Do NOT call window.location.replace here — it causes infinite
         // reload loops when already on /login.
+        const wasAuthenticated = useAuthStore.getState().isAuthenticated;
         useAuthStore.getState().clearSession();
-        return Promise.reject(
-          new ApiError(401, { detail: "Sesión expirada. Por favor ingresá de nuevo." }),
-        );
+        const expired = new ApiError(401, { detail: SESSION_EXPIRED_MESSAGE });
+        if (wasAuthenticated && !originalRequest.silent) {
+          publishHttpError(expired, "session_expired");
+        }
+        return Promise.reject(expired);
       }
     }
 
     // --- Non-401 errors or already-retried 401s ---
-    const errorBody: ApiErrorBody = (error.response?.data as ApiErrorBody) ?? {
-      detail: error.message,
-    };
-
-    // Surface the Retry-After header (seconds) on throttled responses (§2).
-    const retryAfterRaw = error.response?.headers?.["retry-after"];
-    const retryAfter = retryAfterRaw != null ? Number(retryAfterRaw) : undefined;
-
-    return Promise.reject(new ApiError(status, errorBody, retryAfter));
+    const normalized = normalizeHttpError(error);
+    if (normalized instanceof ApiError && !originalRequest.silent) {
+      publishHttpError(normalized);
+    }
+    return Promise.reject(normalized);
   },
 );
 
