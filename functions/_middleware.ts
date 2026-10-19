@@ -1,63 +1,26 @@
-// Cloudflare Pages Function — runs on EVERY request to this Pages project.
+// Cloudflare Pages Function — runs on EVERY request to the Pages project.
+// Pages ignores src/index.ts; both entries share src/edge/* so the proxy and
+// the security headers are defined exactly once.
 //
-// It reverse-proxies the REST API, the realtime WebSocket, and uploaded media
-// to the Django backend so the browser only ever talks to THIS origin
-// (tkd-detection-platform-frontend.pages.dev). Keeping everything same-origin
-// makes the JWT auth cookie FIRST-PARTY, so browsers that block third-party
-// cookies (Brave Shields, Safari ITP, Chrome's 3p-cookie phase-out) still
-// attach it to both `/api/*` calls and the `/ws/realtime/` handshake.
-//
-// Anything that is not a proxied prefix falls through to `next()`, which serves
-// the static SPA assets (index.html, client.js, etc.) exactly as before.
-//
-// NOTE: src/index.ts contains the equivalent proxy for the *Workers* deploy
-// path (`wrangler deploy`). Pages ignores src/index.ts and uses THIS file.
+// Proxied prefixes (/api, /ws, /media) go to the backend; anything else falls
+// through to `next()`, which serves the static SPA (public/index.html for
+// client routes via Pages' SPA fallback).
 
-// Origin of the Django backend (e.g. "tkd-backend.duckdns.org"). Supplied at
-// runtime via the BACKEND_HOST env var/secret on the Pages project — NOT
-// hardcoded, so the origin host isn't committed to source. (This Function runs
-// on the edge, so the value never reaches the browser regardless.)
-//
-// ORIGIN_SECRET is a shared secret sent as X-Origin-Auth; the backend's nginx
-// drops every request without it, so the origin only answers this proxy.
-// X-Forwarded-Host carries THIS origin's host so Django builds absolute URLs
-// (pagination links, file URLs) on the frontend host, never the backend's.
+import { isProxiedPath, proxyToBackend, type ProxyEnv } from "../src/edge/proxy";
+import { withSecurityHeaders } from "../src/edge/securityHeaders";
 
 // Minimal shape of the Pages Function context we use (avoids needing the
-// @cloudflare/workers-types ambient PagesFunction type at compile time).
-interface ProxyContext {
+// ambient PagesFunction type at compile time).
+export interface ProxyContext {
   request: Request;
   next: () => Promise<Response>;
-  env: { BACKEND_HOST?: string; ORIGIN_SECRET?: string };
+  env: ProxyEnv;
 }
 
 export const onRequest = async (context: ProxyContext): Promise<Response> => {
   const { request, next, env } = context;
-  const url = new URL(request.url);
-
-  if (
-    url.pathname.startsWith("/api/") ||
-    url.pathname.startsWith("/ws/") ||
-    url.pathname.startsWith("/media/")
-  ) {
-    if (!env.BACKEND_HOST || !env.ORIGIN_SECRET) {
-      return new Response("BACKEND_HOST / ORIGIN_SECRET is not configured", {
-        status: 503,
-      });
-    }
-    const target = new URL(request.url);
-    target.protocol = "https:";
-    target.hostname = env.BACKEND_HOST;
-    target.port = "";
-    // Forward the request otherwise untouched (method, Cookie header, WebSocket
-    // Upgrade, body). Returning the upstream Response as-is preserves the 101
-    // upgrade and every Set-Cookie (login sets access_token + refresh_token).
-    const upstream = new Request(target, request);
-    upstream.headers.set("X-Forwarded-Host", url.host);
-    upstream.headers.set("X-Origin-Auth", env.ORIGIN_SECRET);
-    return fetch(upstream);
+  if (isProxiedPath(new URL(request.url).pathname)) {
+    return proxyToBackend(request, env);
   }
-
-  // Not a proxied path — serve the static SPA asset.
-  return next();
+  return withSecurityHeaders(await next());
 };

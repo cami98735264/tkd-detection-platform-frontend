@@ -5,12 +5,18 @@ import {
   type PoseLandmarkerResult,
 } from "@mediapipe/tasks-vision";
 
-// Same model that the backend uses, fetched from Google's CDN at runtime so
-// the bundler doesn't have to ship it.
-const WASM_BASE = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.35/wasm";
-const MODEL_URL =
-  "https://storage.googleapis.com/mediapipe-models/pose_landmarker/" +
-  "pose_landmarker_lite/float16/latest/pose_landmarker_lite.task";
+// Self-hosted runtime + model (no third-party CDN at runtime, so the CSP stays
+// 'self'-only and nothing can be swapped upstream):
+// - WASM runtime: copied at build time from the exact-pinned
+//   @mediapipe/tasks-vision package (scripts/build-lib.mjs) into
+//   /vendor/mediapipe/<version>/wasm — always the same version as the JS API.
+// - Model: committed under public/models/, a copy of Google's versioned
+//   pose_landmarker_lite/float16/1 asset (the same model the backend uses).
+declare const __MEDIAPIPE_VERSION__: string | undefined;
+const MEDIAPIPE_VERSION =
+  typeof __MEDIAPIPE_VERSION__ !== "undefined" ? __MEDIAPIPE_VERSION__ : "0.10.35";
+export const WASM_BASE = `/vendor/mediapipe/${MEDIAPIPE_VERSION}/wasm`;
+export const MODEL_URL = "/models/pose_landmarker_lite/float16/1/pose_landmarker_lite.task";
 
 export interface PoseDetect {
   (video: HTMLVideoElement, timestampMs: number): PoseLandmarkerResult | null;
@@ -19,7 +25,7 @@ export interface PoseDetect {
 /**
  * Lazily creates a MediaPipe PoseLandmarker (Tasks API) configured for VIDEO
  * mode. The first call downloads ~5 MB of WASM + model on a cold cache; both
- * are served by public CDNs so subsequent visits hit the browser cache.
+ * are served from this origin with immutable caching (see public/_headers).
  *
  * Toggle the `enabled` flag to disable initialization (and dispose the
  * landmarker) when the overlay isn't needed.

@@ -9,8 +9,15 @@
   "compatibility_date": "2026-02-19",
   "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
   "assets": {
-    // The path to the directory containing the `index.html` file to be served at `/`
-    "directory": "./public"
+    // Static SPA build (index.html, bundles, fonts, self-hosted MediaPipe).
+    "directory": "./public",
+    "binding": "ASSETS",
+    // Client-side routes (e.g. /dashboard/asistencia) get public/index.html.
+    "not_found_handling": "single-page-application",
+    // Proxied prefixes must reach the Worker even for browser navigations
+    // (e.g. opening /media/... in a tab), which SPA mode would otherwise
+    // answer with index.html.
+    "run_worker_first": ["/api/*", "/ws/*", "/media/*"]
   },
   "observability": {
     "enabled": true
@@ -22,7 +29,7 @@
    *
    * API_URL is intentionally EMPTY: the client uses same-origin relative URLs
    * (`/api/v1/...` and `/ws/realtime/`) and this Worker reverse-proxies them to
-   * the backend (see BACKEND_HOST in src/index.ts). Keeping the browser on a
+   * the backend (see src/edge/proxy.ts). Keeping the browser on a
    * single origin makes the auth cookie first-party. If you ever revert to a
    * direct cross-origin backend, set API_URL back to the full backend URL.
    */
