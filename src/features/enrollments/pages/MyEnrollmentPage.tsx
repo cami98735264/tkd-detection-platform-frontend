@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
-import { ClipboardCheck, FileText } from "lucide-react";
+import { ClipboardCheck } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/common/EmptyState";
@@ -10,7 +9,8 @@ import { PageHeader } from "@/components/common/PageHeader";
 import { enrollmentsApi } from "@/features/enrollments/api/enrollmentsApi";
 import { useApiErrorHandler } from "@/feedback/useApiErrorHandler";
 import { formatDateForDisplay } from "@/lib/dateUtils";
-import { config } from "@/config/env";
+import CertificateDownloadButton from "@/features/enrollments/components/CertificateDownloadButton";
+import { certificateUrl } from "@/features/enrollments/lib/certificate";
 import type { Enrollment } from "@/types/entities";
 
 const STATUS_LABELS: Record<string, string> = {
@@ -97,25 +97,16 @@ export default function MyEnrollmentPage() {
                       <dd className="mt-0.5 text-text">{enrollment.notes}</dd>
                     </div>
                   )}
-                  {enrollment.certificado_medico_adjunto && (
+                  {certificateUrl(enrollment) && (
                     <div className="col-span-2">
                       <dt className="text-xs uppercase tracking-wider text-faint">
                         Certificado médico
                       </dt>
                       <dd className="mt-1.5">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() =>
-                            window.open(
-                              `${config.apiUrl}/media/${enrollment.certificado_medico_adjunto}`,
-                              "_blank",
-                            )
-                          }
-                        >
-                          <FileText className="h-3.5 w-3.5" />
-                          Ver certificado
-                        </Button>
+                        <CertificateDownloadButton
+                          enrollment={enrollment}
+                          label="Descargar certificado"
+                        />
                       </dd>
                     </div>
                   )}

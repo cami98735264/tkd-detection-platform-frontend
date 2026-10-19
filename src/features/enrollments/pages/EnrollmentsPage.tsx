@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { ClipboardList, FileText, Pencil, Plus, Trash2 } from "lucide-react";
+import { ClipboardList, Pencil, Plus, Trash2 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -14,7 +14,7 @@ import { usePermissions } from "@/features/auth/hooks/usePermissions";
 import { useApiErrorHandler } from "@/feedback/useApiErrorHandler";
 import { useFeedback } from "@/feedback/useFeedback";
 import { formatDateForDisplay } from "@/lib/dateUtils";
-import { config } from "@/config/env";
+import CertificateDownloadButton from "@/features/enrollments/components/CertificateDownloadButton";
 import type { Enrollment } from "@/types/entities";
 
 const STATUS_LABELS: Record<string, string> = {
@@ -129,21 +129,7 @@ export default function EnrollmentsPage() {
       key: "certificado",
       header: "Cert. médico",
       hideOnMobile: true,
-      render: (r) =>
-        r.certificado_medico_adjunto ? (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() =>
-              window.open(`${config.apiUrl}/media/${r.certificado_medico_adjunto}`, "_blank")
-            }
-          >
-            <FileText className="h-3.5 w-3.5" />
-            Ver
-          </Button>
-        ) : (
-          <span className="text-faint">—</span>
-        ),
+      render: (r) => <CertificateDownloadButton enrollment={r} />,
     },
   ];
 
