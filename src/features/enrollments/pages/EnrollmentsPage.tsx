@@ -9,7 +9,7 @@ import EnrollmentFormSheet from "@/features/enrollments/components/EnrollmentFor
 import { enrollmentsApi } from "@/features/enrollments/api/enrollmentsApi";
 import { athletesApi } from "@/features/athletes/api/athletesApi";
 import { programsApi } from "@/features/programs/api/programsApi";
-import { parentAthletesApi } from "@/features/athletes/api/parentAthletesApi";
+import { parentAthletesApi } from "@/features/parent/api/parentAthletesApi";
 import { usePermissions } from "@/features/auth/hooks/usePermissions";
 import { useApiErrorHandler } from "@/feedback/useApiErrorHandler";
 import { useFeedback } from "@/feedback/useFeedback";

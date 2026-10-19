@@ -3,8 +3,10 @@ import type { PaginatedResponse } from "@/types/api";
 import type { CompetitionCategory } from "@/types/entities";
 
 export const categoriesApi = {
-  list: (page = 1) =>
-    http.get<PaginatedResponse<CompetitionCategory>>(`/competition-categories/?page=${page}`),
+  list: (page = 1, search = "") =>
+    http.get<PaginatedResponse<CompetitionCategory>>(
+      `/competition-categories/?page=${page}${search ? `&search=${encodeURIComponent(search)}` : ""}`,
+    ),
 
   get: (id: number) => http.get<CompetitionCategory>(`/competition-categories/${id}/`),
 

@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { parentAthletesApi, type ParentChild } from "@/features/athletes/api/parentAthletesApi";
+import { parentAthletesApi, type ParentChild } from "@/features/parent/api/parentAthletesApi";
 
 interface ParentChildrenState {
   children: ParentChild[];

@@ -1,5 +1,14 @@
 import { http } from "@/lib/http";
 import type { PaginatedResponse } from "@/types/api";
+import type { Athlete } from "@/types/entities";
+
+/** A child linked to the signed-in parent (GET /parent/children/). */
+export interface ParentChild {
+  id: number;
+  athlete_id: number;
+  athlete: Athlete;
+  relationship: string;
+}
 
 export interface ParentAthlete {
   id: number;
@@ -30,6 +39,9 @@ export interface RegisterParentAthletePayload {
 }
 
 export const parentAthletesApi = {
+  /** Children of the signed-in parent. */
+  getChildren: () => http.get<ParentChild[]>("/parent/children/"),
+
   list: (page = 1, search = "") =>
     http.get<PaginatedResponse<ParentAthlete>>(
       `/parent-athletes/?page=${page}&search=${encodeURIComponent(search)}`

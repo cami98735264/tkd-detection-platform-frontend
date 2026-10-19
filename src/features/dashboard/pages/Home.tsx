@@ -38,7 +38,7 @@ import {
   userActivityApi,
   type UserActivity,
 } from "@/features/users/api/userActivityApi";
-import { parentAthletesApi } from "@/features/athletes/api/parentAthletesApi";
+import { parentAthletesApi } from "@/features/parent/api/parentAthletesApi";
 import { useApiErrorHandler } from "@/feedback/useApiErrorHandler";
 import { useAuthReady } from "@/features/auth/components/RoleRoute";
 import { cn } from "@/lib/utils";
