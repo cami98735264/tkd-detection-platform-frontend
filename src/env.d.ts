@@ -8,6 +8,8 @@
 declare namespace Cloudflare {
   interface Env {
     BACKEND_HOST: string;
+    // Shared secret sent as X-Origin-Auth; the backend drops requests without it.
+    ORIGIN_SECRET: string;
   }
 }
 

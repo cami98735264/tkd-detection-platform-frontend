@@ -7,3 +7,7 @@
 # Settings → Variables and Secrets), never committed. For local dev, copy this
 # file to `.dev.vars` (gitignored) and put the real host below.
 BACKEND_HOST=your-backend-host.example
+# ORIGIN_SECRET: shared secret sent as X-Origin-Auth. Must equal ORIGIN_SECRET in
+# the backend's .env — its nginx drops requests without it. Also an encrypted
+# secret on the Pages project in production.
+ORIGIN_SECRET=your-origin-secret

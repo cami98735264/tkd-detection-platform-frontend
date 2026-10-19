@@ -13,22 +13,22 @@
 // NOTE: src/index.ts contains the equivalent proxy for the *Workers* deploy
 // path (`wrangler deploy`). Pages ignores src/index.ts and uses THIS file.
 
-// Origin of the Django backend (e.g. "167-233-18-72.sslip.io"). Supplied at
+// Origin of the Django backend (e.g. "tkd-backend.duckdns.org"). Supplied at
 // runtime via the BACKEND_HOST env var/secret on the Pages project — NOT
 // hardcoded, so the origin host isn't committed to source. (This Function runs
 // on the edge, so the value never reaches the browser regardless.)
 //
-// sslip.io is wildcard DNS that resolves a hostname-encoded IP back to that IP
-// (167-233-18-72.sslip.io -> 167.233.18.72) in ~0.17s. The Hetzner IP is
-// STATIC, so dynamic DNS is unnecessary — and DuckDNS's nameservers were
-// resolving in 3-20s on cache miss, stalling the edge fetch this proxy makes.
+// ORIGIN_SECRET is a shared secret sent as X-Origin-Auth; the backend's nginx
+// drops every request without it, so the origin only answers this proxy.
+// X-Forwarded-Host carries THIS origin's host so Django builds absolute URLs
+// (pagination links, file URLs) on the frontend host, never the backend's.
 
 // Minimal shape of the Pages Function context we use (avoids needing the
 // @cloudflare/workers-types ambient PagesFunction type at compile time).
 interface ProxyContext {
   request: Request;
   next: () => Promise<Response>;
-  env: { BACKEND_HOST?: string };
+  env: { BACKEND_HOST?: string; ORIGIN_SECRET?: string };
 }
 
 export const onRequest = async (context: ProxyContext): Promise<Response> => {
@@ -40,17 +40,22 @@ export const onRequest = async (context: ProxyContext): Promise<Response> => {
     url.pathname.startsWith("/ws/") ||
     url.pathname.startsWith("/media/")
   ) {
-    if (!env.BACKEND_HOST) {
-      return new Response("BACKEND_HOST is not configured", { status: 503 });
+    if (!env.BACKEND_HOST || !env.ORIGIN_SECRET) {
+      return new Response("BACKEND_HOST / ORIGIN_SECRET is not configured", {
+        status: 503,
+      });
     }
     const target = new URL(request.url);
     target.protocol = "https:";
     target.hostname = env.BACKEND_HOST;
     target.port = "";
-    // Forward the request untouched (method, Cookie header, WebSocket Upgrade,
-    // body). Returning the upstream Response as-is preserves the 101 upgrade
-    // and every Set-Cookie (login sets access_token + refresh_token).
-    return fetch(new Request(target, request));
+    // Forward the request otherwise untouched (method, Cookie header, WebSocket
+    // Upgrade, body). Returning the upstream Response as-is preserves the 101
+    // upgrade and every Set-Cookie (login sets access_token + refresh_token).
+    const upstream = new Request(target, request);
+    upstream.headers.set("X-Forwarded-Host", url.host);
+    upstream.headers.set("X-Origin-Auth", env.ORIGIN_SECRET);
+    return fetch(upstream);
   }
 
   // Not a proxied path — serve the static SPA asset.

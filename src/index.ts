@@ -13,12 +13,16 @@
 
 import { renderApp } from './server';
 
-// Origin of the Django backend (e.g. "167-233-18-72.sslip.io"). Supplied at
+// Origin of the Django backend (e.g. "tkd-backend.duckdns.org"). Supplied at
 // runtime via the BACKEND_HOST env var/secret — NOT hardcoded, so the origin
 // host isn't committed to source. Set it with `wrangler secret put BACKEND_HOST`
 // (and in .dev.vars for local `wrangler dev`). This bundle runs on the edge, not
 // in the browser, so the value is never shipped to clients either way.
 // Keep the env-var name in sync with functions/_middleware.ts.
+//
+// ORIGIN_SECRET (also a secret) is sent as X-Origin-Auth; the backend's nginx
+// drops every request without it. X-Forwarded-Host carries this origin's host so
+// Django builds absolute URLs on the frontend host, never the backend's.
 
 export default {
 	async fetch(request, env, ctx): Promise<Response> {
@@ -34,17 +38,20 @@ export default {
 			url.pathname.startsWith('/ws/') ||
 			url.pathname.startsWith('/media/')
 		) {
-			if (!env.BACKEND_HOST) {
-				return new Response('BACKEND_HOST is not configured', { status: 503 });
+			if (!env.BACKEND_HOST || !env.ORIGIN_SECRET) {
+				return new Response('BACKEND_HOST / ORIGIN_SECRET is not configured', { status: 503 });
 			}
 			const target = new URL(request.url);
 			target.protocol = 'https:';
 			target.hostname = env.BACKEND_HOST;
 			target.port = '';
-			// Forward the request untouched (method, Cookie header, WebSocket
-			// Upgrade, body). Returning the upstream Response as-is preserves the
-			// 101 upgrade and every Set-Cookie (login sets access + refresh).
-			return fetch(new Request(target, request));
+			// Forward the request otherwise untouched (method, Cookie header,
+			// WebSocket Upgrade, body). Returning the upstream Response as-is
+			// preserves the 101 upgrade and every Set-Cookie (login sets access + refresh).
+			const upstream = new Request(target, request);
+			upstream.headers.set('X-Forwarded-Host', url.host);
+			upstream.headers.set('X-Origin-Auth', env.ORIGIN_SECRET);
+			return fetch(upstream);
 		}
 
 		// Serve static files (js, css, images, etc.) from assets
