@@ -4,6 +4,7 @@
 import * as esbuild from "esbuild";
 
 import {
+  assertNoMockLeak,
   clientOptions,
   loadLocalEnv,
   prepareStaticAssets,
@@ -18,6 +19,7 @@ await prepareStaticAssets();
 console.log("✓ Static assets prepared (MediaPipe runtime, _headers)");
 
 await esbuild.build(clientOptions(defines, { minify: true }));
+assertNoMockLeak(defines, ["public/client.js"]);
 console.log("✓ Client bundle built successfully");
 
 await esbuild.build(workerOptions(defines));

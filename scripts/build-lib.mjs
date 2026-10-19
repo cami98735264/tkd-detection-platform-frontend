@@ -2,7 +2,7 @@
 import * as esbuild from "esbuild";
 import { copyFileSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
-import { dirname, join } from "node:path";
+import { dirname, join, resolve } from "node:path";
 
 const require = createRequire(import.meta.url);
 
@@ -88,9 +88,44 @@ export function resolveDefines() {
   };
 }
 
+/** True when the build was explicitly configured for the dev-only mock backend. */
+export function mockAuthEnabled(defines) {
+  return defines.__MOCK_AUTH__ === JSON.stringify("true");
+}
+
+/**
+ * Unless MOCK_AUTH=true, resolve the dev-only mock backend to its null stub so
+ * fake credentials / TOTP secrets can never reach a production bundle.
+ */
+export function mockBackendPlugin(defines) {
+  return {
+    name: "mock-backend",
+    setup(build) {
+      if (mockAuthEnabled(defines)) return;
+      build.onResolve({ filter: /auth\/mocks\/mockBackend$/ }, () => ({
+        path: resolve("src/features/auth/mocks/mockBackend.disabled.ts"),
+      }));
+    },
+  };
+}
+
+/** Strings that only exist in the mock backend; their presence = a leak. */
+export const MOCK_LEAK_MARKERS = ["JBSWY3DPEHPK3PXP", "admin@warriors.com", "Admin Mock"];
+
+/** Fail the build if a non-mock bundle contains mock credentials/secrets. */
+export function assertNoMockLeak(defines, files) {
+  if (mockAuthEnabled(defines)) return;
+  for (const file of files) {
+    const text = readFileSync(file, "utf8");
+    const hit = MOCK_LEAK_MARKERS.find((marker) => text.includes(marker));
+    if (hit) throw new Error(`Mock auth data ("${hit}") leaked into ${file}`);
+  }
+}
+
 /** esbuild options for the browser bundle. */
 export function clientOptions(defines, { minify }) {
   return {
+    plugins: [mockBackendPlugin(defines)],
     entryPoints: ["src/client.tsx"],
     bundle: true,
     outfile: "public/client.js",
