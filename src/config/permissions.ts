@@ -21,9 +21,7 @@ export type Module =
   | "users"
   | "meetings"
   | "inventory"
-  | "categories"
   | "trainings"
-  | "reports"
   | "profile"
   | "help"
   | "attendance"
@@ -31,7 +29,9 @@ export type Module =
 
 export type Action = "view" | "create" | "edit" | "delete" | "export";
 
-// Which roles can perform which actions on which modules
+// Which roles can perform which actions on which modules. The router derives
+// its RoleRoute guards from the `view` (or a given) action, so this matrix and
+// the routes cannot drift apart.
 export const PERMISSIONS: Record<Module, Record<Action, readonly RoleName[]>> = {
   dashboard: {
     view: ["sportsman", "parent", "administrator"],
@@ -75,8 +75,10 @@ export const PERMISSIONS: Record<Module, Record<Action, readonly RoleName[]>> = 
     delete: ["administrator"],
     export: ["administrator"],
   },
+  // The categories page is an admin CRUD screen (admin navigation only). Other
+  // roles still read categories through the API where forms need them.
   "competition-categories": {
-    view: ["sportsman", "parent", "administrator"],
+    view: ["administrator"],
     create: ["administrator"],
     edit: ["administrator"],
     delete: ["administrator"],
@@ -102,13 +104,6 @@ export const PERMISSIONS: Record<Module, Record<Action, readonly RoleName[]>> = 
     edit: ["administrator"],
     delete: ["administrator"],
     export: ["administrator"],
-  },
-  categories: {
-    view: ["sportsman", "parent", "administrator"],
-    create: ["administrator"],
-    edit: ["administrator"],
-    delete: ["administrator"],
-    export: [],
   },
   trainings: {
     view: ["sportsman", "parent", "administrator"],
@@ -138,11 +133,18 @@ export const PERMISSIONS: Record<Module, Record<Action, readonly RoleName[]>> = 
     delete: ["administrator"],
     export: [],
   },
+  // Athletes record their own kicks; parents record/consent for linked minors.
+  // Administrators have no technical-evaluation screen.
   "technical-evaluation": {
-    view: ["parent"],
-    create: ["parent"],
+    view: ["sportsman", "parent"],
+    create: ["sportsman", "parent"],
     edit: [],
     delete: [],
     export: [],
   },
 };
+
+/** Roles allowed to perform `action` (default "view") on `module`. */
+export function rolesFor(module: Module, action: Action = "view"): readonly RoleName[] {
+  return PERMISSIONS[module][action];
+}

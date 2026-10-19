@@ -1,48 +1,29 @@
-import { Routes, Route, Navigate } from "react-router-dom";
+import type { ReactNode } from "react";
+import { Navigate, Route, Routes } from "react-router-dom";
 
-import ProtectedRoute from "@/features/auth/components/ProtectedRoute";
+import NotFound from "@/components/common/NotFound";
 import GuestRoute from "@/features/auth/components/GuestRoute";
+import ProtectedRoute from "@/features/auth/components/ProtectedRoute";
 import RoleRoute from "@/features/auth/components/RoleRoute";
-import Login from "@/features/auth/pages/Login";
+import AcceptInvitation from "@/features/auth/pages/AcceptInvitation";
+import ConfirmEmailChange from "@/features/auth/pages/ConfirmEmailChange";
 import ForgotPassword from "@/features/auth/pages/ForgotPassword";
+import Login from "@/features/auth/pages/Login";
 import ResetPassword from "@/features/auth/pages/ResetPassword";
 import VerifyEmail from "@/features/auth/pages/VerifyEmail";
-import ConfirmEmailChange from "@/features/auth/pages/ConfirmEmailChange";
-import AcceptInvitation from "@/features/auth/pages/AcceptInvitation";
-
 import DashboardLayout from "@/features/dashboard/layout/DashboardLayout";
-import Home from "@/features/dashboard/pages/Home";
-import Profile from "@/features/auth/pages/Profile";
 
-import AthletesPage from "@/features/athletes/pages/AthletesPage";
-import ProgramsPage from "@/features/programs/pages/ProgramsPage";
-import EditionsPage from "@/features/programs/pages/EditionsPage";
-import EnrollmentsPage from "@/features/enrollments/pages/EnrollmentsPage";
-import EvaluationsPage from "@/features/evaluations/pages/EvaluationsPage";
-import SportsmanEvaluationsPage from "@/features/evaluations/pages/SportsmanEvaluationsPage";
-import ParentEvaluationsPage from "@/features/evaluations/pages/ParentEvaluationsPage";
-import ReportesPage from "@/features/reports/pages/ReportesPage";
-import CompetitionCategoriesPage from "@/features/categories/pages/CategoriesPage";
+import { dashboardRoutes, type RouteGuard } from "./routes";
 
-import UsersPage from "@/features/users/pages/UsersPage";
-import MeetingsPage from "@/features/meetings/pages/MeetingsPage";
-import InventoryPage from "@/features/inventory/pages/InventoryPage";
-import ItemsPage from "@/features/inventory/pages/ItemsPage";
-import TrainingsPage from "@/features/trainings/pages/TrainingsPage";
-import HelpPage from "@/features/help/pages/HelpPage";
-
-import AttendancePage from "@/features/attendance/pages/AttendancePage";
-import AttendanceRegisterPage from "@/features/attendance/pages/AttendanceRegisterPage";
-import TechnicalEvaluationPage from "@/features/technical-evaluation/pages/TechnicalEvaluationPage";
-import MyProgramsPage from "@/features/programs/pages/MyProgramsPage";
-import MyEnrollmentPage from "@/features/enrollments/pages/MyEnrollmentPage";
-import MyTrainingsPage from "@/features/trainings/pages/MyTrainingsPage";
-import ParentAthletesPage from "@/features/parent/pages/ParentAthletesPage";
-import KickHistoryPage from "@/features/kick-history/pages/KickHistoryPage";
-import ParentKickHistoryPage from "@/features/kick-history/pages/ParentKickHistoryPage";
-
-import FeedbackLab from "@/feedback/FeedbackLab";
-import NotFound from "@/components/common/NotFound";
+function Guarded({ guard, children }: { guard: RouteGuard; children: ReactNode }) {
+  return "module" in guard ? (
+    <RoleRoute module={guard.module} action={guard.action}>
+      {children}
+    </RoleRoute>
+  ) : (
+    <RoleRoute allowedRoles={guard.roles}>{children}</RoleRoute>
+  );
+}
 
 export default function AppRouter() {
   return (
@@ -84,7 +65,7 @@ export default function AppRouter() {
       <Route path="/verify-email" element={<VerifyEmail />} />
       <Route path="/confirm-email-change" element={<ConfirmEmailChange />} />
 
-      {/* Dashboard with layout and nested routes */}
+      {/* Dashboard: authenticated layout; every child is role-guarded */}
       <Route
         path="/dashboard"
         element={
@@ -93,173 +74,14 @@ export default function AppRouter() {
           </ProtectedRoute>
         }
       >
-        <Route index element={<Home />} />
-        <Route path="profile" element={<Profile />} />
-        <Route
-          path="deportistas"
-          element={
-            <RoleRoute allowedRoles={["sportsman", "parent", "administrator"]}>
-              <AthletesPage />
-            </RoleRoute>
-          }
-        />
-        <Route
-          path="programas"
-          element={
-            <RoleRoute allowedRoles={["sportsman", "parent", "administrator"]}>
-              <ProgramsPage />
-            </RoleRoute>
-          }
-        />
-        <Route path="programas/:programId/ediciones" element={<EditionsPage />} />
-        <Route
-          path="inscripcion"
-          element={
-            <RoleRoute allowedRoles={["sportsman", "parent", "administrator"]}>
-              <EnrollmentsPage />
-            </RoleRoute>
-          }
-        />
-        <Route
-          path="evaluacion"
-          element={
-            <RoleRoute allowedRoles={["administrator"]}>
-              <EvaluationsPage />
-            </RoleRoute>
-          }
-        />
-        <Route
-          path="deportista/mis-evaluaciones"
-          element={
-            <RoleRoute allowedRoles={["sportsman"]}>
-              <SportsmanEvaluationsPage />
-            </RoleRoute>
-          }
-        />
-        <Route
-          path="acudiente/mis-hijos/evaluaciones"
-          element={
-            <RoleRoute allowedRoles={["parent"]}>
-              <ParentEvaluationsPage />
-            </RoleRoute>
-          }
-        />
-        <Route
-          path="deportista/historial-patadas"
-          element={
-            <RoleRoute allowedRoles={["sportsman"]}>
-              <KickHistoryPage />
-            </RoleRoute>
-          }
-        />
-        <Route
-          path="acudiente/historial-patadas"
-          element={
-            <RoleRoute allowedRoles={["parent"]}>
-              <ParentKickHistoryPage />
-            </RoleRoute>
-          }
-        />
-        <Route path="categorias-competencia" element={<CompetitionCategoriesPage />} />
-        <Route
-          path="reportes"
-          element={
-            <RoleRoute allowedRoles={["administrator"]}>
-              <ReportesPage />
-            </RoleRoute>
-          }
-        />
-        <Route
-          path="usuarios"
-          element={
-            <RoleRoute allowedRoles={["administrator"]}>
-              <UsersPage />
-            </RoleRoute>
-          }
-        />
-        <Route
-          path="reuniones"
-          element={
-            <RoleRoute allowedRoles={["parent", "sportsman", "administrator"]}>
-              <MeetingsPage />
-            </RoleRoute>
-          }
-        />
-        <Route
-          path="inventario"
-          element={
-            <RoleRoute allowedRoles={["administrator"]}>
-              <InventoryPage />
-            </RoleRoute>
-          }
-        />
-        <Route
-          path="inventario/tipos"
-          element={
-            <RoleRoute allowedRoles={["administrator"]}>
-              <ItemsPage />
-            </RoleRoute>
-          }
-        />
-        <Route path="entrenamientos" element={<TrainingsPage />} />
-        <Route path="ayuda" element={<HelpPage />} />
-        <Route
-          path="asistencia"
-          element={
-            <RoleRoute allowedRoles={["parent", "sportsman", "administrator"]}>
-              <AttendancePage />
-            </RoleRoute>
-          }
-        />
-        <Route
-          path="asistencia/registrar"
-          element={
-            <RoleRoute allowedRoles={["administrator"]}>
-              <AttendanceRegisterPage />
-            </RoleRoute>
-          }
-        />
-        <Route
-          path="evaluacion-tecnica"
-          element={
-            <RoleRoute allowedRoles={["parent", "sportsman"]}>
-              <TechnicalEvaluationPage />
-            </RoleRoute>
-          }
-        />
-        <Route
-          path="deportista/mis-programas"
-          element={
-            <RoleRoute allowedRoles={["sportsman"]}>
-              <MyProgramsPage />
-            </RoleRoute>
-          }
-        />
-        <Route
-          path="deportista/mi-inscripcion"
-          element={
-            <RoleRoute allowedRoles={["sportsman"]}>
-              <MyEnrollmentPage />
-            </RoleRoute>
-          }
-        />
-        <Route
-          path="deportista/entrenamientos"
-          element={
-            <RoleRoute allowedRoles={["sportsman"]}>
-              <MyTrainingsPage />
-            </RoleRoute>
-          }
-        />
-        <Route
-          path="acudientes"
-          element={
-            <RoleRoute allowedRoles={["administrator"]}>
-              <ParentAthletesPage />
-            </RoleRoute>
-          }
-        />
-        <Route path="feedback-lab" element={<FeedbackLab />} />
+        {dashboardRoutes.map(({ path, element, guard }) => {
+          const guarded = <Guarded guard={guard}>{element}</Guarded>;
+          return path === "" ? (
+            <Route key="index" index element={guarded} />
+          ) : (
+            <Route key={path} path={path} element={guarded} />
+          );
+        })}
         <Route path="*" element={<NotFound />} />
       </Route>
 
