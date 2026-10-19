@@ -40,7 +40,7 @@ import {
 } from "@/features/users/api/userActivityApi";
 import { parentAthletesApi } from "@/features/parent/api/parentAthletesApi";
 import { useApiErrorHandler } from "@/feedback/useApiErrorHandler";
-import { useAuthReady } from "@/features/auth/components/RoleRoute";
+import { useAuthReady } from "@/features/auth/hooks/useAuthReady";
 import { cn } from "@/lib/utils";
 import type { Athlete } from "@/types/entities";
 import type { LucideIcon } from "lucide-react";

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { CalendarDays, Pencil, Plus, ShieldCheck, Trophy, Users } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -157,13 +157,11 @@ export default function AthletesPage() {
 
   const fetchData = useCallback(() => {
     if (!isAdminUser) return;
-    let cancelled = false;
     setLoading(true);
     const status = statusFilter === "all" ? "" : statusFilter;
     athletesApi
       .list(page, "", status)
       .then((res) => {
-        if (cancelled) return;
         const results =
           categoryFilter !== "all"
             ? res.results.filter((a) => String(a.categoria_competencia) === categoryFilter)
@@ -172,16 +170,13 @@ export default function AthletesPage() {
         setCount(res.count);
       })
       .catch((err) => handleError(err))
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
+      .finally(() => setLoading(false));
   }, [isAdminUser, page, statusFilter, categoryFilter, handleError]);
 
   // Stats — load on mount (admin only)
   useEffect(() => {
     if (!isAdminUser) return;
     refreshStats();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAdminUser, refreshStats]);
 
   // Athletes table — load when page/filters change (admin only)
@@ -199,7 +194,7 @@ export default function AthletesPage() {
       .then(setChildren)
       .catch(handleError)
       .finally(() => setChildrenLoading(false));
-  }, [isParent]);
+  }, [handleError, isParent]);
 
   const handleFormSuccess = () => {
     setEditing(null);
@@ -230,30 +225,29 @@ export default function AthletesPage() {
     }
   };
 
-  const adminActions = useMemo<RowAction<Athlete>[]>(() => {
-    const actions: RowAction<Athlete>[] = [];
-    if (isAdminUser) {
-      actions.push({
-        id: "edit",
-        label: "Editar",
-        icon: Pencil,
-        variant: "ghost",
-        onClick: (row) => {
-          setEditing(row);
-          setModalOpen(true);
+  // Rebuilt every render on purpose: handleToggleStatus closes over the current
+  // page/filters (a memo keyed only on isAdminUser served stale handlers).
+  const adminActions: RowAction<Athlete>[] = isAdminUser
+    ? [
+        {
+          id: "edit",
+          label: "Editar",
+          icon: Pencil,
+          variant: "ghost",
+          onClick: (row) => {
+            setEditing(row);
+            setModalOpen(true);
+          },
         },
-      });
-      actions.push({
-        id: "toggle",
-        label: "Cambiar estado",
-        icon: ShieldCheck,
-        variant: "ghost",
-        onClick: handleToggleStatus,
-      });
-    }
-    return actions;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAdminUser]);
+        {
+          id: "toggle",
+          label: "Cambiar estado",
+          icon: ShieldCheck,
+          variant: "ghost",
+          onClick: handleToggleStatus,
+        },
+      ]
+    : [];
 
   /* ------------------------------ Parent view ----------------------------- */
   if (isParent) {

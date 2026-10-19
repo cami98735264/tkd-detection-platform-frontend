@@ -25,7 +25,7 @@ import { renderApp } from './server';
 // Django builds absolute URLs on the frontend host, never the backend's.
 
 export default {
-	async fetch(request, env, ctx): Promise<Response> {
+	async fetch(request, env): Promise<Response> {
 		const url = new URL(request.url);
 
 		// Reverse-proxy the REST API and the realtime WebSocket to the backend so

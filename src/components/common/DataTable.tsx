@@ -1,5 +1,5 @@
 import { CheckCircle, Eye, Inbox, Pencil, Trash2, type LucideIcon } from "lucide-react";
-import type { ReactNode } from "react";
+import type { Key, ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -84,14 +84,18 @@ const ALIGN_CLS = {
   center: "text-center",
 } as const;
 
-export default function DataTable<T extends Record<string, any>>(
+/** Read a column value by key from an arbitrary row object. */
+function fieldOf(row: object, key: string): unknown {
+  return (row as Record<string, unknown>)[key];
+}
+
+export default function DataTable<T extends object>(
   props: DataTableProps<T>
 ) {
   const {
     columns,
     data,
     loading,
-    rowActions,
     rowKey,
     mobileCard,
     empty,
@@ -156,7 +160,7 @@ export default function DataTable<T extends Record<string, any>>(
             <TableBody>
               {data.map((row, idx) => (
                 <TableRow
-                  key={rowKey ? rowKey(row) : (row.id ?? idx)}
+                  key={rowKey ? rowKey(row) : (fieldOf(row, "id") as Key | undefined) ?? idx}
                   className="animate-slide-up-fade"
                   style={{ animationDelay: `${Math.min(idx, 5) * 60}ms` }}
                 >
@@ -169,7 +173,7 @@ export default function DataTable<T extends Record<string, any>>(
                         col.className
                       )}
                     >
-                      {col.render ? col.render(row) : String(row[col.key] ?? "—")}
+                      {col.render ? col.render(row) : String(fieldOf(row, col.key) ?? "—")}
                     </TableCell>
                   ))}
                   {showActions && (
@@ -189,7 +193,7 @@ export default function DataTable<T extends Record<string, any>>(
         <div className="md:hidden space-y-3">
           {data.map((row, idx) => (
             <div
-              key={rowKey ? rowKey(row) : (row.id ?? idx)}
+              key={rowKey ? rowKey(row) : (fieldOf(row, "id") as Key | undefined) ?? idx}
               className="rounded-lg border border-border bg-surface p-4 shadow-subtle animate-slide-up-fade"
               style={{ animationDelay: `${Math.min(idx, 5) * 60}ms` }}
             >
@@ -253,7 +257,7 @@ function RowActionButtons<T>({
  * new rowActions config so existing call sites keep working without churn.
  * Remove after Phase 5 migration completes.
  */
-function mergeLegacyActions<T extends Record<string, any>>(
+function mergeLegacyActions<T extends object>(
   props: DataTableProps<T>
 ): RowAction<T>[] {
   const { rowActions, onEdit, onDelete, onConfirm, onViewConfirmations, confirmLabel, viewConfirmationsLabel } =

@@ -31,6 +31,8 @@ export function NotificationsBootstrap() {
   const pushLive = useNotificationsStore((s) => s.pushLive);
 
   const { reconnectNonce } = useRealtime();
+  const isAuthedRef = useRef(isAuthed);
+  isAuthedRef.current = isAuthed;
   const lastToastRef = useRef<Map<string, number>>(new Map());
 
   // Backfill on auth (REST-backed bell); clear on logout.
@@ -41,9 +43,10 @@ export function NotificationsBootstrap() {
 
   // Recover missed events after a reconnect (delivery is at-most-once).
   useEffect(() => {
-    if (reconnectNonce > 0 && isAuthed) void refresh();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [reconnectNonce]);
+    // isAuthed is read through a ref so a login/logout alone does not refresh
+    // (init/reset above own that transition).
+    if (reconnectNonce > 0 && isAuthedRef.current) void refresh();
+  }, [reconnectNonce, refresh]);
 
   // Live pushes — the durable bell delta + toast.
   useRealtimeEvent("notification.created", (env) => {

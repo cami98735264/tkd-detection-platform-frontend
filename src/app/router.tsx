@@ -21,7 +21,6 @@ import EnrollmentsPage from "@/features/enrollments/pages/EnrollmentsPage";
 import EvaluationsPage from "@/features/evaluations/pages/EvaluationsPage";
 import SportsmanEvaluationsPage from "@/features/evaluations/pages/SportsmanEvaluationsPage";
 import ParentEvaluationsPage from "@/features/evaluations/pages/ParentEvaluationsPage";
-import ReportsPage from "@/features/reports/pages/ReportsPage";
 import ReportesPage from "@/features/reports/pages/ReportesPage";
 import CompetitionCategoriesPage from "@/features/categories/pages/CategoriesPage";
 

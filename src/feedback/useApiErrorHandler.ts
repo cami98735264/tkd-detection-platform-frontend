@@ -1,5 +1,5 @@
 import { useCallback, useContext, useRef } from "react";
-import { FeedbackContext } from "./FeedbackProvider";
+import { FeedbackContext } from "./FeedbackContext";
 import { ApiError } from "@/types/api";
 
 export function useApiErrorHandler() {

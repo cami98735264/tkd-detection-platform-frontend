@@ -146,7 +146,7 @@ export interface Evaluation {
   result_summary: string;
   notes: string | null;
   video_url: string;
-  analisis_mediapipe: Record<string, any>;
+  analisis_mediapipe: Record<string, unknown>;
   puntuacion_final: number | null;
   autorizacion_padre: boolean;
   metrics: EvaluationMetric[];

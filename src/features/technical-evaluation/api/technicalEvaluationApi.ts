@@ -11,7 +11,20 @@ export type KickType =
 export interface ConsentStatus {
   consent_granted: boolean;
   consent_timestamp: string | null;
+  requires_parent_consent?: boolean;
+  granted_by?: string;
 }
+
+/** Per-child consent row returned to a parent by GET /technical-evaluation/consent/. */
+export interface AthleteConsent {
+  athlete_id: number;
+  athlete_name: string;
+  consent_granted: boolean;
+  consent_timestamp: string | null;
+}
+
+/** Sportsman → own ConsentStatus; parent → one AthleteConsent per linked child. */
+export type ConsentResponse = ConsentStatus | AthleteConsent[];
 
 export interface EvaluationResults {
   angle: number;
@@ -35,11 +48,11 @@ export interface EvaluationSession {
 export const technicalEvaluationApi = {
   getConsent: (athleteId?: number) => {
     const params = athleteId ? `?athlete_id=${athleteId}` : "";
-    return http.get<any>(`/technical-evaluation/consent/${params}`);
+    return http.get<ConsentResponse>(`/technical-evaluation/consent/${params}`);
   },
 
   setConsent: (granted: boolean, athleteId?: number) =>
-    http.post<any>("/technical-evaluation/consent/", {
+    http.post<ConsentStatus>("/technical-evaluation/consent/", {
       consent_granted: granted,
       athlete_id: athleteId,
     }),

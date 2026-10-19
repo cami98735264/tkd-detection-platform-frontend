@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
 export function useCameraAccess() {
   const [stream, setStream] = useState<MediaStream | null>(null);

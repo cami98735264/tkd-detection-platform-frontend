@@ -43,7 +43,7 @@ interface ListPageTemplateProps<T> {
   className?: string;
 }
 
-export function ListPageTemplate<T extends Record<string, any>>({
+export function ListPageTemplate<T extends object>({
   title,
   description,
   eyebrow,

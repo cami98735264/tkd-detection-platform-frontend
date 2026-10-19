@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import type { EvaluationFormPayload } from "@/features/evaluations/api/evaluationsApi";
 import { Formik, Form, Field, FieldArray, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import { Button } from "@/components/ui/button";
@@ -71,7 +72,7 @@ interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   evaluation?: Evaluation | null;
-  onSubmit: (values: any) => Promise<void>;
+  onSubmit: (values: EvaluationFormPayload) => Promise<void>;
   isAdmin?: boolean;
 }
 
@@ -295,12 +296,12 @@ export default function EvaluationFormModal({
         /* CREATE MODE — full form with metrics */
         <Formik
           initialValues={{
-            athlete: "" as any,
-            program: "" as any,
+            athlete: "" as number | "",
+            program: "" as number | "",
             evaluated_at: new Date().toISOString().slice(0, 16),
             result_summary: "",
             notes: "",
-            metrics: [{ metric_name: "", score: "" as any, notes: "" }],
+            metrics: [{ metric_name: "", score: "" as number | "", notes: "" }],
           }}
           validationSchema={createSchema}
           onSubmit={async (values, { setSubmitting }) => {

@@ -101,7 +101,10 @@ function DonutChart({
 }) {
   const total = data.reduce((sum, d) => sum + d.value, 0);
 
-  let cumulative = 0;
+  // Start offset of each segment = sum of the previous segments (in %).
+  const offsets = data.map((_, i) =>
+    data.slice(0, i).reduce((sum, d) => sum + (total > 0 ? (d.value / total) * 100 : 0), 0),
+  );
   return (
     <div className="space-y-2">
       <p className="text-sm font-medium text-text">{title}</p>
@@ -122,7 +125,8 @@ function DonutChart({
                   stroke={["bg-blue-500", "bg-green-500", "bg-yellow-500", "bg-red-500", "bg-purple-500"][i]}
                   strokeWidth="4"
                   strokeDasharray={`${dash} ${100 - dash - gap}`}
-                  strokeDashoffset={-(cumulative / 100) * 94.2}
+                  pathLength={100}
+                  strokeDashoffset={-offsets[i]}
                   className="transition-all duration-300"
                 />
               );

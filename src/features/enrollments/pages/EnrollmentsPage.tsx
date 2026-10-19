@@ -66,8 +66,7 @@ export default function EnrollmentsPage() {
       })
       .catch(handleError)
       .finally(() => setLoading(false));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [handleError]);
 
   const fetchMyEnrollments = useCallback(() => {
     setLoading(true);
@@ -88,8 +87,7 @@ export default function EnrollmentsPage() {
       })
       .catch(handleError)
       .finally(() => setLoading(false));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [handleError]);
 
   useEffect(() => {
     if (isParent) fetchMyEnrollments();

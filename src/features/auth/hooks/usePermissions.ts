@@ -1,5 +1,5 @@
 import { useAuthStore } from "../store/authStore";
-import { ADMIN_ROLES, PERMISSIONS, type Action, type Module, type RoleName } from "@/config/permissions";
+import { PERMISSIONS, type Action, type Module, type RoleName } from "@/config/permissions";
 
 export function usePermissions() {
   const user = useAuthStore((s) => s.user);

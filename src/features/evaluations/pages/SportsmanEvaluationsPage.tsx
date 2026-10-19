@@ -7,7 +7,7 @@ import type { Column, RowAction } from "@/components/common/DataTable";
 import { ListPageTemplate } from "@/components/common/ListPageTemplate";
 import MetricsModal from "@/features/evaluations/components/MetricsModal";
 import { evaluationsApi } from "@/features/evaluations/api/evaluationsApi";
-import { useAuthReady } from "@/features/auth/components/RoleRoute";
+import { useAuthReady } from "@/features/auth/hooks/useAuthReady";
 import { useApiErrorHandler } from "@/feedback/useApiErrorHandler";
 import type { Evaluation } from "@/types/entities";
 
@@ -66,8 +66,7 @@ export default function SportsmanEvaluationsPage() {
       })
       .catch(handleError)
       .finally(() => setLoading(false));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [handleError]);
 
   useEffect(() => {
     if (!authReady) return;

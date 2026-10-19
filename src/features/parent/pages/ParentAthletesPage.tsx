@@ -82,8 +82,7 @@ export default function ParentAthletesPage() {
         .catch(handleError)
         .finally(() => setLoading(false));
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [page],
+    [handleError],
   );
 
   useEffect(() => {

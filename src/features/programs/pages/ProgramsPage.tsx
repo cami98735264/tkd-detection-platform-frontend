@@ -47,8 +47,7 @@ export default function ProgramsPage() {
       })
       .catch(handleError)
       .finally(() => setLoading(false));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [handleError]);
 
   const loadParentPrograms = useCallback(() => {
     setLoading(true);
@@ -74,8 +73,7 @@ export default function ProgramsPage() {
       })
       .catch(handleError)
       .finally(() => setLoading(false));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [handleError]);
 
   useEffect(() => {
     if (isParent) loadParentPrograms();

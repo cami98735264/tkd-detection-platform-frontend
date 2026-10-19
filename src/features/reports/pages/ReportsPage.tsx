@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { BarChart3, FileSpreadsheet, Trash2 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -77,8 +77,7 @@ export default function ReportsPage() {
       })
       .catch(handleError)
       .finally(() => setLoading(false));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [handleError]);
 
   useEffect(() => {
     fetchData(page);
@@ -105,10 +104,11 @@ export default function ReportsPage() {
   });
 
   // Recover rows whose updates were missed while offline.
+  const pageRef = useRef(page);
+  pageRef.current = page;
   useEffect(() => {
-    if (reconnectNonce > 0) fetchData(page);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [reconnectNonce]);
+    if (reconnectNonce > 0) fetchData(pageRef.current);
+  }, [reconnectNonce, fetchData]);
 
   const handleGenerate = async (values: {
     title: string;

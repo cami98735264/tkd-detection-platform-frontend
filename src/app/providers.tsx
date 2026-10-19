@@ -15,8 +15,7 @@ function AuthInit({ children }: { children: React.ReactNode }) {
       .me()
       .then((user) => setAuthenticated(user))
       .catch(() => clearSession());
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [setAuthenticated, clearSession]);
 
   // Block routing until the session check resolves — prevents flash-redirects.
   if (status === "initializing") return null;

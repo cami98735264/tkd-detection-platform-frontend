@@ -25,7 +25,3 @@ export default function RoleRoute({ children, allowedRoles, redirectTo = "/dashb
   return <>{children}</>;
 }
 
-export function useAuthReady() {
-  const { status, isAuthenticated } = useAuthStore();
-  return status === "ready" && isAuthenticated;
-}

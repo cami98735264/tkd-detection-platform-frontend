@@ -3,7 +3,10 @@ import { ClipboardCheck, Users } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import EvaluationHistory from "@/features/technical-evaluation/components/EvaluationHistory";
-import { technicalEvaluationApi } from "@/features/technical-evaluation/api/technicalEvaluationApi";
+import {
+  technicalEvaluationApi,
+  type AthleteConsent,
+} from "@/features/technical-evaluation/api/technicalEvaluationApi";
 import { useApiErrorHandler } from "@/feedback/useApiErrorHandler";
 import { PageHeader } from "@/components/common/PageHeader";
 import { EmptyState } from "@/components/common/EmptyState";
@@ -11,11 +14,6 @@ import { Button } from "@/components/ui/button";
 import { Camera } from "lucide-react";
 import { Link } from "react-router-dom";
 
-interface AthleteConsent {
-  athlete_id: number;
-  athlete_name: string;
-  consent_granted: boolean;
-}
 
 export default function ParentKickHistoryPage() {
   const { handleError } = useApiErrorHandler();
@@ -26,7 +24,7 @@ export default function ParentKickHistoryPage() {
   useEffect(() => {
     technicalEvaluationApi
       .getConsent()
-      .then((data: any) => {
+      .then((data) => {
         if (Array.isArray(data)) {
           setLinkedMinors(data);
           if (data.length === 1) {

@@ -8,7 +8,12 @@ import type { Column, RowAction } from "@/components/common/DataTable";
 import { ListPageTemplate } from "@/components/common/ListPageTemplate";
 import EvaluationFormModal from "@/features/evaluations/components/EvaluationFormModal";
 import MetricsModal from "@/features/evaluations/components/MetricsModal";
-import { evaluationsApi } from "@/features/evaluations/api/evaluationsApi";
+import {
+  evaluationsApi,
+  type EvaluationCreatePayload,
+  type EvaluationFormPayload,
+  type EvaluationUpdatePayload,
+} from "@/features/evaluations/api/evaluationsApi";
 import { usePermissions } from "@/features/auth/hooks/usePermissions";
 import { useApiErrorHandler } from "@/feedback/useApiErrorHandler";
 import { useFeedback } from "@/feedback/useFeedback";
@@ -74,20 +79,19 @@ export default function EvaluationsPage() {
       })
       .catch(handleError)
       .finally(() => setLoading(false));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [handleError]);
 
   useEffect(() => {
     fetchData(page);
   }, [page, fetchData]);
 
-  const handleSubmit = async (values: any) => {
+  const handleSubmit = async (values: EvaluationFormPayload) => {
     try {
       if (editing) {
-        await evaluationsApi.update(editing.id, values);
+        await evaluationsApi.update(editing.id, values as EvaluationUpdatePayload);
         showToast({ title: "Evaluación actualizada", variant: "success" });
       } else {
-        await evaluationsApi.create(values);
+        await evaluationsApi.create(values as EvaluationCreatePayload);
         showToast({ title: "Evaluación creada", variant: "success" });
       }
       setModalOpen(false);

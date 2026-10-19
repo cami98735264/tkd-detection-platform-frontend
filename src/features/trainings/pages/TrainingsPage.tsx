@@ -74,8 +74,7 @@ export default function TrainingsPage() {
         .catch(handleError)
         .finally(() => setLoading(false));
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [],
+    [handleError],
   );
 
   useEffect(() => {

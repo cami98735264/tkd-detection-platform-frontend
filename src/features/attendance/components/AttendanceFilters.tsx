@@ -20,8 +20,6 @@ interface AttendanceFiltersProps {
 export default function AttendanceFilters({
   athleteId,
   viewMode,
-  startDate,
-  endDate,
   onAthleteChange,
   onViewModeChange,
   onStartDateChange,

@@ -1,4 +1,4 @@
-import { createContext, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Toaster, toast } from "sonner";
 
 import {
@@ -32,16 +32,7 @@ function useHtmlTheme(): "light" | "dark" {
   return theme;
 }
 
-interface FeedbackContextType {
-  openModal: (options: ModalOptions) => void;
-  showToast: (options: ToastOptions) => void;
-  confirm: (options: ConfirmOptions) => Promise<boolean>;
-  showAlert: (options: AlertOptions) => void;
-  showBanner: (options: BannerOptions) => void;
-}
-
-export const FeedbackContext =
-  createContext<FeedbackContextType | null>(null);
+import { FeedbackContext, type FeedbackContextType } from "./FeedbackContext";
 
 export function FeedbackProvider({
   children,
@@ -63,30 +54,36 @@ export function FeedbackProvider({
 
   const currentConfirm = confirmQueue[0];
 
-  const openModal = (options: ModalOptions) => {
+  // Stable identities: consumers list these in hook dependency arrays.
+  const openModal = useCallback((options: ModalOptions) => {
     setModal(options);
-  };
+  }, []);
 
-  const showToast = (options: ToastOptions) => {
+  const showToast = useCallback((options: ToastOptions) => {
     toast[options.variant ?? "info"](options.title, {
       description: options.description,
       duration: options.duration ?? 3000,
     });
-  };
+  }, []);
 
-  const showAlert = (options: AlertOptions) => {
+  const showAlert = useCallback((options: AlertOptions) => {
     setAlert(options);
-  };
+  }, []);
 
-  const showBanner = (options: BannerOptions) => {
+  const showBanner = useCallback((options: BannerOptions) => {
     setBanner(options);
-  };
+  }, []);
 
-  const confirm = (options: ConfirmOptions): Promise<boolean> => {
+  const confirm = useCallback((options: ConfirmOptions): Promise<boolean> => {
     return new Promise((resolve) => {
       setConfirmQueue((prev) => [...prev, { options, resolve }]);
     });
-  };
+  }, []);
+
+  const contextValue = useMemo<FeedbackContextType>(
+    () => ({ openModal, showToast, confirm, showAlert, showBanner }),
+    [openModal, showToast, confirm, showAlert, showBanner],
+  );
 
   const handleConfirm = () => {
     if (!currentConfirm) return;
@@ -101,15 +98,7 @@ export function FeedbackProvider({
   };
 
   return (
-    <FeedbackContext.Provider
-      value={{
-        openModal,
-        showToast,
-        confirm,
-        showAlert,
-        showBanner,
-      }}
-    >
+    <FeedbackContext.Provider value={contextValue}>
       {banner && (
         <AppBanner
           {...banner}

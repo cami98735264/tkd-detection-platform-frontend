@@ -21,9 +21,10 @@ import ConsentStep from "@/features/technical-evaluation/components/ConsentStep"
 import KickSelection from "@/features/technical-evaluation/components/KickSelection";
 import RecordingCapture from "@/features/technical-evaluation/components/RecordingCapture";
 import EvaluationResultsView from "@/features/technical-evaluation/components/EvaluationResults";
-import EvaluationHistory from "@/features/technical-evaluation/components/EvaluationHistory";
 import {
   technicalEvaluationApi,
+  type AthleteConsent,
+  type ConsentStatus,
   type EvaluationSession,
   type KickType,
 } from "@/features/technical-evaluation/api/technicalEvaluationApi";
@@ -38,19 +39,7 @@ type Step = "choose" | "consent" | "history" | "kick" | "record" | "results";
 
 const STEP_ORDER: Step[] = ["choose", "consent", "history", "kick", "record", "results"];
 
-interface ConsentInfo {
-  consent_granted: boolean;
-  consent_timestamp: string | null;
-  requires_parent_consent?: boolean;
-  granted_by?: string;
-}
-
-interface AthleteConsent {
-  athlete_id: number;
-  athlete_name: string;
-  consent_granted: boolean;
-  consent_timestamp: string | null;
-}
+type ConsentInfo = ConsentStatus;
 
 export default function TechnicalEvaluationPage() {
   const { handleError } = useApiErrorHandler();
@@ -87,7 +76,7 @@ export default function TechnicalEvaluationPage() {
       Promise.all([athletesApi.getMe(), technicalEvaluationApi.getConsent()])
         .then(([ath, consent]) => {
           setMyAthlete(ath);
-          setConsentInfo(consent);
+          setConsentInfo(Array.isArray(consent) ? null : consent);
         })
         .catch(() => {
           setMyAthlete(null);
@@ -97,7 +86,7 @@ export default function TechnicalEvaluationPage() {
     } else if (isParent) {
       technicalEvaluationApi
         .getConsent()
-        .then((data: any) => {
+        .then((data) => {
           if (Array.isArray(data)) setLinkedMinors(data);
         })
         .catch(() => {})
@@ -175,10 +164,14 @@ export default function TechnicalEvaluationPage() {
         return undefined;
       }
     },
-    // showToast/handleError are stable across renders.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [],
+    [showToast, handleError],
   );
+
+  // Latest session id/status for effects that must not re-run on every fetch.
+  const sessionStatusRef = useRef<EvaluationSession["status"] | undefined>(undefined);
+  sessionStatusRef.current = session?.status;
+  const sessionIdRef = useRef<number | null>(null);
+  sessionIdRef.current = sessionId;
 
   // Live page sync: patch the open session from the realtime event. When the
   // socket is open this REPLACES the 2s poll. Filtered to the active session.
@@ -192,9 +185,10 @@ export default function TechnicalEvaluationPage() {
   // not open. Stops on terminal status, on unmount, and when the socket opens.
   useEffect(() => {
     if (step !== "results" || sessionId == null) return;
-    const terminal =
-      session?.status === "completed" || session?.status === "failed";
-    if (terminal) return;
+    // Read through a ref: tick() handles termination internally, and re-running
+    // on every fetch would loop while the socket is open.
+    const status = sessionStatusRef.current;
+    if (status === "completed" || status === "failed") return;
 
     let active = true;
     let timer: ReturnType<typeof setTimeout> | undefined;
@@ -214,20 +208,17 @@ export default function TechnicalEvaluationPage() {
       active = false;
       if (timer) clearTimeout(timer);
     };
-    // session?.status is intentionally omitted: tick() handles termination
-    // internally; re-running on every fetch would loop while the socket is open.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step, sessionId, realtimeStatus, fetchSession]);
 
   // Recover a session whose terminal event was missed while offline.
   useEffect(() => {
-    if (reconnectNonce === 0 || sessionId == null) return;
-    const terminal =
-      session?.status === "completed" || session?.status === "failed";
-    if (terminal) return;
-    void fetchSession(sessionId, false);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [reconnectNonce]);
+    // Only a reconnect should trigger this; id/status are read through refs.
+    const id = sessionIdRef.current;
+    if (reconnectNonce === 0 || id == null) return;
+    const status = sessionStatusRef.current;
+    if (status === "completed" || status === "failed") return;
+    void fetchSession(id, false);
+  }, [reconnectNonce, fetchSession]);
 
   const handleReset = () => {
     setStep("choose");
@@ -235,13 +226,6 @@ export default function TechnicalEvaluationPage() {
     setSessionId(null);
     setSession(null);
     setSelectedChild(null);
-  };
-
-  const handleStartNew = () => {
-    setStep("kick");
-    setKickType(null);
-    setSessionId(null);
-    setSession(null);
   };
 
   const handleRetry = () => {

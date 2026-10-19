@@ -54,7 +54,7 @@ const passwordSchema = Yup.object({
 export default function Profile() {
   const user = useAuthStore((s) => s.user);
   const { handleError } = useApiErrorHandler();
-  const { showToast, confirm } = useFeedback();
+  const { showToast } = useFeedback();
 
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -67,8 +67,7 @@ export default function Profile() {
       .then(setProfile)
       .catch(handleError)
       .finally(() => setLoading(false));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [handleError]);
 
   if (loading) {
     return (

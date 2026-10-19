@@ -82,8 +82,7 @@ export default function AttendancePage() {
         .catch(handleError)
         .finally(() => setLoading(false));
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [page, athleteId, startDate, endDate],
+    [athleteId, startDate, endDate, handleError],
   );
 
   useEffect(() => {
