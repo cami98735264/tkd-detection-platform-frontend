@@ -2,6 +2,9 @@
   "name": "tkd-frontend",
   "version": "0.0.0",
   "private": true,
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "build:css": "postcss ./src/index.css -o ./public/styles.css --env production",
     "tailwind:watch": "postcss ./src/index.css -o ./public/styles.css --watch",
