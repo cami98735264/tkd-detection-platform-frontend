@@ -1,34 +1,50 @@
 import type { ReactNode } from "react";
 
-import type { Action, Module, RoleName } from "@/config/permissions";
-import Profile from "@/features/auth/pages/Profile";
-import Home from "@/features/dashboard/pages/Home";
+import { lazyPage } from "./lazyPage";
 
-import AthletesPage from "@/features/athletes/pages/AthletesPage";
-import AttendancePage from "@/features/attendance/pages/AttendancePage";
-import AttendanceRegisterPage from "@/features/attendance/pages/AttendanceRegisterPage";
-import CompetitionCategoriesPage from "@/features/categories/pages/CategoriesPage";
-import EnrollmentsPage from "@/features/enrollments/pages/EnrollmentsPage";
-import MyEnrollmentPage from "@/features/enrollments/pages/MyEnrollmentPage";
-import EvaluationsPage from "@/features/evaluations/pages/EvaluationsPage";
-import ParentEvaluationsPage from "@/features/evaluations/pages/ParentEvaluationsPage";
-import SportsmanEvaluationsPage from "@/features/evaluations/pages/SportsmanEvaluationsPage";
-import HelpPage from "@/features/help/pages/HelpPage";
-import InventoryPage from "@/features/inventory/pages/InventoryPage";
-import ItemsPage from "@/features/inventory/pages/ItemsPage";
-import KickHistoryPage from "@/features/kick-history/pages/KickHistoryPage";
-import ParentKickHistoryPage from "@/features/kick-history/pages/ParentKickHistoryPage";
-import MeetingsPage from "@/features/meetings/pages/MeetingsPage";
-import ParentAthletesPage from "@/features/parent/pages/ParentAthletesPage";
-import EditionsPage from "@/features/programs/pages/EditionsPage";
-import MyProgramsPage from "@/features/programs/pages/MyProgramsPage";
-import ProgramsPage from "@/features/programs/pages/ProgramsPage";
-import ReportsPage from "@/features/reports/pages/ReportsPage";
-import StatisticsPage from "@/features/reports/pages/StatisticsPage";
-import TechnicalEvaluationPage from "@/features/technical-evaluation/pages/TechnicalEvaluationPage";
-import MyTrainingsPage from "@/features/trainings/pages/MyTrainingsPage";
-import TrainingsPage from "@/features/trainings/pages/TrainingsPage";
-import UsersPage from "@/features/users/pages/UsersPage";
+import type { Action, Module, RoleName } from "@/config/permissions";
+
+// Route-level code splitting: every page is its own chunk, so FullCalendar,
+// jsPDF and MediaPipe are only downloaded by the pages that use them.
+const Profile = lazyPage(() => import("@/features/auth/pages/Profile"));
+const Home = lazyPage(() => import("@/features/dashboard/pages/Home"));
+const AthletesPage = lazyPage(() => import("@/features/athletes/pages/AthletesPage"));
+const AttendancePage = lazyPage(() => import("@/features/attendance/pages/AttendancePage"));
+const AttendanceRegisterPage = lazyPage(
+  () => import("@/features/attendance/pages/AttendanceRegisterPage"),
+);
+const CompetitionCategoriesPage = lazyPage(
+  () => import("@/features/categories/pages/CategoriesPage"),
+);
+const EnrollmentsPage = lazyPage(() => import("@/features/enrollments/pages/EnrollmentsPage"));
+const MyEnrollmentPage = lazyPage(() => import("@/features/enrollments/pages/MyEnrollmentPage"));
+const EvaluationsPage = lazyPage(() => import("@/features/evaluations/pages/EvaluationsPage"));
+const ParentEvaluationsPage = lazyPage(
+  () => import("@/features/evaluations/pages/ParentEvaluationsPage"),
+);
+const SportsmanEvaluationsPage = lazyPage(
+  () => import("@/features/evaluations/pages/SportsmanEvaluationsPage"),
+);
+const HelpPage = lazyPage(() => import("@/features/help/pages/HelpPage"));
+const InventoryPage = lazyPage(() => import("@/features/inventory/pages/InventoryPage"));
+const ItemsPage = lazyPage(() => import("@/features/inventory/pages/ItemsPage"));
+const KickHistoryPage = lazyPage(() => import("@/features/kick-history/pages/KickHistoryPage"));
+const ParentKickHistoryPage = lazyPage(
+  () => import("@/features/kick-history/pages/ParentKickHistoryPage"),
+);
+const MeetingsPage = lazyPage(() => import("@/features/meetings/pages/MeetingsPage"));
+const ParentAthletesPage = lazyPage(() => import("@/features/parent/pages/ParentAthletesPage"));
+const EditionsPage = lazyPage(() => import("@/features/programs/pages/EditionsPage"));
+const MyProgramsPage = lazyPage(() => import("@/features/programs/pages/MyProgramsPage"));
+const ProgramsPage = lazyPage(() => import("@/features/programs/pages/ProgramsPage"));
+const ReportsPage = lazyPage(() => import("@/features/reports/pages/ReportsPage"));
+const StatisticsPage = lazyPage(() => import("@/features/reports/pages/StatisticsPage"));
+const TechnicalEvaluationPage = lazyPage(
+  () => import("@/features/technical-evaluation/pages/TechnicalEvaluationPage"),
+);
+const MyTrainingsPage = lazyPage(() => import("@/features/trainings/pages/MyTrainingsPage"));
+const TrainingsPage = lazyPage(() => import("@/features/trainings/pages/TrainingsPage"));
+const UsersPage = lazyPage(() => import("@/features/users/pages/UsersPage"));
 
 /**
  * Who may open a dashboard route. Module pages take their roles from the

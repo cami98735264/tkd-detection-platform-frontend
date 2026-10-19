@@ -1,6 +1,6 @@
 // Shared build logic for build.mjs (production) and watch.mjs (dev).
 import * as esbuild from "esbuild";
-import { copyFileSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { copyFileSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { dirname, join, resolve } from "node:path";
 
@@ -128,7 +128,13 @@ export function clientOptions(defines, { minify }) {
     plugins: [mockBackendPlugin(defines)],
     entryPoints: ["src/client.tsx"],
     bundle: true,
-    outfile: "public/client.js",
+    // Code splitting (ESM): public/client.js is the entry; lazily imported
+    // routes/libraries go to content-hashed files under public/js/chunks/.
+    outdir: "public",
+    entryNames: "[name]",
+    chunkNames: "js/chunks/[name]-[hash]",
+    splitting: true,
+    metafile: true,
     format: "esm",
     jsx: "automatic",
     jsxImportSource: "react",
@@ -193,8 +199,33 @@ export async function writeHeadersFile() {
   writeFileSync("public/_headers", mod.renderHeadersFile());
 }
 
+/** Remove chunks from previous builds so stale hashed files don't pile up. */
+export function cleanChunks() {
+  rmSync(join("public", "js"), { recursive: true, force: true });
+}
+
 /** Generated static files that live next to the committed ones in public/. */
 export async function prepareStaticAssets() {
+  cleanChunks();
   copyMediapipeWasm();
   await writeHeadersFile();
+}
+
+/** Print the initial (entry) chunk size and the largest lazy chunks. */
+export function reportBundleSizes(metafile) {
+  const outputs = Object.entries(metafile.outputs).filter(([file]) => file.endsWith(".js"));
+  const kb = (bytes) => `${(bytes / 1024).toFixed(1)} KiB`;
+  const entry = outputs.find(([file]) => file === "public/client.js");
+  if (entry) {
+    const eager = new Set(["public/client.js"]);
+    // Static imports of the entry load eagerly with it.
+    for (const imp of entry[1].imports) if (imp.kind === "import-statement") eager.add(imp.path);
+    const initial = outputs.filter(([f]) => eager.has(f)).reduce((sum, [, o]) => sum + o.bytes, 0);
+    console.log(`  initial JS (entry + eager chunks): ${kb(initial)}`);
+  }
+  const lazy = outputs
+    .filter(([file]) => file !== "public/client.js")
+    .sort((a, b) => b[1].bytes - a[1].bytes)
+    .slice(0, 5);
+  for (const [file, out] of lazy) console.log(`  ${file}: ${kb(out.bytes)}`);
 }

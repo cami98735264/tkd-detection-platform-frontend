@@ -64,7 +64,7 @@ export function withSecurityHeaders(response: Response): Response {
 /**
  * Render the rules for the static-asset `_headers` file (Workers Static Assets
  * and Pages share the format). Long-lived caching for the version-pinned
- * MediaPipe runtime and model.
+ * MediaPipe runtime/model and the content-hashed code-split chunks.
  */
 export function renderHeadersFile(): string {
   const lines = [
@@ -74,5 +74,6 @@ export function renderHeadersFile(): string {
   for (const [name, value] of Object.entries(SECURITY_HEADERS)) lines.push(`  ${name}: ${value}`);
   lines.push("", "/vendor/*", "  Cache-Control: public, max-age=31536000, immutable");
   lines.push("", "/models/*", "  Cache-Control: public, max-age=31536000, immutable");
+  lines.push("", "/js/chunks/*", "  Cache-Control: public, max-age=31536000, immutable");
   return lines.join("\n") + "\n";
 }

@@ -58,9 +58,9 @@ function renderAt(path: string) {
 describe("AppRouter guards", () => {
   beforeEach(() => signIn(null));
 
-  it("sends anonymous users to /login", () => {
+  it("sends anonymous users to /login", async () => {
     renderAt("/dashboard/reportes");
-    expect(screen.getByText("login page")).toBeInTheDocument();
+    expect(await screen.findByText("login page")).toBeInTheDocument();
   });
 
   it("lets an administrator open an admin module page", () => {
