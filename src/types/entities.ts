@@ -194,6 +194,8 @@ export interface CompetitionCategory {
 }
 
 /** /api/reports/ — ReportSerializer */
+export type ReportStatus = "pending" | "processing" | "completed" | "failed";
+
 export interface Report {
   id: number;
   title: string;
@@ -201,9 +203,15 @@ export interface Report {
   created_by_id: number;
   created_by_name: string;
   filters_applied: Record<string, unknown>;
-  status: "pending" | "completed" | "failed";
+  status: ReportStatus;
   generated_at: string | null;
   file_reference: string | null;
+  /**
+   * Authenticated download endpoint for the generated CSV (backend contract:
+   * GET /api/v1/reports/{id}/download/). Optional: older payloads omit it and
+   * the client falls back to that path.
+   */
+  download_url?: string | null;
   created_at: string;
   expires_at: string | null;
 }

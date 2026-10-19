@@ -180,7 +180,7 @@ export default function DashboardCharts() {
 
   const handleExportPdf = async () => {
     try {
-      const res = await dashboardApi.exportPdf();
+      const res = await dashboardApi.exportSummary();
       const data = res;
       const doc = new jsPDF();
 

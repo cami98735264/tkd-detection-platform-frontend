@@ -1,22 +1,23 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { BarChart3, FileSpreadsheet, Trash2 } from "lucide-react";
+import { BarChart3, Download, FileSpreadsheet, Trash2 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { Column, RowAction } from "@/components/common/DataTable";
 import { ListPageTemplate } from "@/components/common/ListPageTemplate";
 import GenerateReportModal from "@/features/reports/components/GenerateReportModal";
-import { reportsApi } from "@/features/reports/api/reportsApi";
+import {
+  isReportInProgress,
+  reportsApi,
+  type GenerateReportPayload,
+} from "@/features/reports/api/reportsApi";
 import { useApiErrorHandler } from "@/feedback/useApiErrorHandler";
 import { useFeedback } from "@/feedback/useFeedback";
 import { useRealtime, useRealtimeEvent } from "@/features/realtime";
-import type { Report } from "@/types/entities";
+import type { Report, ReportStatus } from "@/types/entities";
 
-const STATUS_LABELS: Record<string, string> = {
-  pending: "Pendiente",
-  completed: "Completado",
-  failed: "Fallido",
-};
+/** Poll interval while a report on screen is still pending/processing. */
+export const REPORT_POLL_MS = 4000;
 
 const TYPE_LABELS: Record<string, string> = {
   enrollment: "Inscripciones",
@@ -25,11 +26,12 @@ const TYPE_LABELS: Record<string, string> = {
   custom: "Personalizado",
 };
 
-function StatusBadge({ status }: { status: string }) {
+function StatusBadge({ status }: { status: ReportStatus | string }) {
   if (status === "completed") return <Badge variant="success">Completado</Badge>;
+  if (status === "processing") return <Badge variant="warning">Procesando</Badge>;
   if (status === "pending") return <Badge variant="warning">Pendiente</Badge>;
   if (status === "failed") return <Badge variant="destructive">Fallido</Badge>;
-  return <Badge variant="secondary">{STATUS_LABELS[status] ?? status}</Badge>;
+  return <Badge variant="secondary">{status}</Badge>;
 }
 
 const columns: Column<Report>[] = [
@@ -66,69 +68,80 @@ export default function ReportsPage() {
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
+  const [downloadingId, setDownloadingId] = useState<number | null>(null);
 
   const fetchData = useCallback(
-    (p: number) => {
-      setLoading(true);
-      reportsApi
+    (p: number, { quiet = false }: { quiet?: boolean } = {}) => {
+      if (!quiet) setLoading(true);
+      return reportsApi
         .list(p)
         .then((res) => {
           setData(res.results);
           setCount(res.count);
         })
         .catch(handleError)
-        .finally(() => setLoading(false));
+        .finally(() => {
+          if (!quiet) setLoading(false);
+        });
     },
     [handleError],
   );
 
   useEffect(() => {
-    fetchData(page);
+    void fetchData(page);
   }, [page, fetchData]);
 
-  const { reconnectNonce } = useRealtime();
+  const { status: realtimeStatus, reconnectNonce } = useRealtime();
 
   // Live page sync: patch the changed report row in place (status/title from
   // the trimmed event payload). Ephemeral — does NOT touch the bell.
   useRealtimeEvent("report.updated", (env) => {
     const id = Number(env.id);
-    const patch = env.data as Partial<Pick<Report, "status" | "title">>;
-    setData((prev) =>
-      prev.map((r) =>
-        r.id === id
-          ? {
-              ...r,
-              ...(patch.status ? { status: patch.status } : {}),
-              ...(patch.title ? { title: patch.title } : {}),
-            }
-          : r,
-      ),
-    );
+    const patch = env.data as Partial<Pick<Report, "status" | "title" | "download_url">>;
+    setData((prev) => prev.map((r) => (r.id === id ? { ...r, ...patch } : r)));
   });
 
   // Recover rows whose updates were missed while offline.
   const pageRef = useRef(page);
   pageRef.current = page;
   useEffect(() => {
-    if (reconnectNonce > 0) fetchData(pageRef.current);
+    if (reconnectNonce > 0) void fetchData(pageRef.current, { quiet: true });
   }, [reconnectNonce, fetchData]);
 
-  const handleGenerate = async (values: {
-    title: string;
-    report_type: string;
-    filters_applied?: Record<string, unknown>;
-  }) => {
+  // Status polling fallback: while any visible report is pending/processing
+  // and the realtime socket is not open, re-read the list periodically.
+  const hasInProgress = data.some(isReportInProgress);
+  useEffect(() => {
+    if (!hasInProgress || realtimeStatus === "open") return;
+    const timer = setInterval(() => {
+      void fetchData(pageRef.current, { quiet: true });
+    }, REPORT_POLL_MS);
+    return () => clearInterval(timer);
+  }, [hasInProgress, realtimeStatus, fetchData]);
+
+  const handleGenerate = async (values: GenerateReportPayload) => {
     try {
       await reportsApi.generate(values);
       showToast({
         title: "Reporte solicitado",
-        description: "La generación está en progreso.",
+        description: "Se está generando; podrás descargarlo cuando esté completado.",
         variant: "success",
       });
       setModalOpen(false);
-      fetchData(page);
+      void fetchData(page);
     } catch (err) {
       handleError(err);
+    }
+  };
+
+  const handleDownload = async (report: Report) => {
+    setDownloadingId(report.id);
+    try {
+      await reportsApi.download(report);
+    } catch (err) {
+      handleError(err);
+    } finally {
+      setDownloadingId(null);
     }
   };
 
@@ -141,7 +154,7 @@ export default function ReportsPage() {
     try {
       await reportsApi.delete(report.id);
       showToast({ title: "Reporte eliminado", variant: "success" });
-      fetchData(page);
+      void fetchData(page);
     } catch (err) {
       handleError(err);
     }
@@ -149,18 +162,26 @@ export default function ReportsPage() {
 
   const actions: RowAction<Report>[] = [
     {
+      id: "download",
+      label: "Descargar CSV",
+      icon: Download,
+      variant: "tonal",
+      show: (r) => r.status === "completed" && downloadingId !== r.id,
+      onClick: (r) => void handleDownload(r),
+    },
+    {
       id: "delete",
       label: "Eliminar",
       icon: Trash2,
       variant: "destructive",
-      onClick: handleDelete,
+      onClick: (r) => void handleDelete(r),
     },
   ];
 
   return (
     <ListPageTemplate
       title="Reportes"
-      description="Solicita y descarga reportes de inscripciones, asistencia y rendimiento."
+      description="Solicita y descarga reportes (CSV) de inscripciones, asistencia y rendimiento."
       eyebrow="Administración"
       primaryAction={
         <Button onClick={() => setModalOpen(true)}>

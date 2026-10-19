@@ -150,6 +150,16 @@ axiosInstance.interceptors.response.use(
     }
 
     // --- Non-401 errors or already-retried 401s ---
+    // Blob downloads receive their JSON error envelope as a Blob: decode it so
+    // the user sees the backend's message instead of "Request failed".
+    const data: unknown = error.response?.data;
+    if (typeof Blob !== "undefined" && data instanceof Blob && data.type.includes("json")) {
+      try {
+        error.response!.data = JSON.parse(await blobText(data));
+      } catch {
+        // Not valid JSON: keep the generic message.
+      }
+    }
     const normalized = normalizeHttpError(error);
     if (normalized instanceof ApiError && !originalRequest.silent) {
       publishHttpError(normalized);
@@ -157,6 +167,17 @@ axiosInstance.interceptors.response.use(
     return Promise.reject(normalized);
   },
 );
+
+/** Blob → string (Blob.text() with a FileReader fallback for older engines). */
+function blobText(blob: Blob): Promise<string> {
+  if (typeof blob.text === "function") return blob.text();
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result));
+    reader.onerror = () => reject(reader.error);
+    reader.readAsText(blob);
+  });
+}
 
 // ---------------------------------------------------------------------------
 // In-flight GET deduplication
@@ -204,4 +225,12 @@ export const http = {
 
   delete: <T>(endpoint: string, cfg?: Parameters<typeof axiosInstance.delete>[1]) =>
     axiosInstance.delete<T>(endpoint, cfg).then((r) => r.data),
+
+  /**
+   * GET a file as a Blob through the same axios instance, so the httpOnly
+   * auth cookies, refresh-on-401 and error normalization all apply. Returns
+   * the full response (headers carry Content-Disposition / Content-Type).
+   */
+  getBlob: (endpoint: string, cfg?: Parameters<typeof axiosInstance.get>[1]) =>
+    axiosInstance.get<Blob>(endpoint, { ...cfg, responseType: "blob" }),
 };

@@ -38,7 +38,11 @@ export interface DashboardCharts {
   evaluation_trend: TrendMonth[];
 }
 
-export interface DashboardExportPdf {
+/**
+ * Data for the dashboard PDF. The backend endpoint is named export/pdf/ but
+ * returns JSON; the PDF itself is rendered in the browser (DashboardCharts).
+ */
+export interface DashboardExportSummary {
   generated_at: string;
   period: {
     month: string;
@@ -55,5 +59,6 @@ export interface DashboardExportPdf {
 export const dashboardApi = {
   stats: () => http.get<DashboardStats>("/dashboard/stats/"),
   charts: () => http.get<DashboardCharts>("/dashboard/charts/"),
-  exportPdf: () => http.get<DashboardExportPdf>("/dashboard/export/pdf/"),
+  /** JSON summary used to build the PDF client-side (not a PDF file). */
+  exportSummary: () => http.get<DashboardExportSummary>("/dashboard/export/pdf/"),
 };

@@ -23,7 +23,8 @@ import ParentAthletesPage from "@/features/parent/pages/ParentAthletesPage";
 import EditionsPage from "@/features/programs/pages/EditionsPage";
 import MyProgramsPage from "@/features/programs/pages/MyProgramsPage";
 import ProgramsPage from "@/features/programs/pages/ProgramsPage";
-import ReportesPage from "@/features/reports/pages/ReportesPage";
+import ReportsPage from "@/features/reports/pages/ReportsPage";
+import StatisticsPage from "@/features/reports/pages/StatisticsPage";
 import TechnicalEvaluationPage from "@/features/technical-evaluation/pages/TechnicalEvaluationPage";
 import MyTrainingsPage from "@/features/trainings/pages/MyTrainingsPage";
 import TrainingsPage from "@/features/trainings/pages/TrainingsPage";
@@ -77,7 +78,12 @@ export const dashboardRoutes: DashboardRoute[] = [
     element: <CompetitionCategoriesPage />,
     guard: { module: "competition-categories" },
   },
-  { path: "reportes", element: <ReportesPage />, guard: { module: "reports" } },
+  { path: "reportes", element: <ReportsPage />, guard: { module: "reports" } },
+  {
+    path: "reportes/estadisticas",
+    element: <StatisticsPage />,
+    guard: { module: "reports" },
+  },
   { path: "usuarios", element: <UsersPage />, guard: { module: "users" } },
   { path: "inventario", element: <InventoryPage />, guard: { module: "inventory" } },
   { path: "inventario/tipos", element: <ItemsPage />, guard: { module: "inventory" } },
