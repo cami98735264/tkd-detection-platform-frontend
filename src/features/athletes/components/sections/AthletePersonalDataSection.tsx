@@ -19,6 +19,8 @@ import {
 import { beltsApi, type Belt } from "@/features/evaluations/api/beltsApi";
 import { usersApi } from "@/features/users/api/usersApi";
 
+import AthleteResumeSection from "./AthleteResumeSection";
+import type { AthleteResumeErrors } from "@/features/athletes/lib/athleteResume";
 import {
   STATUS_OPTIONS,
   calculateAge,
@@ -33,6 +35,7 @@ export interface AthletePersonalErrors {
   sportsman_email?: string;
   sportsman_password?: string;
   sportsman_user_id?: string;
+  resume?: AthleteResumeErrors;
 }
 
 interface Props {
@@ -51,6 +54,12 @@ interface Props {
    */
   emailExistsHint?: boolean;
   onLinkExistingEmail?: () => void;
+  /** When true (default), render the "Hoja de vida" block (B.3 fields). */
+  showResume?: boolean;
+  /** Placeholder for the document number (the sportsman profile's documento). */
+  documentPlaceholder?: string | null;
+  /** Start the "Hoja de vida" block expanded. */
+  resumeDefaultOpen?: boolean;
 }
 
 export default function AthletePersonalDataSection({
@@ -61,6 +70,9 @@ export default function AthletePersonalDataSection({
   errors,
   emailExistsHint = false,
   onLinkExistingEmail,
+  showResume = true,
+  documentPlaceholder,
+  resumeDefaultOpen = false,
 }: Props) {
   const [belts, setBelts] = useState<Belt[]>([]);
   const categories = useAthleteCategories();
@@ -196,6 +208,16 @@ export default function AthletePersonalDataSection({
           />
         </div>
       </div>
+
+      {showResume && (
+        <AthleteResumeSection
+          data={data.resume}
+          onChange={(patch) => onChange({ resume: { ...data.resume, ...patch } })}
+          errors={errors?.resume}
+          documentPlaceholder={documentPlaceholder}
+          defaultOpen={resumeDefaultOpen}
+        />
+      )}
 
       {!hideAccountSection && (
         <Card>

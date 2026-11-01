@@ -1,5 +1,13 @@
 import { ApiError } from "@/types/api";
 import type { AthleteRegistrationPayload } from "@/features/athletes/api/athletesApi";
+import {
+  buildResumePayload,
+  emptyAthleteResume,
+  extractResumeErrors,
+  validateAthleteResume,
+  type AthleteResumeErrors,
+  type AthleteResumeState,
+} from "@/features/athletes/lib/athleteResume";
 
 /**
  * Two reusable subforms — `AthletePersonalDataSection` and `ParentAccountSection` —
@@ -22,6 +30,8 @@ export interface AthletePersonalDataState {
   sportsman_user_id: number | null;
   sportsman_email: string;
   sportsman_password: string;
+  /** "Hoja de vida" fields (contract Addendum B.3), all optional. */
+  resume: AthleteResumeState;
 }
 
 export interface ParentAccountState {
@@ -44,6 +54,7 @@ export const emptyAthletePersonalData = (): AthletePersonalDataState => ({
   sportsman_user_id: null,
   sportsman_email: "",
   sportsman_password: "",
+  resume: emptyAthleteResume(),
 });
 
 export const emptyParentAccount = (): ParentAccountState => ({
@@ -62,6 +73,7 @@ export function isAthletePersonalDataValid(
   if (!data.full_name.trim()) return false;
   if (!data.date_of_birth) return false;
   if (!data.category) return false;
+  if (Object.keys(validateAthleteResume(data.resume)).length > 0) return false;
   if (!options.requireAccount) return true;
   if (data.sportsman_mode === "link") return data.sportsman_user_id !== null;
   return data.sportsman_email.trim() !== "" && data.sportsman_password !== "";
@@ -88,6 +100,8 @@ export function buildRegistrationPayload(
     belt_actual: athlete.belt_actual ? Number(athlete.belt_actual) : null,
     height_cm: athlete.height_cm.trim() ? athlete.height_cm.trim() : null,
     status: athlete.status,
+    // Blank hoja-de-vida fields are omitted (safe with backends that lack them).
+    ...buildResumePayload(athlete.resume),
   };
 
   if (athlete.sportsman_mode === "link") {
@@ -144,6 +158,8 @@ export type AthleteFieldErrors = Partial<{
   sportsman_email: string;
   sportsman_password: string;
   sportsman_user_id: string;
+  /** Errors of the "Hoja de vida" fields. */
+  resume: AthleteResumeErrors;
 }>;
 
 export type ParentFieldErrors = Partial<{
@@ -167,8 +183,10 @@ function firstMessage(fields: Record<string, string[]> | null, key: string): str
 export function extractAthleteErrors(err: unknown): Extracted<AthleteFieldErrors> {
   if (!(err instanceof ApiError)) return { errors: {}, emailExists: false };
   const f = err.fields;
+  const resume = extractResumeErrors(f);
   return {
     errors: {
+      ...(Object.keys(resume).length > 0 ? { resume } : {}),
       full_name: firstMessage(f, "full_name"),
       date_of_birth: firstMessage(f, "date_of_birth"),
       category: firstMessage(f, "category"),

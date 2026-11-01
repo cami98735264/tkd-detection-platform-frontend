@@ -11,6 +11,7 @@ import { PageHeader } from "@/components/common/PageHeader";
 import { athletesApi } from "@/features/athletes/api/athletesApi";
 import { athleteCategoryText } from "@/features/athletes/lib/athleteCategories";
 import AthleteRecordsView from "@/features/athlete-documents/components/AthleteRecordsView";
+import ConstanciaDownloadButton from "@/features/athlete-documents/components/ConstanciaDownloadButton";
 import ResumeDownloadButton from "@/features/athlete-documents/components/ResumeDownloadButton";
 import { useApiErrorHandler } from "@/feedback/useApiErrorHandler";
 import { formatDateForDisplay } from "@/lib/dateUtils";
@@ -62,7 +63,12 @@ export default function AthleteDetailPage() {
     { label: "Categoría", value: athleteCategoryText(athlete) ?? "Sin categoría" },
     { label: "Cinturón", value: athlete.belt_actual_name ?? "—" },
     { label: "Fecha de nacimiento", value: formatDateForDisplay(athlete.date_of_birth) },
-    { label: "Ingreso", value: formatDateForDisplay(athlete.created_at) },
+    {
+      label: "Ingreso",
+      value: formatDateForDisplay(
+        athlete.effective_join_date ?? athlete.join_date ?? athlete.created_at,
+      ),
+    },
   ];
 
   return (
@@ -74,6 +80,7 @@ export default function AthleteDetailPage() {
         actions={
           <>
             {back}
+            <ConstanciaDownloadButton athleteId={athlete.id} athleteName={athlete.full_name} />
             <ResumeDownloadButton athleteId={athlete.id} athleteName={athlete.full_name} />
           </>
         }

@@ -8,7 +8,9 @@ import { EmptyState } from "@/components/common/EmptyState";
 import { PageHeader } from "@/components/common/PageHeader";
 import { enrollmentsApi } from "@/features/enrollments/api/enrollmentsApi";
 import { athletesApi } from "@/features/athletes/api/athletesApi";
+import ConstanciaDownloadButton from "@/features/athlete-documents/components/ConstanciaDownloadButton";
 import EnrollmentCertificatesPanel from "@/features/athlete-documents/components/EnrollmentCertificatesPanel";
+import ResumeDownloadButton from "@/features/athlete-documents/components/ResumeDownloadButton";
 import { useApiErrorHandler } from "@/feedback/useApiErrorHandler";
 import { formatDateForDisplay } from "@/lib/dateUtils";
 import CertificateDownloadButton from "@/features/enrollments/components/CertificateDownloadButton";
@@ -33,11 +35,15 @@ export default function MyEnrollmentPage() {
   const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
   const [loading, setLoading] = useState(true);
   const [athleteId, setAthleteId] = useState<number | null>(null);
+  const [athleteName, setAthleteName] = useState<string | undefined>(undefined);
 
   useEffect(() => {
     athletesApi
       .getMe()
-      .then((a) => setAthleteId(a?.id ?? null))
+      .then((a) => {
+        setAthleteId(a?.id ?? null);
+        setAthleteName(a?.full_name);
+      })
       .catch(() => setAthleteId(null));
   }, []);
 
@@ -55,6 +61,14 @@ export default function MyEnrollmentPage() {
         title="Mi inscripción"
         description="Detalles de tus inscripciones a los programas de la academia."
         eyebrow="Mi entrenamiento"
+        actions={
+          athleteId !== null ? (
+            <>
+              <ConstanciaDownloadButton athleteId={athleteId} athleteName={athleteName} />
+              <ResumeDownloadButton athleteId={athleteId} athleteName={athleteName} />
+            </>
+          ) : undefined
+        }
       />
 
       {loading ? (

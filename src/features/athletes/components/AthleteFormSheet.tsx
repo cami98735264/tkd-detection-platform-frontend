@@ -12,6 +12,11 @@ import {
 
 import { athletesApi } from "@/features/athletes/api/athletesApi";
 import { suggestCategory } from "@/features/athletes/lib/athleteCategories";
+import {
+  buildResumePayload,
+  hasResumeData,
+  resumeFromAthlete,
+} from "@/features/athletes/lib/athleteResume";
 import { usersApi } from "@/features/users/api/usersApi";
 import { useApiErrorHandler } from "@/feedback/useApiErrorHandler";
 import { useFeedback } from "@/feedback/useFeedback";
@@ -80,6 +85,7 @@ export default function AthleteFormSheet({ open, onOpenChange, athlete, onSucces
           "",
         height_cm: athlete.height_cm ?? "",
         status: athlete.status ?? "active",
+        resume: resumeFromAthlete(athlete),
       });
     } else {
       setPersonal(emptyAthletePersonalData());
@@ -207,6 +213,8 @@ export default function AthleteFormSheet({ open, onOpenChange, athlete, onSucces
           belt_actual: personal.belt_actual ? Number(personal.belt_actual) : null,
           height_cm: personal.height_cm.trim() ? personal.height_cm.trim() : null,
           status: personal.status,
+          // Only filled fields, plus stored ones the user cleared.
+          ...buildResumePayload(personal.resume, resumeFromAthlete(athlete)),
         });
         showToast({ title: "Deportista actualizado", variant: "success" });
       } else {
@@ -273,6 +281,8 @@ export default function AthleteFormSheet({ open, onOpenChange, athlete, onSucces
               errors={personalErrors}
               emailExistsHint={sportsmanEmailExists}
               onLinkExistingEmail={linkExistingSportsmanByEmail}
+              documentPlaceholder={athlete?.effective_document_number}
+              resumeDefaultOpen={isEdit && hasResumeData(resumeFromAthlete(athlete))}
             />
           )}
 

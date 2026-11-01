@@ -51,6 +51,71 @@ export interface Athlete {
   height_cm: string | null;
   created_at: string;
   updated_at: string;
+
+  // --- Hoja de vida fields (contract Addendum B.3). Optional: older backends omit them. ---
+  gender?: AthleteGender;
+  gender_display?: string | null;
+  document_type?: IdDocumentType;
+  document_type_display?: string | null;
+  document_number?: string;
+  birth_place?: string;
+  civil_status?: string;
+  eps?: string;
+  blood_group?: BloodGroup;
+  rh_factor?: RhFactor;
+  allergies?: string;
+  address?: string;
+  phone?: string;
+  mother_name?: string;
+  mother_occupation?: string;
+  mother_phone?: string;
+  father_name?: string;
+  father_occupation?: string;
+  father_phone?: string;
+  /** Fecha de ingreso al club (YYYY-MM-DD) or null. */
+  join_date?: string | null;
+  /** Spanish weekday names, e.g. ["martes","jueves","sábado"]. */
+  training_days?: string[];
+  /** Decimal hours per session (serialized as string or number) or null. */
+  session_hours?: string | number | null;
+
+  // Read-only derived helpers (B.3).
+  /** `document_number`, else the linked sportsman's profile `documento`. */
+  effective_document_number?: string | null;
+  effective_join_date?: string | null;
+  effective_training_days?: string[];
+  effective_session_hours?: string | number | null;
+  /** 10..1 from the belt grado; null for DAN belts. */
+  gup_number?: number | null;
+}
+
+/** Athlete gender (B.3): Masculino / Femenino / unknown. */
+export type AthleteGender = "M" | "F" | "";
+/** Identity document type (B.3). */
+export type IdDocumentType = "TI" | "CC" | "RC" | "CE" | "";
+export type BloodGroup = "A" | "B" | "AB" | "O" | "";
+export type RhFactor = "+" | "-" | "";
+
+/** /api/club-profile/ — ClubProfileSerializer (singleton, contract Addendum B.2). */
+export interface ClubProfile {
+  name: string;
+  short_name: string;
+  recognition: string;
+  resolution: string;
+  league: string;
+  city: string;
+  legal_rep_name: string;
+  legal_rep_title_prefix: string;
+  legal_rep_role: string;
+  phone: string;
+  email: string;
+  include_signature: boolean;
+  default_training_days: string[];
+  default_session_hours: string | number | null;
+  has_signature: boolean;
+  /** Authenticated signature endpoint (admins only; null for everyone else). */
+  signature_url: string | null;
+  updated_at: string | null;
 }
 
 /** /api/parent-athletes/ — ParentAthleteSerializer */

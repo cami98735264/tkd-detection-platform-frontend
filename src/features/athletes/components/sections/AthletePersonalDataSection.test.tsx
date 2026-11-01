@@ -65,3 +65,39 @@ describe("AthletePersonalDataSection category", () => {
     expect(isAthletePersonalDataValid({ ...base, category: "juvenil" })).toBe(true);
   });
 });
+
+describe("AthletePersonalDataSection hoja de vida", () => {
+  it("renders the hoja de vida block and writes into data.resume", () => {
+    function ResumeHarness() {
+      const [data, setData] = useState(emptyAthletePersonalData());
+      return (
+        <>
+          <AthletePersonalDataSection
+            data={data}
+            onChange={(patch) => setData((d) => ({ ...d, ...patch }))}
+            hideAccountSection
+            documentPlaceholder="99887766"
+            resumeDefaultOpen
+          />
+          <output data-testid="eps">{data.resume.eps}</output>
+        </>
+      );
+    }
+    render(<ResumeHarness />);
+    expect(screen.getByLabelText("Número de documento")).toHaveAttribute("placeholder", "99887766");
+    fireEvent.change(screen.getByLabelText("Seguro E.P.S."), { target: { value: "Sura" } });
+    expect(screen.getByTestId("eps")).toHaveTextContent("Sura");
+  });
+
+  it("can hide the hoja de vida block", () => {
+    render(
+      <AthletePersonalDataSection
+        data={emptyAthletePersonalData()}
+        onChange={() => {}}
+        hideAccountSection
+        showResume={false}
+      />,
+    );
+    expect(screen.queryByRole("button", { name: /Hoja de vida/ })).not.toBeInTheDocument();
+  });
+});

@@ -5,8 +5,10 @@ import {
   normalizeCategories,
   type AthleteCategoryOption,
 } from "@/features/athletes/lib/athleteCategories";
+import type { AthleteResumePayload } from "@/features/athletes/lib/athleteResume";
 
-export interface AthleteWritePayload {
+/** Hoja de vida fields (B.3) ride along as optional keys. */
+export interface AthleteWritePayload extends AthleteResumePayload {
   full_name: string;
   date_of_birth?: string | null;
   /** Age/sport category value (Req 3). The weight category is no longer edited. */
@@ -16,7 +18,7 @@ export interface AthleteWritePayload {
   status: string;
 }
 
-export interface AthleteRegistrationPayload {
+export interface AthleteRegistrationPayload extends AthleteResumePayload {
   // Athlete fields
   full_name: string;
   date_of_birth?: string | null;
