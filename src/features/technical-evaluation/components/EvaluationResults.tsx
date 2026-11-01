@@ -1,4 +1,4 @@
-import { CheckCircle, Lightbulb, X } from "lucide-react";
+import { AlertTriangle, CheckCircle, Lightbulb, X } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -11,8 +11,13 @@ import {
   OptimalReferenceNote,
 } from "@/features/technical-evaluation/components/MetricComparison";
 import {
+  CONFIDENCE_LABELS,
+  LEG_LABELS,
+  formatNumber,
   getMetricDetails,
+  getQualitySummary,
   getSortedRecommendations,
+  type QualitySummary,
 } from "@/features/technical-evaluation/lib/kickFeedback";
 
 interface EvaluationResultsProps {
@@ -31,6 +36,7 @@ export default function EvaluationResultsView({ results, onClose }: EvaluationRe
   const metrics = getMetricDetails(results);
   const improvements = metrics ? getSortedRecommendations(results) : [];
   const allOptimal = !!metrics && metrics.every((m) => m.status === "optimal");
+  const quality = getQualitySummary(results);
 
   return (
     <Card>
@@ -61,6 +67,8 @@ export default function EvaluationResultsView({ results, onClose }: EvaluationRe
             <span className="text-3xl text-faint">/100</span>
           </div>
         </div>
+
+        {quality && <AnalysisQualitySection quality={quality} />}
 
         {metrics ? (
           <section aria-labelledby="executed-vs-optimal" className="space-y-3">
@@ -119,6 +127,62 @@ export default function EvaluationResultsView({ results, onClose }: EvaluationRe
         </div>
       </CardContent>
     </Card>
+  );
+}
+
+function AnalysisQualitySection({ quality }: { quality: QualitySummary }) {
+  const { level, warnings, kicks, usedIndex } = quality;
+  const badge = level === "high" ? "success" : level === "medium" ? "warning" : "destructive";
+  const used = usedIndex !== null ? kicks[usedIndex - 1] : undefined;
+  if (!level && warnings.length === 0 && kicks.length === 0) return null;
+  return (
+    <section aria-labelledby="analysis-quality" className="space-y-2">
+      <div className="flex flex-wrap items-center gap-2">
+        <h3 id="analysis-quality" className="font-display font-semibold tracking-tight text-text">
+          Calidad del análisis
+        </h3>
+        {level && <Badge variant={badge}>{CONFIDENCE_LABELS[level]}</Badge>}
+      </div>
+      {kicks.length > 0 && (
+        <p className="text-sm text-muted">
+          {kicks.length === 1
+            ? "Se detectó 1 patada en el video."
+            : `Se detectaron ${kicks.length} patadas; se muestra la mejor`}
+          {kicks.length > 1 && used
+            ? ` (n.º ${usedIndex}, ${LEG_LABELS[used.leg] ?? used.leg}, segundo ${formatNumber(used.time_s)}).`
+            : kicks.length > 1
+              ? "."
+              : ""}
+        </p>
+      )}
+      {kicks.length > 1 && (
+        <ul className="flex flex-wrap gap-2" aria-label="Patadas detectadas">
+          {kicks.map((k, i) => (
+            <li
+              key={`${k.time_s}-${i}`}
+              className={cn(
+                "rounded-md border px-2 py-1 text-xs tabular-nums",
+                i + 1 === usedIndex
+                  ? "border-primary bg-primary/10 text-text"
+                  : "border-border text-muted",
+              )}
+            >
+              #{i + 1} · {formatNumber(k.time_s)} s · {formatNumber(k.overall)}/100
+            </li>
+          ))}
+        </ul>
+      )}
+      {warnings.length > 0 && (
+        <ul className="space-y-1" aria-label="Advertencias de la grabación">
+          {warnings.map((w) => (
+            <li key={w} className="flex gap-2 text-sm text-muted">
+              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-warning" aria-hidden />
+              <span>{w}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
   );
 }
 

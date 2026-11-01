@@ -3,11 +3,13 @@ import { describe, expect, it } from "vitest";
 import type { EvaluationResults } from "@/features/technical-evaluation/api/technicalEvaluationApi";
 
 import {
+  confidenceLevel,
   deriveStatus,
   formatRange,
   formatWithUnit,
   gaugeGeometry,
   getMetricDetails,
+  getQualitySummary,
   getSortedRecommendations,
 } from "./kickFeedback";
 
@@ -96,5 +98,37 @@ describe("kickFeedback", () => {
 
     const flat = gaugeGeometry({ value: 5, optimal: 5, optimal_min: 5, optimal_max: 5 });
     expect(flat.value).toBeCloseTo(50);
+  });
+});
+
+describe("getQualitySummary", () => {
+  const base = {
+    angle: 1,
+    height: 1,
+    speed: 1,
+    stability: 1,
+    overall_score: 50,
+    recommendations: "",
+  };
+  it("returns null without a v2 report", () => {
+    expect(getQualitySummary(base)).toBeNull();
+    expect(getQualitySummary({ ...base, analysis_quality: null })).toBeNull();
+  });
+  it("normalises confidence levels and drops malformed entries", () => {
+    const q = getQualitySummary({
+      ...base,
+      analysis_quality: {
+        version: 2,
+        confidence: 0.6,
+        warnings: ["ok", "", 3 as unknown as string],
+        kicks: [{ time_s: 1, overall: 70 } as never, null as never, { time_s: "x" } as never],
+        kick_used: { time_s: 1, leg: "left", index: 1 },
+        real_fps: 24,
+      },
+    });
+    expect(q).toMatchObject({ level: "medium", warnings: ["ok"], usedIndex: 1, realFps: 24 });
+    expect(q?.kicks).toHaveLength(1);
+    expect(confidenceLevel(0.8)).toBe("high");
+    expect(confidenceLevel(0.49)).toBe("low");
   });
 });

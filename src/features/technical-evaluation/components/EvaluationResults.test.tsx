@@ -1,7 +1,10 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
-import type { EvaluationResults } from "@/features/technical-evaluation/api/technicalEvaluationApi";
+import type {
+  AnalysisQuality,
+  EvaluationResults,
+} from "@/features/technical-evaluation/api/technicalEvaluationApi";
 
 import EvaluationResultsView from "./EvaluationResults";
 import { MetricTableCell } from "./MetricComparison";
@@ -247,5 +250,77 @@ describe("MetricTableCell", () => {
     expect(screen.getByText("160.8 cm")).toBeInTheDocument();
     rerender(<MetricTableCell results={null} metricKey="height" />);
     expect(screen.getByText("—")).toBeInTheDocument();
+  });
+});
+
+describe("Analysis quality (v2)", () => {
+  const quality: AnalysisQuality & { kicks: NonNullable<AnalysisQuality["kicks"]> } = {
+    version: 2,
+    real_fps: 12.2,
+    confidence: 0.38,
+    kicks_detected: 2,
+    kicks: [
+      { time_s: 1.2, leg: "left", overall: 61, angle: 150, height: 90, speed: 6, stability: 80 },
+      {
+        time_s: 3.4,
+        leg: "right",
+        overall: 74.4,
+        angle: 130,
+        height: 51,
+        speed: 9.7,
+        stability: 88,
+      },
+    ],
+    kick_used: { time_s: 3.4, leg: "right", index: 2 },
+    warnings: ["El video tiene pocos cuadros por segundo (12)."],
+  };
+
+  it("shows confidence, every kick found and the recording warnings", () => {
+    render(<EvaluationResultsView results={{ ...withMetrics, analysis_quality: quality }} />);
+    expect(screen.getByText("Calidad del análisis")).toBeInTheDocument();
+    expect(screen.getByText("Confiabilidad baja")).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        /Se detectaron 2 patadas; se muestra la mejor \(n\.º 2, pierna derecha, segundo 3\.4\)/,
+      ),
+    ).toBeInTheDocument();
+    const kicks = within(screen.getByRole("list", { name: "Patadas detectadas" }));
+    expect(kicks.getAllByRole("listitem")).toHaveLength(2);
+    expect(kicks.getByText("#2 · 3.4 s · 74.4/100")).toBeInTheDocument();
+    expect(screen.getByText("El video tiene pocos cuadros por segundo (12).")).toBeInTheDocument();
+  });
+
+  it("is hidden for legacy sessions and malformed reports", () => {
+    const { rerender } = render(<EvaluationResultsView results={withMetrics} />);
+    expect(screen.queryByText("Calidad del análisis")).not.toBeInTheDocument();
+    rerender(
+      <EvaluationResultsView
+        results={{
+          ...withMetrics,
+          analysis_quality: { foo: 1 } as unknown as EvaluationResults["analysis_quality"],
+        }}
+      />,
+    );
+    expect(screen.queryByText("Calidad del análisis")).not.toBeInTheDocument();
+  });
+
+  it("labels a clean single-kick recording as high confidence", () => {
+    render(
+      <EvaluationResultsView
+        results={{
+          ...withMetrics,
+          analysis_quality: {
+            version: 2,
+            confidence: 0.97,
+            kicks: [quality.kicks[1]],
+            kick_used: { time_s: 3.4, leg: "right", index: 1 },
+            warnings: [],
+          },
+        }}
+      />,
+    );
+    expect(screen.getByText("Confiabilidad alta")).toBeInTheDocument();
+    expect(screen.getByText("Se detectó 1 patada en el video.")).toBeInTheDocument();
+    expect(screen.queryByRole("list", { name: "Patadas detectadas" })).not.toBeInTheDocument();
   });
 });

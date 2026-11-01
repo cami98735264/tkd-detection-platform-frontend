@@ -1,4 +1,6 @@
 import type {
+  AnalysisQuality,
+  AnalyzedKick,
   DetailedRecommendation,
   EvaluationResults,
   MetricDetail,
@@ -162,5 +164,69 @@ export function gaugeGeometry(
     bandEnd: pos(m.optimal_max),
     optimal: pos(m.optimal),
     value: pos(m.value),
+  };
+}
+
+// --------------------------------------------------------------------------
+// Analysis v2 quality report
+// --------------------------------------------------------------------------
+
+export type ConfidenceLevel = "high" | "medium" | "low";
+
+export const CONFIDENCE_LABELS: Record<ConfidenceLevel, string> = {
+  high: "Confiabilidad alta",
+  medium: "Confiabilidad media",
+  low: "Confiabilidad baja",
+};
+
+export const LEG_LABELS: Record<"left" | "right", string> = {
+  left: "pierna izquierda",
+  right: "pierna derecha",
+};
+
+export interface QualitySummary {
+  confidence: number | null;
+  level: ConfidenceLevel | null;
+  warnings: string[];
+  kicks: AnalyzedKick[];
+  usedIndex: number | null;
+  realFps: number | null;
+}
+
+function finite(v: unknown): number | null {
+  return typeof v === "number" && Number.isFinite(v) ? v : null;
+}
+
+export function confidenceLevel(c: number): ConfidenceLevel {
+  if (c >= 0.8) return "high";
+  if (c >= 0.5) return "medium";
+  return "low";
+}
+
+/**
+ * Normalise ``results.analysis_quality`` (v2). Returns null for legacy
+ * sessions or malformed payloads, so the UI simply hides the section.
+ */
+export function getQualitySummary(results: EvaluationResults): QualitySummary | null {
+  const q = results.analysis_quality as AnalysisQuality | null | undefined;
+  if (!q || typeof q !== "object" || typeof q.version !== "number") return null;
+  const confidence = finite(q.confidence);
+  const warnings = Array.isArray(q.warnings)
+    ? q.warnings.filter((w): w is string => typeof w === "string" && w.trim() !== "")
+    : [];
+  const kicks = Array.isArray(q.kicks)
+    ? q.kicks.filter(
+        (k): k is AnalyzedKick =>
+          !!k && typeof k === "object" && finite(k.time_s) !== null && finite(k.overall) !== null,
+      )
+    : [];
+  const usedIndex = finite(q.kick_used?.index);
+  return {
+    confidence,
+    level: confidence === null ? null : confidenceLevel(confidence),
+    warnings,
+    kicks,
+    usedIndex,
+    realFps: finite(q.real_fps),
   };
 }

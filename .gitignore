@@ -51,6 +51,8 @@ build/Release
 # Dependency directories
 
 node_modules/
+# worktrees symlink node_modules: ignore the symlink file too
+node_modules
 jspm_packages/
 
 # Snowpack dependency directory (https://snowpack.dev/)

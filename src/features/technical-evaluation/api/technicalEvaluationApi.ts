@@ -60,6 +60,30 @@ export interface OptimalReference {
   source_note: string;
 }
 
+/** One kick found in the clip (analysis v2). */
+export interface AnalyzedKick {
+  time_s: number;
+  leg: "left" | "right";
+  overall: number;
+  angle: number;
+  height: number;
+  speed: number;
+  stability: number;
+}
+
+/** Recording-quality report of analysis v2 (absent for older sessions). */
+export interface AnalysisQuality {
+  version: number;
+  real_fps?: number;
+  detection_rate?: number;
+  kicks_detected?: number;
+  kicks?: AnalyzedKick[];
+  kick_used?: { time_s: number; leg: "left" | "right"; index: number };
+  view?: "side" | "front" | "diagonal" | "unknown";
+  warnings?: string[];
+  confidence?: number;
+}
+
 export interface EvaluationResults {
   angle: number;
   height: number;
@@ -72,6 +96,7 @@ export interface EvaluationResults {
   metrics?: MetricDetail[];
   detailed_recommendations?: DetailedRecommendation[];
   optimal_reference?: OptimalReference | null;
+  analysis_quality?: AnalysisQuality | null;
 }
 
 export interface EvaluationSession {
