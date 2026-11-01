@@ -372,6 +372,11 @@ Endpoints (all authenticated; writes on catalogue = admin):
   `recording` (webm/mp4 ≤ 50 MB) or `landmarks` (JSON). Consent rules identical
   to kick sessions (parents of minors must have TechEvalConsent). → 201
   `{"id", "status": "processing"}`.
+  Frontend details: the recording part is named `intento.webm` (or `.mp4`
+  on browsers without WebM recording); the `landmarks` fallback is only sent
+  when the browser cannot record video and is a JSON string of
+  `[{"t": <ms since start>, "landmarks": [{"x","y","z","visibility"}, ×33]}]`
+  (MediaPipe normalized pose landmarks, ~15 fps).
 * `GET /api/v1/poomsae/attempts/?athlete_id=&segment=&technique=` (scoped, paginated).
 * `GET /api/v1/poomsae/attempts/{id}/` → attempt with score, element_scores,
   criteria_results, feedback (Spanish recommendations), status.
