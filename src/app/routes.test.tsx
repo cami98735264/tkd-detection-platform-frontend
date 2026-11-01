@@ -50,6 +50,19 @@ describe("dashboard route table", () => {
     }
   });
 
+  it("guards the promotions, gamification and poomsae pages per role", () => {
+    expect(rolesOf(byPath.get("ascensos")!.guard)).toEqual(["administrator"]);
+    expect(rolesOf(byPath.get("retos")!.guard)).toEqual(["administrator"]);
+    expect(rolesOf(byPath.get("mis-diplomas")!.guard)).toEqual(["sportsman", "parent"]);
+    for (const path of ["progreso", "clasificacion", "poomsae", "poomsae/:id"]) {
+      expect([...rolesOf(byPath.get(path)!.guard)].sort(), path).toEqual([
+        "administrator",
+        "parent",
+        "sportsman",
+      ]);
+    }
+  });
+
   it("only links each role to routes that role may open", () => {
     for (const role of Object.keys(navConfig) as RoleName[]) {
       for (const group of navConfig[role]) {
