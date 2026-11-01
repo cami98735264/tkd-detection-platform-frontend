@@ -9,9 +9,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 function readPrimaryColor(): string {
-  if (typeof window === "undefined") return "#b94236";
+  if (typeof window === "undefined") return "#0b7a3b";
   const v = getComputedStyle(document.documentElement).getPropertyValue("--primary").trim();
-  return v || "#b94236";
+  return v || "#0b7a3b";
 }
 
 export interface ScheduleEntry {

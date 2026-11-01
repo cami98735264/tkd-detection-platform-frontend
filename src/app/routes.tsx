@@ -9,6 +9,13 @@ import type { Action, Module, RoleName } from "@/config/permissions";
 const Profile = lazyPage(() => import("@/features/auth/pages/Profile"));
 const Home = lazyPage(() => import("@/features/dashboard/pages/Home"));
 const AthletesPage = lazyPage(() => import("@/features/athletes/pages/AthletesPage"));
+const AthleteDetailPage = lazyPage(() => import("@/features/athletes/pages/AthleteDetailPage"));
+const MyDocumentsPage = lazyPage(
+  () => import("@/features/athlete-documents/pages/MyDocumentsPage"),
+);
+const ParentDocumentsPage = lazyPage(
+  () => import("@/features/athlete-documents/pages/ParentDocumentsPage"),
+);
 const AttendancePage = lazyPage(() => import("@/features/attendance/pages/AttendancePage"));
 const AttendanceRegisterPage = lazyPage(
   () => import("@/features/attendance/pages/AttendanceRegisterPage"),
@@ -141,5 +148,18 @@ export const dashboardRoutes: DashboardRoute[] = [
     path: "deportista/entrenamientos",
     element: <MyTrainingsPage />,
     guard: { roles: ["sportsman"] },
+  },
+
+  // Athlete documents, enrollment certificates and CV (listado 1, req 2/4/5).
+  { path: "deportistas/:athleteId", element: <AthleteDetailPage />, guard: ADMIN },
+  {
+    path: "deportista/documentos",
+    element: <MyDocumentsPage />,
+    guard: { roles: ["sportsman"] },
+  },
+  {
+    path: "acudiente/documentos",
+    element: <ParentDocumentsPage />,
+    guard: { roles: ["parent"] },
   },
 ];

@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/sheet";
 
 import { athletesApi } from "@/features/athletes/api/athletesApi";
+import { suggestCategory } from "@/features/athletes/lib/athleteCategories";
 import { usersApi } from "@/features/users/api/usersApi";
 import { useApiErrorHandler } from "@/feedback/useApiErrorHandler";
 import { useFeedback } from "@/feedback/useFeedback";
@@ -72,8 +73,11 @@ export default function AthleteFormSheet({ open, onOpenChange, athlete, onSucces
         full_name: athlete.full_name ?? "",
         date_of_birth: athlete.date_of_birth ?? "",
         belt_actual: athlete.belt_actual != null ? String(athlete.belt_actual) : "",
-        categoria_competencia:
-          athlete.categoria_competencia != null ? String(athlete.categoria_competencia) : "",
+        category:
+          athlete.category ??
+          athlete.suggested_category ??
+          suggestCategory(athlete.date_of_birth) ??
+          "",
         height_cm: athlete.height_cm ?? "",
         status: athlete.status ?? "active",
       });
@@ -199,9 +203,7 @@ export default function AthleteFormSheet({ open, onOpenChange, athlete, onSucces
         await athletesApi.update(athlete.id, {
           full_name: personal.full_name,
           date_of_birth: personal.date_of_birth || null,
-          categoria_competencia: personal.categoria_competencia
-            ? Number(personal.categoria_competencia)
-            : null,
+          category: personal.category || null,
           belt_actual: personal.belt_actual ? Number(personal.belt_actual) : null,
           height_cm: personal.height_cm.trim() ? personal.height_cm.trim() : null,
           status: personal.status,

@@ -80,10 +80,15 @@
   --text-muted: oklch(0.42 0.01 60);
   --text-faint: oklch(0.6 0.008 60);
 
-  /* Brand (deep crimson — TKD red-belt) */
-  --primary: oklch(0.55 0.18 25);
-  --primary-hover: oklch(0.5 0.19 25);
+  /* Brand — club institutional colours, inspired by the flag of El Espinal:
+   * green (primary, ≈ #0B7A3B) and yellow (highlight, ≈ #F5C400).
+   * White on the green is ≥ 4.5:1; text on the yellow is ALWAYS dark ink. */
+  --primary: oklch(0.52 0.13 150);
+  --primary-hover: oklch(0.44 0.11 150);
   --primary-foreground: oklch(0.99 0.005 80);
+  --highlight: oklch(0.84 0.17 90);
+  --highlight-hover: oklch(0.8 0.17 88);
+  --highlight-foreground: oklch(0.22 0.03 95);
 
   /* Status */
   --success: oklch(0.62 0.13 150);
@@ -93,7 +98,7 @@
   /* Borders / dividers / focus ring */
   --border: oklch(0.18 0.01 60 / 0.12);
   --divider: oklch(0.18 0.01 60 / 0.06);
-  --ring: oklch(0.55 0.18 25 / 0.55);
+  --ring: oklch(0.52 0.13 150 / 0.55);
 
   /* Shadows (tone-matched to warm surfaces) */
   --shadow-subtle: 0 1px 2px oklch(0.18 0.01 60 / 0.04);
@@ -118,12 +123,12 @@
   --destructive-foreground: var(--primary-foreground);
   --input: var(--border);
 
-  /* Charts (kept for any consumers) */
-  --chart-1: oklch(0.55 0.18 25);
-  --chart-2: oklch(0.62 0.13 150);
-  --chart-3: oklch(0.7 0.14 230);
-  --chart-4: oklch(0.78 0.15 75);
-  --chart-5: oklch(0.6 0.18 320);
+  /* Charts — brand green and yellow first, then distinguishable companions */
+  --chart-1: oklch(0.52 0.13 150);
+  --chart-2: oklch(0.84 0.17 90);
+  --chart-3: oklch(0.6 0.14 240);
+  --chart-4: oklch(0.68 0.16 50);
+  --chart-5: oklch(0.55 0.15 310);
 
   /* Radius scale */
   --radius: 0.625rem;
@@ -170,9 +175,12 @@
   --text-muted: oklch(0.72 0.008 70);
   --text-faint: oklch(0.52 0.008 70);
 
-  --primary: oklch(0.66 0.17 25);
-  --primary-hover: oklch(0.7 0.17 25);
+  --primary: oklch(0.7 0.15 150);
+  --primary-hover: oklch(0.76 0.15 150);
   --primary-foreground: oklch(0.16 0.008 70);
+  --highlight: oklch(0.86 0.16 92);
+  --highlight-hover: oklch(0.9 0.15 95);
+  --highlight-foreground: oklch(0.18 0.02 95);
 
   --success: oklch(0.72 0.14 150);
   --warning: oklch(0.82 0.15 75);
@@ -180,7 +188,7 @@
 
   --border: oklch(1 0 0 / 0.1);
   --divider: oklch(1 0 0 / 0.05);
-  --ring: oklch(0.66 0.17 25 / 0.6);
+  --ring: oklch(0.7 0.15 150 / 0.6);
 
   --shadow-subtle: 0 1px 2px oklch(0 0 0 / 0.3);
   --shadow-card: 0 8px 22px -10px oklch(0 0 0 / 0.5), 0 2px 6px oklch(0 0 0 / 0.25);
@@ -203,11 +211,11 @@
   --destructive-foreground: var(--primary-foreground);
   --input: var(--border);
 
-  --chart-1: oklch(0.66 0.17 25);
-  --chart-2: oklch(0.72 0.14 150);
-  --chart-3: oklch(0.78 0.14 230);
-  --chart-4: oklch(0.82 0.15 75);
-  --chart-5: oklch(0.7 0.18 320);
+  --chart-1: oklch(0.7 0.15 150);
+  --chart-2: oklch(0.86 0.16 92);
+  --chart-3: oklch(0.74 0.13 240);
+  --chart-4: oklch(0.76 0.15 50);
+  --chart-5: oklch(0.7 0.15 310);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -225,6 +233,9 @@
   --color-primary: var(--primary);
   --color-primary-hover: var(--primary-hover);
   --color-primary-foreground: var(--primary-foreground);
+  --color-highlight: var(--highlight);
+  --color-highlight-hover: var(--highlight-hover);
+  --color-highlight-foreground: var(--highlight-foreground);
   --color-success: var(--success);
   --color-warning: var(--warning);
   --color-error: var(--error);

@@ -19,6 +19,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
+import { BrandStripe } from "@/components/common/BrandStripe";
 import { Logo } from "@/components/common/Logo";
 import { ThemeToggle } from "@/components/common/ThemeToggle";
 import { NotificationBell } from "@/features/notifications/components/NotificationBell";
@@ -118,6 +119,7 @@ function SidebarContents({ groups }: { groups: NavGroup[] }) {
   return (
     <div className="flex h-full flex-col">
       {/* Brand */}
+      <BrandStripe />
       <div className="flex items-center justify-center px-5 py-6 border-b border-divider">
         <Logo className="h-24 w-auto" alt="Warriors TKD" eager />
       </div>
@@ -173,7 +175,7 @@ function SidebarLink({ item }: { item: NavItem }) {
           <span
             aria-hidden="true"
             className={[
-              "absolute left-0 top-1/2 h-5 w-0.5 -translate-y-1/2 rounded-r bg-primary",
+              "absolute left-0 top-1/2 h-5 w-1 -translate-y-1/2 rounded-r bg-highlight",
               "transition-[opacity,transform] duration-(--duration-normal) ease-(--ease-spring)",
               isActive ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-1",
             ].join(" ")}

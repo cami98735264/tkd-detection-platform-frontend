@@ -15,6 +15,9 @@ const buttonVariants = cva(
         secondary: "bg-surface-2 text-text hover:bg-surface-offset",
         ghost: "text-text hover:bg-surface-2",
         link: "text-primary underline-offset-4 hover:underline",
+        // Club yellow — always dark ink on it for contrast.
+        highlight:
+          "bg-highlight text-highlight-foreground hover:bg-highlight-hover shadow-subtle font-semibold",
         tonal:
           "bg-primary/10 text-primary hover:bg-primary/15 dark:bg-primary/15 dark:hover:bg-primary/25",
       },

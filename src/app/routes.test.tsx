@@ -50,6 +50,12 @@ describe("dashboard route table", () => {
     }
   });
 
+  it("guards the athlete documents pages per role", () => {
+    expect(rolesOf(byPath.get("deportistas/:athleteId")!.guard)).toEqual(["administrator"]);
+    expect(rolesOf(byPath.get("deportista/documentos")!.guard)).toEqual(["sportsman"]);
+    expect(rolesOf(byPath.get("acudiente/documentos")!.guard)).toEqual(["parent"]);
+  });
+
   it("only links each role to routes that role may open", () => {
     for (const role of Object.keys(navConfig) as RoleName[]) {
       for (const group of navConfig[role]) {

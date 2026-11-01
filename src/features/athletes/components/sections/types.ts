@@ -14,7 +14,8 @@ export interface AthletePersonalDataState {
   full_name: string;
   date_of_birth: string;
   belt_actual: string;
-  categoria_competencia: string;
+  /** Age/sport category value (required). */
+  category: string;
   height_cm: string;
   status: string;
   sportsman_mode: AccountMode;
@@ -36,7 +37,7 @@ export const emptyAthletePersonalData = (): AthletePersonalDataState => ({
   full_name: "",
   date_of_birth: "",
   belt_actual: "",
-  categoria_competencia: "",
+  category: "",
   height_cm: "",
   status: "active",
   sportsman_mode: "link",
@@ -60,6 +61,7 @@ export function isAthletePersonalDataValid(
 ): boolean {
   if (!data.full_name.trim()) return false;
   if (!data.date_of_birth) return false;
+  if (!data.category) return false;
   if (!options.requireAccount) return true;
   if (data.sportsman_mode === "link") return data.sportsman_user_id !== null;
   return data.sportsman_email.trim() !== "" && data.sportsman_password !== "";
@@ -82,9 +84,7 @@ export function buildRegistrationPayload(
   const payload: AthleteRegistrationPayload = {
     full_name: athlete.full_name.trim(),
     date_of_birth: athlete.date_of_birth || null,
-    categoria_competencia: athlete.categoria_competencia
-      ? Number(athlete.categoria_competencia)
-      : null,
+    category: athlete.category || null,
     belt_actual: athlete.belt_actual ? Number(athlete.belt_actual) : null,
     height_cm: athlete.height_cm.trim() ? athlete.height_cm.trim() : null,
     status: athlete.status,
@@ -140,6 +140,7 @@ export const STATUS_OPTIONS = [
 export type AthleteFieldErrors = Partial<{
   full_name: string;
   date_of_birth: string;
+  category: string;
   sportsman_email: string;
   sportsman_password: string;
   sportsman_user_id: string;
@@ -170,6 +171,7 @@ export function extractAthleteErrors(err: unknown): Extracted<AthleteFieldErrors
     errors: {
       full_name: firstMessage(f, "full_name"),
       date_of_birth: firstMessage(f, "date_of_birth"),
+      category: firstMessage(f, "category"),
       sportsman_email: firstMessage(f, "sportsman_email"),
       sportsman_password: firstMessage(f, "sportsman_password"),
       sportsman_user_id: firstMessage(f, "sportsman_user_id"),
