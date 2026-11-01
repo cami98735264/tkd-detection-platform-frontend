@@ -64,6 +64,11 @@ const ChallengesAdminPage = lazyPage(
 );
 const PoomsaeCatalogPage = lazyPage(() => import("@/features/poomsae/pages/PoomsaeCatalogPage"));
 const PoomsaeDetailPage = lazyPage(() => import("@/features/poomsae/pages/PoomsaeDetailPage"));
+// Poomsae admin: reference videos, movement scripts, calibration (Addendum C.7).
+const PoomsaeAdminPage = lazyPage(() => import("@/features/poomsae/pages/PoomsaeAdminPage"));
+const TechniqueCalibrationPage = lazyPage(
+  () => import("@/features/poomsae/pages/TechniqueCalibrationPage"),
+);
 // Official club data for generated documents (Addendum B.2).
 const ClubProfilePage = lazyPage(() => import("@/features/club/pages/ClubProfilePage"));
 
@@ -191,6 +196,12 @@ export const dashboardRoutes: DashboardRoute[] = [
   // Poomsae (Req 8).
   { path: "poomsae", element: <PoomsaeCatalogPage />, guard: EVERYONE },
   { path: "poomsae/:id", element: <PoomsaeDetailPage />, guard: EVERYONE },
+  { path: "poomsae-admin", element: <PoomsaeAdminPage />, guard: ADMIN },
+  {
+    path: "poomsae-admin/calibracion",
+    element: <TechniqueCalibrationPage />,
+    guard: ADMIN,
+  },
   // Club profile + legal representative signature (Addendum B.7).
   { path: "club", element: <ClubProfilePage />, guard: ADMIN },
 ];
