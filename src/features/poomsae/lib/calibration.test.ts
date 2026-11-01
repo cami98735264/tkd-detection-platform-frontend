@@ -79,6 +79,13 @@ describe("calibration normalisers", () => {
       ],
     });
     expect(h.map((c) => c.id)).toEqual([2, 1]);
+    // Backend shape: the undo is a new entry with `reverts` = undone id.
+    const backend = normalizeCalibrations([
+      { id: 7, created_at: "2026-10-01T00:00:00Z", tolerance: "normal", reverts: null },
+      { id: 8, created_at: "2026-10-02T00:00:00Z", tolerance: "revert", reverts: 7 },
+    ]);
+    expect(backend.find((c) => c.id === 7)).toMatchObject({ reverted: true, is_revert: false });
+    expect(backend.find((c) => c.id === 8)).toMatchObject({ reverted: false, is_revert: true });
     expect(h[0]).toMatchObject({ created_by_name: "Otro", reverted: true });
     expect(h[1]).toMatchObject({
       created_by_name: "Maestro",

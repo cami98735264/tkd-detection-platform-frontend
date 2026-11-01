@@ -283,4 +283,6 @@ export interface TechniqueCalibration {
   previous_criteria: TechniqueCriterion[];
   new_criteria: TechniqueCriterion[];
   reverted: boolean;
+  /** This entry is itself the undo of an earlier calibration. */
+  is_revert: boolean;
 }

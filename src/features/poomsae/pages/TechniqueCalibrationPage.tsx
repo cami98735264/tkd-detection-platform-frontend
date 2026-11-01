@@ -497,6 +497,8 @@ export default function TechniqueCalibrationPage() {
                       </div>
                       {c.reverted ? (
                         <Badge variant="outline-muted">Revertida</Badge>
+                      ) : c.is_revert ? (
+                        <Badge variant="outline-muted">Reversión</Badge>
                       ) : (
                         <Button size="sm" variant="outline" onClick={() => void revert(c)}>
                           <RotateCcw className="h-4 w-4" />

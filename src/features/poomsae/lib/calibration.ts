@@ -92,8 +92,12 @@ function criteriaList(v: unknown): TechniqueCriterion[] {
 }
 
 export function normalizeCalibrations(data: unknown): TechniqueCalibration[] {
-  return list(data)
-    .filter(isObj)
+  const rows = list(data).filter(isObj);
+  // The backend logs a revert as a NEW entry whose `reverts` = id of the undone one.
+  const revertedIds = new Set(
+    rows.map((c) => num(c.reverts)).filter((n): n is number => n != null),
+  );
+  return rows
     .map((c) => {
       const by = c.created_by;
       const byName =
@@ -111,7 +115,9 @@ export function normalizeCalibrations(data: unknown): TechniqueCalibration[] {
           : [],
         previous_criteria: criteriaList(c.previous_criteria ?? c.previous),
         new_criteria: criteriaList(c.new_criteria ?? c.new),
-        reverted: c.reverted === true || c.reverted_at != null,
+        reverted:
+          c.reverted === true || c.reverted_at != null || revertedIds.has(num(c.id) ?? -1),
+        is_revert: num(c.reverts) != null || c.tolerance === "revert",
       };
     })
     .filter((c) => c.id > 0)
