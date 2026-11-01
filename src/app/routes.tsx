@@ -64,6 +64,8 @@ const ChallengesAdminPage = lazyPage(
 );
 const PoomsaeCatalogPage = lazyPage(() => import("@/features/poomsae/pages/PoomsaeCatalogPage"));
 const PoomsaeDetailPage = lazyPage(() => import("@/features/poomsae/pages/PoomsaeDetailPage"));
+// Official club data for generated documents (Addendum B.2).
+const ClubProfilePage = lazyPage(() => import("@/features/club/pages/ClubProfilePage"));
 
 /**
  * Who may open a dashboard route. Module pages take their roles from the
@@ -189,4 +191,6 @@ export const dashboardRoutes: DashboardRoute[] = [
   // Poomsae (Req 8).
   { path: "poomsae", element: <PoomsaeCatalogPage />, guard: EVERYONE },
   { path: "poomsae/:id", element: <PoomsaeDetailPage />, guard: EVERYONE },
+  // Club profile + legal representative signature (Addendum B.7).
+  { path: "club", element: <ClubProfilePage />, guard: ADMIN },
 ];

@@ -50,6 +50,9 @@ function emptyResponseFor(url: string): unknown {
   if (/\/auth\/2fa\/status\/?$/.test(path)) {
     return { success: true, data: { enabled: false, recovery_codes_remaining: 0 }, error: null };
   }
+  if (/\/club-profile\/?$/.test(path)) {
+    return { name: "Club Warriors", legal_rep_name: "Rep", has_signature: false };
+  }
   if (/\/(athlete\/me|profile)\/?$/.test(path)) {
     return { id: 1, full_name: "Ana", date_of_birth: "2000-01-01", email: "a@x.co" };
   }
@@ -168,5 +171,30 @@ describe("dashboard pages mount", () => {
     // Let mount effects settle (requests resolve on the next ticks); a page
     // crash would surface as an uncaught error and fail the test.
     await new Promise((r) => setTimeout(r, 0));
+  });
+});
+
+describe("club profile page (Addendum B.7)", () => {
+  it("loads /club-profile/ and renders the form for admins", async () => {
+    signIn("administrator");
+    const route = dashboardRoutes.find((r) => r.path === "club")!;
+    render(
+      <MemoryRouter initialEntries={["/dashboard/club"]}>
+        <FeedbackProvider>
+          <Suspense fallback={<p>loading-chunk</p>}>
+            <Routes>
+              <Route path="/dashboard">
+                <Route path={route.path} element={route.element} />
+              </Route>
+            </Routes>
+          </Suspense>
+        </FeedbackProvider>
+      </MemoryRouter>,
+    );
+    expect(
+      await screen.findByDisplayValue("Club Warriors", {}, { timeout: 5000 }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Datos del club" })).toBeInTheDocument();
+    expect(h.requests.some((u) => /club-profile\/?$/.test(u))).toBe(true);
   });
 });

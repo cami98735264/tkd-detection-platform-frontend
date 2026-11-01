@@ -56,6 +56,16 @@ describe("dashboard route table", () => {
     expect(rolesOf(byPath.get("acudiente/documentos")!.guard)).toEqual(["parent"]);
   });
 
+  it("only lets admins edit the club profile", () => {
+    expect(rolesOf(byPath.get("club")!.guard)).toEqual(["administrator"]);
+    const adminLinks = navConfig.administrator.flatMap((g) => g.items.map((i) => i.to));
+    expect(adminLinks).toContain("/dashboard/club");
+    for (const role of ["sportsman", "parent"] as const) {
+      const links = navConfig[role].flatMap((g) => g.items.map((i) => i.to));
+      expect(links, role).not.toContain("/dashboard/club");
+    }
+  });
+
   it("guards the promotions, gamification and poomsae pages per role", () => {
     expect(rolesOf(byPath.get("ascensos")!.guard)).toEqual(["administrator"]);
     expect(rolesOf(byPath.get("retos")!.guard)).toEqual(["administrator"]);
