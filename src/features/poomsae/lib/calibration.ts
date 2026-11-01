@@ -115,8 +115,7 @@ export function normalizeCalibrations(data: unknown): TechniqueCalibration[] {
           : [],
         previous_criteria: criteriaList(c.previous_criteria ?? c.previous),
         new_criteria: criteriaList(c.new_criteria ?? c.new),
-        reverted:
-          c.reverted === true || c.reverted_at != null || revertedIds.has(num(c.id) ?? -1),
+        reverted: c.reverted === true || c.reverted_at != null || revertedIds.has(num(c.id) ?? -1),
         is_revert: num(c.reverts) != null || c.tolerance === "revert",
       };
     })
