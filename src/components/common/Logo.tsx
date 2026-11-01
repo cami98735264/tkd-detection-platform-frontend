@@ -7,9 +7,9 @@ interface LogoProps {
   alt?: string;
   /** Tone treatment:
    *  - "auto"   (default): black in light mode, inverted to white in dark mode
-   *  - "always-light": always rendered as the light/negative version (e.g. on crimson chip)
+   *  - "always-light": always rendered as the light/negative version (e.g. on a green chip)
    *  - "always-dark":  always rendered as the dark/positive version
-   *  - "primary": tinted to the brand crimson via blend (overlays the source as multiply)
+   *  - "primary": tinted to the brand green via a CSS filter chain
    */
   tone?: "auto" | "always-light" | "always-dark" | "primary";
   /** Eager loading. Default false. The auth shell logos and topbar mark should set this. */
@@ -21,9 +21,9 @@ const TONE_CLASSES: Record<NonNullable<LogoProps["tone"]>, string> = {
   "always-light": "invert brightness-95",
   "always-dark": "",
   primary:
-    // Recolor the black silhouette to the brand crimson. drop-shadow is intentionally
-    // omitted so it remains crisp on warm-stone surfaces.
-    "[filter:brightness(0)_saturate(100%)_invert(33%)_sepia(63%)_saturate(1854%)_hue-rotate(348deg)_brightness(94%)_contrast(91%)]",
+    // Recolor the black silhouette to the brand green (#0B7A3B). drop-shadow is
+    // intentionally omitted so it remains crisp on warm-stone surfaces.
+    "[filter:brightness(0)_saturate(100%)_invert(29%)_sepia(86%)_saturate(1200%)_hue-rotate(126deg)_brightness(92%)_contrast(92%)]",
 };
 
 export function Logo({ className, alt = "Warriors TKD", tone = "auto", eager = false }: LogoProps) {

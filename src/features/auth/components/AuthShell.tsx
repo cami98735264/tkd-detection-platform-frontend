@@ -1,5 +1,6 @@
 import { ReactNode, useEffect, useState } from "react";
 
+import { BrandStripe } from "@/components/common/BrandStripe";
 import { Logo } from "@/components/common/Logo";
 import { ThemeToggle } from "@/components/common/ThemeToggle";
 
@@ -108,11 +109,16 @@ function BrandPanel({ headline, subcopy }: { headline: ReactNode; subcopy: React
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 -z-10 bg-surface-offset/35 mix-blend-multiply dark:mix-blend-overlay"
       />
-      {/* Crimson corner glow */}
+      {/* Club colours: green + yellow corner glows and a flag-like band */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute -right-32 -top-24 -z-10 h-96 w-96 rounded-full bg-primary/15 blur-3xl"
+        className="pointer-events-none absolute -right-32 -top-24 -z-10 h-96 w-96 rounded-full bg-primary/20 blur-3xl"
       />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -bottom-24 -left-24 -z-10 h-80 w-80 rounded-full bg-highlight/20 blur-3xl"
+      />
+      <BrandStripe className="absolute inset-x-0 top-0 h-2" />
 
       <div className="relative flex items-center">
         <Logo className="h-48 w-48 drop-shadow-sm" alt="Warriors TKD" eager />
@@ -136,7 +142,7 @@ function BrandPanel({ headline, subcopy }: { headline: ReactNode; subcopy: React
               key={i}
               className={
                 i === index
-                  ? "h-2 w-10 rounded-full bg-primary transition-all duration-500 ease-in-out"
+                  ? "h-2 w-10 rounded-full bg-highlight transition-all duration-500 ease-in-out"
                   : "h-2 w-2 rounded-full bg-primary/30 transition-all duration-500 ease-in-out"
               }
             />

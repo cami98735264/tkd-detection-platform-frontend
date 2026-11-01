@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { jsPDF } from "jspdf";
 import { autoTable } from "jspdf-autotable";
+
 import {
   Users,
   BookOpen,
@@ -20,6 +21,7 @@ import {
   type DashboardStats,
   type DashboardCharts,
 } from "@/features/dashboard/api/dashboardApi";
+import { brandTableStyles, drawBrandFooter, drawBrandHeader } from "@/lib/pdfBrand";
 
 const STAT_ICONS = {
   total_deportistas: Users,
@@ -61,6 +63,11 @@ function StatCard({
       </CardContent>
     </Card>
   );
+}
+
+/** Chart palette from the design tokens (brand green, yellow, then companions). */
+function chartColor(i: number): string {
+  return `var(--chart-${(i % 5) + 1})`;
 }
 
 function BarChart({ data, title }: { data: { label: string; value: number }[]; title: string }) {
@@ -116,11 +123,7 @@ function DonutChart({
                   cy="18"
                   r="15"
                   fill="none"
-                  stroke={
-                    ["bg-blue-500", "bg-green-500", "bg-yellow-500", "bg-red-500", "bg-purple-500"][
-                      i
-                    ]
-                  }
+                  stroke={chartColor(i)}
                   strokeWidth="4"
                   strokeDasharray={`${dash} ${100 - dash - gap}`}
                   pathLength={100}
@@ -137,7 +140,8 @@ function DonutChart({
           {data.map((item, i) => (
             <div key={item.label} className="flex items-center gap-1.5">
               <span
-                className={`inline-block h-2 w-2 rounded-full ${["bg-blue-500", "bg-green-500", "bg-yellow-500", "bg-red-500", "bg-purple-500"][i]}`}
+                className="inline-block h-2 w-2 rounded-full"
+                style={{ backgroundColor: chartColor(i) }}
               />
               <span className="text-xs text-muted">
                 {item.label} ({item.value})
@@ -183,15 +187,21 @@ export default function DashboardCharts() {
       const res = await dashboardApi.exportSummary();
       const data = res;
       const doc = new jsPDF();
-
-      doc.setFontSize(18);
-      doc.text("Reporte General - TKD Warriors", 14, 20);
-      doc.setFontSize(12);
-      doc.text(`Periodo: ${data.period.month} ${data.period.year}`, 14, 28);
-      doc.text(`Generado: ${new Date(data.generated_at).toLocaleString()}`, 14, 35);
+      const subtitle = `Periodo: ${data.period.month} ${data.period.year} · Generado: ${new Date(
+        data.generated_at,
+      ).toLocaleString()}`;
+      const top = drawBrandHeader(doc, "Reporte General - TKD Warriors", subtitle);
+      // Every additional page gets the same green/yellow band.
+      const newPage = (title: string) => {
+        doc.addPage();
+        const y = drawBrandHeader(doc, "Reporte General - TKD Warriors", subtitle);
+        doc.setFontSize(14);
+        doc.text(title, 14, y);
+        return y + 4;
+      };
 
       doc.setFontSize(14);
-      doc.text("Estadísticas Resumen", 14, 48);
+      doc.text("Estadísticas Resumen", 14, top);
       doc.setFontSize(11);
       const summaryData = [
         ["Deportistas", data.summary.total_deportistas],
@@ -201,35 +211,54 @@ export default function DashboardCharts() {
         ["Evaluaciones", data.summary.total_evaluaciones],
         ["Usuarios", data.summary.total_usuarios],
       ];
-      autoTable(doc, { startY: 52, head: [["Métrica", "Valor"]], body: summaryData });
+      autoTable(doc, {
+        ...brandTableStyles,
+        startY: top + 4,
+        head: [["Métrica", "Valor"]],
+        body: summaryData,
+      });
 
       if (data.distributions.cinturones.length > 0) {
-        doc.addPage();
-        doc.setFontSize(14);
-        doc.text("Distribución por Cinturón", 14, 20);
+        const startY = newPage("Distribución por Cinturón");
         const beltData = data.distributions.cinturones.map((c) => [c.nombre, c.cantidad]);
-        autoTable(doc, { startY: 28, head: [["Cinturón", "Cantidad"]], body: beltData });
+        autoTable(doc, {
+          ...brandTableStyles,
+          startY,
+          head: [["Cinturón", "Cantidad"]],
+          body: beltData,
+        });
       }
 
       if (data.distributions.categorias.length > 0) {
-        doc.addPage();
-        doc.setFontSize(14);
-        doc.text("Distribución por Categoría", 14, 20);
+        const startY = newPage("Distribución por Categoría");
         const catData = data.distributions.categorias.map((c) => [c.nombre, c.cantidad]);
-        autoTable(doc, { startY: 28, head: [["Categoría", "Cantidad"]], body: catData });
+        autoTable(doc, {
+          ...brandTableStyles,
+          startY,
+          head: [["Categoría", "Cantidad"]],
+          body: catData,
+        });
       }
 
       if (data.asistencia_detalle.length > 0) {
-        doc.addPage();
-        doc.setFontSize(14);
-        doc.text("Detalle de Asistencia del Mes", 14, 20);
+        const startY = newPage("Detalle de Asistencia del Mes");
         const attData = data.asistencia_detalle.map((a) => [
           a.estado === "present" ? "Presente" : a.estado === "absent" ? "Ausente" : "Tarde",
           a.cantidad,
         ]);
-        autoTable(doc, { startY: 28, head: [["Estado", "Cantidad"]], body: attData });
+        autoTable(doc, {
+          ...brandTableStyles,
+          startY,
+          head: [["Estado", "Cantidad"]],
+          body: attData,
+        });
       }
 
+      const pages = doc.getNumberOfPages();
+      for (let i = 1; i <= pages; i += 1) {
+        doc.setPage(i);
+        drawBrandFooter(doc, `TKD Warriors — El Espinal · Página ${i} de ${pages}`);
+      }
       doc.save(`reporte-tkd-${data.period.month}-${data.period.year}.pdf`);
       showToast({ title: "PDF descargado", variant: "success" });
     } catch (err) {
