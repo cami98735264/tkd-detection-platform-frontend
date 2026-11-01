@@ -377,3 +377,49 @@ Endpoints (all authenticated; writes on catalogue = admin):
   criteria_results, feedback (Spanish recommendations), status.
 * The athlete can repeat a segment any number of times; the poomsae counts as
   completed when every segment has a completed attempt with score ≥ 70.
+
+---
+
+## Addendum — Kick evaluation: executed vs optimal values + detailed feedback
+
+Existing module `apps.technical_evaluation` (kick sessions). The results must
+show, for each metric, the EXECUTED value against the OPTIMAL value for that
+kick type (and athlete), plus a detailed description of what to improve:
+Ángulo / ángulo óptimo · Altura ejecutada / altura óptima de pateo ·
+Velocidad ejecutada / velocidad óptima · Estabilidad ejecutada / estabilidad óptima.
+
+`TechEvalSession` gains `metric_details` (JSONField, default list) filled by the
+analysis; `results` in `GET /technical-evaluation/sessions/` and
+`/sessions/{id}/` keeps every existing key (`angle, height, speed, stability,
+overall_score, recommendations`) and ADDS:
+
+```json
+"metrics": [
+  {"key": "angle", "label": "Ángulo de la técnica", "unit": "°",
+   "value": 173.3, "optimal": 175.0, "optimal_min": 165.0, "optimal_max": 180.0,
+   "ratio": 0.99, "score": 97.0, "status": "optimal",
+   "status_display": "Óptimo",
+   "description": "Explicación en español de qué mide, cómo quedó frente al óptimo y qué corregir."},
+  {"key": "height", "label": "Altura de pateo", "unit": "cm", ...},
+  {"key": "speed", "label": "Velocidad de la técnica", "unit": "m/s", ...},
+  {"key": "stability", "label": "Estabilidad", "unit": "%", ...}
+],
+"detailed_recommendations": [
+  {"metric": "height", "priority": "high"|"medium"|"low", "title": "Eleva la altura del pateo",
+   "detail": "Texto detallado…", "drills": ["Ejercicio 1", "Ejercicio 2"]}
+],
+"optimal_reference": {"kick_type": "Dollyo Chagui", "athlete_height_cm": 165.0,
+                       "height_basis": "athlete"|"estimated", "source_note": "…"}
+```
+
+* `status`: `optimal` (inside [optimal_min, optimal_max]), `close` (score ≥ 70),
+  `needs_work` (else). `ratio` = value / optimal (rounded 2 decimals).
+* Optimal values are per kick type (table in `apps/technical_evaluation/optimal.py`,
+  documented with the rationale). Height optimum scales with the athlete's
+  `height_cm` when known (e.g. head-level kicks ≈ 0.9 × stature, body-level ≈ 0.6 ×),
+  otherwise the stature estimated from the video scale.
+* Old sessions without `metric_details` get them computed on the fly from the
+  stored values (serializer), so history pages show the comparison too.
+* `recommendations` (string) stays as a short summary for backward compatibility,
+  but it must no longer be just "¡Excelente técnica general!" when any metric is
+  below its optimum: mention the weakest metric(s).
