@@ -887,3 +887,60 @@ only by hand shape are scored by arm trajectory/position.
     history with revert.
 * Note shown in results: "La forma de la mano (puño, mano de cuchillo, punta de
   dedos) no se evalúa con la cámara."
+
+
+### C.8 Hand shape detection (MediaPipe HandLandmarker) — added scope
+
+* Backend: run MediaPipe Tasks `HandLandmarker` (model `hand_landmarker.task`,
+  downloaded/cached exactly like the pose model in
+  `apps.technical_evaluation.analysis`) ONLY on the key frames of matched
+  movements / the technique key frame (not the whole clip). Classify each
+  visible hand as `"fist"` (jumeok), `"knife"` (sonnal: fingers extended and
+  together, thumb tucked), `"fingertips"` (pyeonsonkkeut: extended fingers
+  pointing forward), `"palm"` (batangson: wrist bent back, open hand) or
+  `"unknown"` from finger curl angles / tip-to-MCP distances. Match the hand to
+  the pose wrist (nearest pose wrist landmark) to know which arm.
+* `Technique` gains `hand_shape` choice `""|"fist"|"knife"|"fingertips"|"palm"`
+  (seeded for every hand technique; "" = not evaluated).
+* Each movement result / technique result gains `"hand": {"expected",
+  "detected", "confidence" 0–1, "evaluable" bool, "passed" bool|null}`. When the
+  hand is not detected or confidence < 0.5 → `evaluable=false`, `passed=null`,
+  and it does NOT lower the score (feedback: "No se pudo ver la mano con
+  claridad; acércate a la cámara o mejora la luz para evaluar la forma de la
+  mano."). When evaluable, hand shape is one criterion of the movement's hand
+  technique (counts in the technique elements). Also add a criteria_results row
+  `<prefix>hand_shape` with value = detected label.
+* Landmark-JSON fallback path: client may send `hands` per frame
+  (`[{"handedness":"Left"|"Right","landmarks":[21×{x,y,z}]}]`); if absent, hand is
+  not evaluable. Tests must mock HandLandmarker (no model download in tests).
+* Frontend: show the expected vs detected hand shape per movement (labels
+  Puño / Mano de cuchillo / Punta de dedos / Palma / "No evaluable") and replace
+  the old "La forma de la mano no se evalúa…" note with: "La forma de la mano se
+  evalúa cuando la mano se ve con claridad; para mejores resultados graba más
+  cerca o con buena luz."
+
+### C.9 Script verification by the maestro — added scope
+
+* `Poomsae` gains `script_reviewed` bool (default false), `script_reviewed_by`
+  FK user null, `script_reviewed_at` datetime null, `script_notes` text.
+  `POST /api/v1/poomsae/{id}/review-script/` (admin) body `{"reviewed": bool,
+  "notes"}` sets/clears them. List/detail expose `script_reviewed`,
+  `script_reviewed_by_name`, `script_reviewed_at`, `script_notes`.
+  Attempt JSON gains `script_provisional` bool (= not reviewed at analysis time)
+  and feedback ends with "Nota: el guion de esta forma aún no ha sido revisado
+  por el maestro; los resultados son provisionales." when provisional.
+* Reference check: `POST /api/v1/poomsae/{id}/script-check/` (admin) body
+  `{"attempt_id"}` — a completed segment/full attempt recorded by the maestro
+  performing the form correctly — returns `{"attempt", "mismatches": [{"number",
+  "name", "kind": "missing"|"turn"|"step"|"stance"|"hand"|"kick"|"hand_shape",
+  "expected", "measured", "suggestion" (Spanish, e.g. "¿El giro del movimiento 7
+  es 90° a la izquierda?")}], "ok": bool}` from that attempt's movement_results.
+  (No automatic change; the maestro edits movements via PATCH.)
+* Frontend admin poomsae page: "Guion revisado por el maestro" toggle + notes,
+  "Verificar guion con mi grabación" (pick one of my completed attempts of this
+  poomsae → show mismatches with a link to edit each movement). Athlete-facing
+  pages show a "Guion provisional" badge when not reviewed.
+* Seeded scripts: cross-check each Taegeuk against the Kukkiwon textbook
+  descriptions (movement count, turn directions, stance, hand technique, kick,
+  kihap positions) before committing; document sources/assumptions in the seed
+  migration docstring.

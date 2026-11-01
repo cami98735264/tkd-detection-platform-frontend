@@ -26,7 +26,12 @@ import AttemptsHistory from "../components/AttemptsHistory";
 import PoomsaeVideo, { type VideoRange } from "../components/PoomsaeVideo";
 import MovementChecklist from "../components/MovementChecklist";
 import PracticeFlow from "../components/PracticeFlow";
-import { FULL_RECORD_SECONDS, movementsForSegment, normalizeMovements } from "../lib/sequence";
+import {
+  FULL_RECORD_SECONDS,
+  isScriptProvisional,
+  movementsForSegment,
+  normalizeMovements,
+} from "../lib/sequence";
 import { formatSeconds, SEGMENT_PASS_SCORE, segmentBest } from "../lib/video";
 import type { PoomsaeDetail, PoomsaeMovement, PoomsaeSegment } from "../types";
 
@@ -126,11 +131,24 @@ export default function PoomsaeDetailPage() {
             title={detail.name}
             description={detail.description}
           />
-          {certified && (
-            <Badge variant="highlight" className="gap-1">
-              <Award className="h-3.5 w-3.5" aria-hidden="true" />
-              Forma certificada
-            </Badge>
+          {(certified || isScriptProvisional(detail)) && (
+            <div className="flex flex-wrap items-center gap-2">
+              {certified && (
+                <Badge variant="highlight" className="gap-1">
+                  <Award className="h-3.5 w-3.5" aria-hidden="true" />
+                  Forma certificada
+                </Badge>
+              )}
+              {isScriptProvisional(detail) && (
+                <>
+                  <Badge variant="outline-muted">Guion provisional</Badge>
+                  <span className="text-xs text-muted">
+                    El maestro aún no ha revisado el guion de movimientos; los resultados son
+                    provisionales.
+                  </span>
+                </>
+              )}
+            </div>
           )}
 
           {!isSportsman && (

@@ -4,19 +4,55 @@
 import { config } from "@/config/env";
 
 import type {
+  HandCheck,
   MovementCheck,
   MovementResult,
   Poomsae,
   PoomsaeAttempt,
   PoomsaeMovement,
   PoomsaeSegment,
+  ScriptCheckResult,
+  ScriptMismatch,
   SegmentResult,
   SequenceSummary,
 } from "../types";
 
 /** Shown with every result (C.6 limitation). */
 export const HAND_SHAPE_NOTE =
-  "La forma de la mano (puño, mano de cuchillo, punta de dedos) no se evalúa con la cámara.";
+  "La forma de la mano se evalúa cuando la mano se ve con claridad; para mejores resultados graba más cerca o con buena luz.";
+
+export const HAND_SHAPE_LABEL: Record<string, string> = {
+  fist: "Puño",
+  knife: "Mano de cuchillo",
+  fingertips: "Punta de dedos",
+  palm: "Palma",
+};
+
+/** "fist" → "Puño"; unknown / empty → "No evaluable". */
+export function handShapeLabel(shape: string | null | undefined): string {
+  if (!shape) return "No evaluable";
+  return HAND_SHAPE_LABEL[shape] ?? "No evaluable";
+}
+
+/** `hand` of a movement / technique result (C.8), or null when absent. */
+export function normalizeHandCheck(v: unknown): HandCheck | null {
+  if (!isObj(v)) return null;
+  const s = (x: unknown) => (typeof x === "string" && x ? x : null);
+  const confidence = num(v.confidence);
+  const evaluable = v.evaluable === true && (confidence == null || confidence >= 0.5);
+  return {
+    expected: s(v.expected),
+    detected: s(v.detected),
+    confidence,
+    evaluable,
+    passed: evaluable && typeof v.passed === "boolean" ? v.passed : null,
+  };
+}
+
+/** Criteria rows whose key is "<prefix>hand_shape" carry a detected shape code. */
+export function isHandShapeKey(key: string): boolean {
+  return key === "hand_shape" || key.endsWith(".hand_shape");
+}
 
 /** Server limit for full run-through recordings (POOMSAE_FULL_MAX_VIDEO_BYTES). */
 export const FULL_MAX_VIDEO_BYTES = 90 * 1024 * 1024;
@@ -155,6 +191,7 @@ export function normalizeMovementResults(data: unknown): MovementResult[] {
         score: num(r.score),
         turn: check(r.turn),
         step: check(r.step),
+        hand: normalizeHandCheck(r.hand),
         issues: Array.isArray(r.issues) ? r.issues.map(str).filter(Boolean) : [],
       };
     })
@@ -266,4 +303,44 @@ export function movementPatch(original: PoomsaeMovement, draft: MovementDraft) {
   }
   if (typeof patch.name === "string") patch.name = patch.name.trim();
   return patch;
+}
+
+export function normalizeScriptCheck(data: unknown): ScriptCheckResult {
+  if (!isObj(data)) return { attempt: null, mismatches: [], ok: false };
+  const pick = (x: unknown) => (typeof x === "number" || typeof x === "string" ? x : null);
+  const mismatches: ScriptMismatch[] = list(data.mismatches)
+    .filter(isObj)
+    .map((m) => {
+      const number = num(m.number) ?? 0;
+      return {
+        number,
+        name: str(m.name) || `Movimiento ${number}`,
+        kind: str(m.kind),
+        expected: pick(m.expected),
+        measured: pick(m.measured),
+        suggestion: str(m.suggestion),
+      };
+    })
+    .sort((a, b) => a.number - b.number);
+  const attempt = isObj(data.attempt) ? num(data.attempt.id) : num(data.attempt);
+  return {
+    attempt,
+    mismatches,
+    ok: data.ok === true || (data.ok == null && mismatches.length === 0),
+  };
+}
+
+export const MISMATCH_KIND_LABEL: Record<string, string> = {
+  missing: "No detectado",
+  turn: "Giro",
+  step: "Desplazamiento",
+  stance: "Posición",
+  hand: "Técnica de mano",
+  kick: "Patada",
+  hand_shape: "Forma de la mano",
+};
+
+/** Show "Guion provisional" only when the API explicitly says it isn't reviewed. */
+export function isScriptProvisional(p: Pick<Poomsae, "script_reviewed"> | null | undefined) {
+  return p?.script_reviewed === false;
 }

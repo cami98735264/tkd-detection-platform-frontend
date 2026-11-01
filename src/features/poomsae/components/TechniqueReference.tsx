@@ -1,5 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 
+import { HAND_SHAPE_LABEL, handShapeLabel } from "../lib/sequence";
 import { elementLabel } from "../lib/video";
 import type { Technique } from "../types";
 
@@ -18,6 +19,12 @@ export default function TechniqueReference({ technique }: { technique: Technique
         )}
       </div>
       {technique.description && <p className="text-sm text-text">{technique.description}</p>}
+      {technique.hand_shape && HAND_SHAPE_LABEL[technique.hand_shape] && (
+        <p className="text-sm text-muted">
+          Forma de la mano:{" "}
+          <span className="text-text">{handShapeLabel(technique.hand_shape)}</span>
+        </p>
+      )}
       {criteria.length > 0 && (
         <div>
           <p className="mb-1 text-sm font-semibold text-text">Qué se evalúa</p>

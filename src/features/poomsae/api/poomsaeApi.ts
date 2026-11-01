@@ -3,7 +3,12 @@ import { asList, toQuery } from "@/lib/list";
 import type { PaginatedResponse } from "@/types/api";
 
 import { normalizeCalibrations, normalizeProposal, normalizeStats } from "../lib/calibration";
-import { normalizeMovement, normalizeMovements, type MovementDraft } from "../lib/sequence";
+import {
+  normalizeMovement,
+  normalizeMovements,
+  normalizeScriptCheck,
+  type MovementDraft,
+} from "../lib/sequence";
 import type {
   AttemptMode,
   AttemptStatus,
@@ -14,6 +19,7 @@ import type {
   PoomsaeAttempt,
   PoomsaeDetail,
   PoomsaeMovement,
+  ScriptCheckResult,
   Technique,
   TechniqueCalibration,
   TechniqueStats,
@@ -142,4 +148,14 @@ export const poomsaeApi = {
   /** POST /poomsae/techniques/{id}/calibrations/{cid}/revert/. */
   revertCalibration: (id: number, calibrationId: number) =>
     http.post<unknown>(`/poomsae/techniques/${id}/calibrations/${calibrationId}/revert/`),
+
+  /** POST /poomsae/{id}/review-script/ (admin): mark the script reviewed + notes (C.9). */
+  reviewScript: (id: number, body: { reviewed: boolean; notes: string }) =>
+    http.post<PoomsaeDetail>(`/poomsae/${id}/review-script/`, body),
+
+  /** POST /poomsae/{id}/script-check/ (admin): compare the script with a reference attempt. */
+  scriptCheck: (id: number, attemptId: number): Promise<ScriptCheckResult> =>
+    http
+      .post<unknown>(`/poomsae/${id}/script-check/`, { attempt_id: attemptId })
+      .then(normalizeScriptCheck),
 };

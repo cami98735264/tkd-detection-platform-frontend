@@ -4,6 +4,11 @@ vi.mock("@/config/env", () => ({ config: { apiUrl: "", apiPrefix: "api/v1" } }))
 
 import {
   formatClipTime,
+  handShapeLabel,
+  isHandShapeKey,
+  isScriptProvisional,
+  normalizeHandCheck,
+  normalizeScriptCheck,
   hasSequenceResults,
   movementPatch,
   movementsForSegment,
@@ -228,5 +233,76 @@ describe("reference video", () => {
     expect(validateVideoFile(bad, 10)).toMatch(/Formato/);
     const mov = new File(["x"], "clip.MOV", { type: "" });
     expect(validateVideoFile(mov, 10)).toBeNull();
+  });
+});
+
+describe("hand shape (C.8)", () => {
+  it("labels shapes in Spanish", () => {
+    expect(handShapeLabel("fist")).toBe("Puño");
+    expect(handShapeLabel("knife")).toBe("Mano de cuchillo");
+    expect(handShapeLabel("fingertips")).toBe("Punta de dedos");
+    expect(handShapeLabel("palm")).toBe("Palma");
+    expect(handShapeLabel("unknown")).toBe("No evaluable");
+    expect(handShapeLabel(null)).toBe("No evaluable");
+    expect(isHandShapeKey("3.arae_makki.hand_shape")).toBe(true);
+    expect(isHandShapeKey("hand_shape")).toBe(true);
+    expect(isHandShapeKey("knee")).toBe(false);
+  });
+
+  it("never fails a hand that wasn't evaluable", () => {
+    expect(normalizeHandCheck(null)).toBeNull();
+    expect(
+      normalizeHandCheck({
+        expected: "fist",
+        detected: "fist",
+        confidence: 0.3,
+        evaluable: true,
+        passed: false,
+      }),
+    ).toMatchObject({ evaluable: false, passed: null });
+    expect(
+      normalizeHandCheck({
+        expected: "fist",
+        detected: "palm",
+        confidence: 0.7,
+        evaluable: true,
+        passed: false,
+      }),
+    ).toMatchObject({ evaluable: true, passed: false, detected: "palm" });
+  });
+});
+
+describe("script verification (C.9)", () => {
+  it("normalises the script-check response", () => {
+    expect(normalizeScriptCheck(null)).toEqual({ attempt: null, mismatches: [], ok: false });
+    const r = normalizeScriptCheck({
+      attempt: 9,
+      ok: false,
+      mismatches: [
+        {
+          number: 7,
+          name: "M7",
+          kind: "turn",
+          expected: 90,
+          measured: -90,
+          suggestion: "¿El giro?",
+        },
+        { number: 2, kind: "missing" },
+      ],
+    });
+    expect(r.attempt).toBe(9);
+    expect(r.mismatches.map((m) => m.number)).toEqual([2, 7]);
+    expect(r.mismatches[0]).toMatchObject({ name: "Movimiento 2", expected: null, suggestion: "" });
+    expect(normalizeScriptCheck({ attempt: { id: 3 }, mismatches: [] })).toMatchObject({
+      attempt: 3,
+      ok: true,
+    });
+  });
+
+  it("flags provisional scripts only when explicitly not reviewed", () => {
+    expect(isScriptProvisional({ script_reviewed: false })).toBe(true);
+    expect(isScriptProvisional({ script_reviewed: true })).toBe(false);
+    expect(isScriptProvisional({})).toBe(false);
+    expect(isScriptProvisional(null)).toBe(false);
   });
 });

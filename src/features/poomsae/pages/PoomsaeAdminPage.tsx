@@ -2,8 +2,10 @@ import { useCallback, useEffect, useMemo, useState, type ChangeEvent } from "rea
 import { Link } from "react-router-dom";
 import {
   BookOpen,
+  ClipboardCheck,
   ListOrdered,
   Save,
+  SearchCheck,
   SlidersHorizontal,
   Trash2,
   Upload,
@@ -19,12 +21,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { NativeSelect } from "@/components/ui/native-select";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Textarea } from "@/components/ui/textarea";
+import { useAuthStore } from "@/features/auth/store/authStore";
 import { useApiErrorHandler } from "@/feedback/useApiErrorHandler";
 import { useFeedback } from "@/feedback/useFeedback";
 
 import { poomsaeApi } from "../api/poomsaeApi";
 import {
   formatMegabytes,
+  MISMATCH_KIND_LABEL,
   movementPatch,
   normalizeMovements,
   REFERENCE_MAX_VIDEO_BYTES,
@@ -38,7 +43,9 @@ import {
 } from "../lib/sequence";
 import type {
   Poomsae,
+  PoomsaeAttempt,
   PoomsaeDetail,
+  ScriptCheckResult,
   PoomsaeMovement,
   Technique,
   TechniqueElement,
@@ -355,10 +362,11 @@ function MovementRow({
   };
 
   return (
-    <tr className="border-b border-divider align-top">
+    <tr id={`movimiento-${movement.number}`} className="border-b border-divider align-top">
       <td className="px-2 py-2 text-sm font-semibold tabular-nums text-text">{movement.number}</td>
       <td className="px-2 py-2">
         <Input
+          id={`movimiento-${movement.number}-nombre`}
           className="h-9 min-w-[12rem] text-xs"
           aria-label={`Nombre del movimiento ${movement.number}`}
           value={draft.name}
@@ -518,6 +526,249 @@ function MovementScriptCard({
   );
 }
 
+/** "Guion revisado por el maestro" toggle + notes (C.9). */
+function ScriptReviewCard({
+  detail,
+  onChanged,
+}: {
+  detail: PoomsaeDetail;
+  onChanged: (d: PoomsaeDetail | null) => void;
+}) {
+  const { handleError } = useApiErrorHandler();
+  const { showToast } = useFeedback();
+  const [reviewed, setReviewed] = useState(detail.script_reviewed === true);
+  const [notes, setNotes] = useState(detail.script_notes ?? "");
+  const [saving, setSaving] = useState(false);
+  const dirty =
+    reviewed !== (detail.script_reviewed === true) || notes !== (detail.script_notes ?? "");
+
+  const save = async () => {
+    setSaving(true);
+    try {
+      const saved = await poomsaeApi.reviewScript(detail.id, { reviewed, notes: notes.trim() });
+      onChanged(
+        saved && saved.name
+          ? saved
+          : { ...detail, script_reviewed: reviewed, script_notes: notes.trim() },
+      );
+      showToast({
+        title: reviewed ? "Guion marcado como revisado" : "Guion marcado como provisional",
+        variant: "success",
+      });
+    } catch (err) {
+      handleError(err);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex flex-wrap items-center justify-between gap-2 text-base">
+          <span className="flex items-center gap-2">
+            <ClipboardCheck className="h-4 w-4 text-primary" />
+            Revisión del guion
+          </span>
+          {detail.script_reviewed ? (
+            <Badge variant="success">Revisado</Badge>
+          ) : (
+            <Badge variant="outline-muted">Guion provisional</Badge>
+          )}
+        </CardTitle>
+        <CardDescription>
+          Mientras el guion no esté revisado, los deportistas ven sus resultados como provisionales.
+          {detail.script_reviewed && (detail.script_reviewed_by_name || detail.script_reviewed_at)
+            ? ` Revisado${detail.script_reviewed_by_name ? ` por ${detail.script_reviewed_by_name}` : ""}${
+                detail.script_reviewed_at
+                  ? ` el ${new Date(detail.script_reviewed_at).toLocaleDateString()}`
+                  : ""
+              }.`
+            : ""}
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <label className="flex items-center gap-2 text-sm text-text">
+          <input
+            type="checkbox"
+            className="h-4 w-4 accent-primary"
+            checked={reviewed}
+            onChange={(e) => setReviewed(e.target.checked)}
+          />
+          Guion revisado por el maestro
+        </label>
+        <div className="space-y-1.5">
+          <Label htmlFor="script_notes">Notas del guion</Label>
+          <Textarea
+            id="script_notes"
+            rows={3}
+            value={notes}
+            placeholder="Fuentes consultadas, dudas, correcciones pendientes…"
+            onChange={(e) => setNotes(e.target.value)}
+          />
+        </div>
+        <Button onClick={() => void save()} disabled={!dirty || saving}>
+          <Save className="h-4 w-4" />
+          Guardar revisión
+        </Button>
+      </CardContent>
+    </Card>
+  );
+}
+
+const ATTEMPT_PAGES = 3;
+
+function describeValue(v: string | number | null) {
+  return v == null || v === "" ? "—" : String(v);
+}
+
+/** Jump to (and focus) a movement row of the script table. */
+function focusMovement(number: number) {
+  const row = document.getElementById(`movimiento-${number}`);
+  row?.scrollIntoView?.({ behavior: "smooth", block: "center" });
+  document.getElementById(`movimiento-${number}-nombre`)?.focus();
+}
+
+/** "Verificar guion con mi grabación" (C.9): compare with one of my attempts. */
+function ScriptCheckCard({ detail }: { detail: PoomsaeDetail }) {
+  const { handleError } = useApiErrorHandler();
+  const userId = useAuthStore((st) => st.user?.id ?? null);
+  const [attempts, setAttempts] = useState<PoomsaeAttempt[]>([]);
+  const [attemptId, setAttemptId] = useState<number | null>(null);
+  const [result, setResult] = useState<ScriptCheckResult | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      const all: PoomsaeAttempt[] = [];
+      for (let page = 1; page <= ATTEMPT_PAGES; page += 1) {
+        const res = await poomsaeApi.listAttempts({
+          poomsae: detail.id,
+          status: "completed",
+          page,
+        });
+        const rows = Array.isArray(res?.results) ? res.results : [];
+        all.push(...rows);
+        if (!res?.next || rows.length === 0) break;
+      }
+      if (!alive) return;
+      const mine = all.filter(
+        (a) =>
+          a.status === "completed" &&
+          (a.mode === "segment" || a.mode === "full") &&
+          userId != null &&
+          a.user === userId,
+      );
+      setAttempts(mine);
+      setAttemptId((cur) => cur ?? mine[0]?.id ?? null);
+    })().catch(handleError);
+    return () => {
+      alive = false;
+    };
+  }, [detail.id, userId, handleError]);
+
+  const run = async () => {
+    if (attemptId == null) return;
+    setBusy(true);
+    try {
+      setResult(await poomsaeApi.scriptCheck(detail.id, attemptId));
+    } catch (err) {
+      handleError(err);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 text-base">
+          <SearchCheck className="h-4 w-4 text-primary" />
+          Verificar guion con mi grabación
+        </CardTitle>
+        <CardDescription>
+          Elige un intento tuyo ejecutando la forma correctamente: se comparará con el guion para
+          encontrar giros, pasos o técnicas que no coinciden. No se cambia nada automáticamente.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {attempts.length === 0 ? (
+          <p className="text-sm text-muted">
+            No tienes intentos completados de este poomsae (segmento o forma completa). Grábate
+            desde la página del poomsae y vuelve aquí.
+          </p>
+        ) : (
+          <div className="flex flex-wrap items-end gap-3">
+            <div className="min-w-[16rem] flex-1 space-y-1.5">
+              <Label htmlFor="script-check-attempt">Intento de referencia</Label>
+              <NativeSelect
+                id="script-check-attempt"
+                value={attemptId ?? ""}
+                onChange={(e) => {
+                  setAttemptId(Number(e.target.value) || null);
+                  setResult(null);
+                }}
+              >
+                {attempts.map((a) => (
+                  <option key={a.id} value={a.id}>
+                    {a.mode === "full" ? "Forma completa" : a.segment_name || "Segmento"} ·{" "}
+                    {new Date(a.created_at).toLocaleDateString()} ·{" "}
+                    {a.score != null ? Math.round(a.score) : "—"}
+                  </option>
+                ))}
+              </NativeSelect>
+            </div>
+            <Button onClick={() => void run()} disabled={busy || attemptId == null}>
+              <SearchCheck className="h-4 w-4" />
+              Verificar guion
+            </Button>
+          </div>
+        )}
+
+        {result &&
+          (result.mismatches.length === 0 ? (
+            <p className="text-sm text-success">
+              El guion coincide con tu grabación: no se encontraron diferencias.
+            </p>
+          ) : (
+            <div className="space-y-2">
+              <p className="text-sm font-semibold text-text">
+                Diferencias encontradas ({result.mismatches.length})
+              </p>
+              <ul className="divide-y divide-divider rounded-md border border-border">
+                {result.mismatches.map((m, i) => (
+                  <li key={`${m.number}-${m.kind}-${i}`} className="space-y-1 px-3 py-2 text-sm">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="font-medium text-text">
+                        {m.number}. {m.name}
+                      </span>
+                      <Badge variant="warning">{MISMATCH_KIND_LABEL[m.kind] ?? m.kind}</Badge>
+                    </div>
+                    <p className="text-xs text-muted">
+                      Guion: {describeValue(m.expected)} · Medido: {describeValue(m.measured)}
+                    </p>
+                    {m.suggestion && <p className="text-text">{m.suggestion}</p>}
+                    <a
+                      href={`#movimiento-${m.number}`}
+                      className="text-xs font-medium text-primary underline-offset-4 hover:underline"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        focusMovement(m.number);
+                      }}
+                    >
+                      Editar movimiento {m.number}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+      </CardContent>
+    </Card>
+  );
+}
+
 /** Admin (maestro): reference videos and movement scripts of each poomsae (C.7). */
 export default function PoomsaeAdminPage() {
   const { handleError } = useApiErrorHandler();
@@ -569,7 +820,7 @@ export default function PoomsaeAdminPage() {
       <PageHeader
         eyebrow="Administración"
         title="Poomsae"
-        description="Videos de referencia y guion de movimientos de cada forma."
+        description="Videos de referencia, guion de movimientos y su revisión por el maestro."
         actions={
           <Button asChild variant="outline">
             <Link to="/dashboard/poomsae-admin/calibracion">
@@ -624,6 +875,14 @@ export default function PoomsaeAdminPage() {
                   detail={detail}
                   onChanged={onChanged}
                 />
+              </div>
+              <div className="grid gap-6 lg:grid-cols-2">
+                <ScriptReviewCard
+                  key={`rev-${detail.id}-${version}`}
+                  detail={detail}
+                  onChanged={onChanged}
+                />
+                <ScriptCheckCard key={`chk-${detail.id}`} detail={detail} />
               </div>
               <MovementScriptCard
                 key={`mov-${detail.id}`}

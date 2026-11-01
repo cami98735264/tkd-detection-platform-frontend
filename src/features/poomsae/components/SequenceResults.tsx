@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 
 import {
   formatClipTime,
+  handShapeLabel,
   normalizeMovementResults,
   normalizeSegmentResults,
   normalizeSequenceSummary,
@@ -13,7 +14,7 @@ import {
   turnLabel,
 } from "../lib/sequence";
 import { SEGMENT_PASS_SCORE } from "../lib/video";
-import type { MovementCheck, PoomsaeAttempt } from "../types";
+import type { HandCheck, MovementCheck, PoomsaeAttempt } from "../types";
 
 function asNumber(v: MovementCheck["expected"]): number | null {
   if (typeof v === "number") return v;
@@ -37,6 +38,26 @@ function CheckBadge({ kind, check }: { kind: "turn" | "step"; check: MovementChe
     <Badge variant={check.passed ? "success" : "destructive"} title={title} aria-label={title}>
       {kind === "turn" ? "Giro" : "Paso"} {check.passed ? "✓" : "✗"}
     </Badge>
+  );
+}
+
+/** Expected vs detected hand shape (C.8); non-evaluable never counts as a fail. */
+export function HandShapeLine({ hand }: { hand: HandCheck }) {
+  const expected = hand.expected ? handShapeLabel(hand.expected) : null;
+  const detected = hand.evaluable ? handShapeLabel(hand.detected) : "No evaluable";
+  return (
+    <div className="mt-0.5 flex flex-wrap items-center gap-2 text-xs text-muted">
+      <span>
+        Mano{expected ? `: esperado ${expected}` : ""} · detectado {detected}
+      </span>
+      {hand.evaluable && hand.passed != null ? (
+        <Badge variant={hand.passed ? "success" : "destructive"}>
+          Forma de la mano {hand.passed ? "✓" : "✗"}
+        </Badge>
+      ) : (
+        <Badge variant="outline-muted">No evaluable</Badge>
+      )}
+    </div>
   );
 }
 
@@ -140,6 +161,7 @@ export default function SequenceResults({
                   <span className="block text-xs text-muted">
                     {m.matched ? `En ${formatClipTime(m.time_s)}` : "No se detectó"}
                   </span>
+                  {m.hand && <HandShapeLine hand={m.hand} />}
                   {m.issues.length > 0 && (
                     <ul className="mt-1 list-disc pl-4 text-xs text-muted">
                       {m.issues.map((issue, i) => (

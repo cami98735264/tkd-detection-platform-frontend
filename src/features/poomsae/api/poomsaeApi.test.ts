@@ -139,4 +139,15 @@ describe("poomsaeApi", () => {
     await poomsaeApi.revertCalibration(4, 5);
     expect(h.post).toHaveBeenLastCalledWith("/poomsae/techniques/4/calibrations/5/revert/");
   });
+
+  it("reviews and checks the movement script", async () => {
+    await poomsaeApi.reviewScript(3, { reviewed: true, notes: "Revisado con el libro" });
+    expect(h.post).toHaveBeenLastCalledWith("/poomsae/3/review-script/", {
+      reviewed: true,
+      notes: "Revisado con el libro",
+    });
+    h.post.mockResolvedValueOnce({ attempt: 9, mismatches: [], ok: true });
+    expect(await poomsaeApi.scriptCheck(3, 9)).toEqual({ attempt: 9, mismatches: [], ok: true });
+    expect(h.post).toHaveBeenLastCalledWith("/poomsae/3/script-check/", { attempt_id: 9 });
+  });
 });

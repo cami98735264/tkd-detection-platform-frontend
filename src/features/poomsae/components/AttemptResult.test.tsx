@@ -53,7 +53,7 @@ describe("AttemptResult", () => {
     expect(screen.queryByText("Secuencia")).not.toBeInTheDocument();
     expect(
       screen.getByText(
-        "La forma de la mano (puño, mano de cuchillo, punta de dedos) no se evalúa con la cámara.",
+        "La forma de la mano se evalúa cuando la mano se ve con claridad; para mejores resultados graba más cerca o con buena luz.",
       ),
     ).toBeInTheDocument();
   });
@@ -73,6 +73,13 @@ describe("AttemptResult", () => {
               score: 88,
               turn: { expected: 90, measured: 84, passed: true },
               step: { expected: "forward", measured: "forward", passed: true },
+              hand: {
+                expected: "fist",
+                detected: "knife",
+                confidence: 0.9,
+                evaluable: true,
+                passed: false,
+              },
               issues: [],
             },
             {
@@ -83,6 +90,13 @@ describe("AttemptResult", () => {
               score: null,
               turn: { expected: -90, measured: 10, passed: false },
               step: null,
+              hand: {
+                expected: "fist",
+                detected: null,
+                confidence: 0.2,
+                evaluable: false,
+                passed: null,
+              },
               issues: ["No se detectó el puño a la altura del plexo."],
             },
           ],
@@ -109,6 +123,44 @@ describe("AttemptResult", () => {
       screen.getByLabelText(/Giro: esperado Giro 90° a la derecha, medido Giro 10° a la izquierda/),
     ).toHaveTextContent("✗");
     expect(screen.getByText("No se detectó el puño a la altura del plexo.")).toBeInTheDocument();
+    expect(
+      screen.getByText("Mano: esperado Puño · detectado Mano de cuchillo"),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Forma de la mano ✗")).toBeInTheDocument();
+    expect(screen.getByText("Mano: esperado Puño · detectado No evaluable")).toBeInTheDocument();
+  });
+
+  it("shows the technique hand shape, translated criteria and the provisional badge", () => {
+    render(
+      <AttemptResult
+        attempt={{
+          ...attempt,
+          mode: "technique",
+          script_provisional: true,
+          hand: {
+            expected: "knife",
+            detected: "knife",
+            confidence: 0.8,
+            evaluable: true,
+            passed: true,
+          },
+          criteria_results: [
+            {
+              key: "hand_shape",
+              label: "Forma de la mano",
+              value: "knife",
+              expected: "knife",
+              passed: true,
+            },
+          ],
+        }}
+      />,
+    );
+    expect(screen.getByText("Guion provisional")).toBeInTheDocument();
+    expect(screen.getByText("Forma de la mano ✓")).toBeInTheDocument();
+    expect(
+      screen.getByText("Medido: Mano de cuchillo · Esperado: Mano de cuchillo"),
+    ).toBeInTheDocument();
   });
 
   it("shows per-segment scores and the certification badge for a full attempt", () => {

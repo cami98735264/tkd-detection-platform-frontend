@@ -20,6 +20,19 @@ export interface Technique {
   description?: string;
   criteria?: TechniqueCriterion[];
   difficulty?: number;
+  /** Expected hand shape (C.8); "" = not evaluated. */
+  hand_shape?: HandShape | "" | null;
+}
+
+export type HandShape = "fist" | "knife" | "fingertips" | "palm" | "unknown";
+
+/** Expected vs detected hand shape of a movement / technique (C.8). */
+export interface HandCheck {
+  expected: string | null;
+  detected: string | null;
+  confidence: number | null;
+  evaluable: boolean;
+  passed: boolean | null;
 }
 
 export interface PoomsaeProgress {
@@ -57,6 +70,11 @@ export interface Poomsae {
   reference_video_url?: string | null;
   reference_video_type?: string | null;
   reference_video_size?: number | null;
+  /** Script verification by the maestro (C.9). */
+  script_reviewed?: boolean;
+  script_reviewed_by_name?: string | null;
+  script_reviewed_at?: string | null;
+  script_notes?: string | null;
 }
 
 export interface PoomsaeSegment {
@@ -120,6 +138,7 @@ export interface MovementResult {
   score: number | null;
   turn: MovementCheck | null;
   step: MovementCheck | null;
+  hand: HandCheck | null;
   issues: string[];
 }
 
@@ -175,6 +194,28 @@ export interface PoomsaeAttempt {
   sequence_summary?: unknown;
   /** Full mode only (C.3). */
   segment_results?: unknown;
+  /** Technique mode hand-shape result (C.8). */
+  hand?: unknown;
+  /** The script wasn't reviewed by the maestro when analysed (C.9). */
+  script_provisional?: boolean;
+}
+
+export type ScriptMismatchKind =
+  "missing" | "turn" | "step" | "stance" | "hand" | "kick" | "hand_shape";
+
+export interface ScriptMismatch {
+  number: number;
+  name: string;
+  kind: ScriptMismatchKind | string;
+  expected: string | number | null;
+  measured: string | number | null;
+  suggestion: string;
+}
+
+export interface ScriptCheckResult {
+  attempt: number | null;
+  mismatches: ScriptMismatch[];
+  ok: boolean;
 }
 
 /** One pose sample sent when the browser can't record video (fallback). */

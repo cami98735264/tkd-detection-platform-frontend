@@ -6,10 +6,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ProgressBar } from "@/features/gamification/components/ProgressBar";
 import { cn } from "@/lib/utils";
 
-import { HAND_SHAPE_NOTE, hasSequenceResults } from "../lib/sequence";
+import {
+  HAND_SHAPE_NOTE,
+  handShapeLabel,
+  hasSequenceResults,
+  isHandShapeKey,
+  normalizeHandCheck,
+} from "../lib/sequence";
 import { elementLabel, SEGMENT_PASS_SCORE } from "../lib/video";
 import type { PoomsaeAttempt } from "../types";
-import SequenceResults from "./SequenceResults";
+import SequenceResults, { HandShapeLine } from "./SequenceResults";
 
 interface Props {
   attempt: PoomsaeAttempt;
@@ -56,6 +62,9 @@ export default function AttemptResult({ attempt, onRepeat, repeatLabel, onClose 
   const criteria = attempt.criteria_results ?? [];
   const feedback = (attempt.feedback ?? "").split(/\n+/).filter((l) => l.trim());
   const isFull = attempt.mode === "full";
+  const techniqueHand = normalizeHandCheck(attempt.hand);
+  const shown = (key: string, v: string | number | null) =>
+    isHandShapeKey(key) && typeof v === "string" ? handShapeLabel(v) : v;
   // Sequence attempts list many per-movement criteria: keep them collapsed.
   const sequence = hasSequenceResults(attempt);
   const passedLabel = isFull
@@ -71,7 +80,10 @@ export default function AttemptResult({ attempt, onRepeat, repeatLabel, onClose 
     <Card>
       <CardHeader>
         <CardTitle className="flex flex-wrap items-center justify-between gap-2 text-base">
-          <span>{isFull ? "Resultado de la forma completa" : "Resultado del intento"}</span>
+          <div className="flex flex-wrap items-center gap-2">
+            <span>{isFull ? "Resultado de la forma completa" : "Resultado del intento"}</span>
+            {attempt.script_provisional && <Badge variant="outline">Guion provisional</Badge>}
+          </div>
           <Badge variant={passed ? (isFull ? "highlight" : "success") : "warning"}>
             {passed ? passedLabel : pendingLabel}
           </Badge>
@@ -105,6 +117,13 @@ export default function AttemptResult({ attempt, onRepeat, repeatLabel, onClose 
 
         <SequenceResults attempt={attempt} />
 
+        {techniqueHand && (
+          <div className="rounded-md border border-border p-3">
+            <p className="text-sm font-semibold text-text">Forma de la mano</p>
+            <HandShapeLine hand={techniqueHand} />
+          </div>
+        )}
+
         {criteria.length > 0 && (
           <details open={!sequence}>
             <summary className="mb-2 cursor-pointer text-sm font-semibold text-text">
@@ -127,8 +146,10 @@ export default function AttemptResult({ attempt, onRepeat, repeatLabel, onClose 
                   <div className="min-w-0 flex-1">
                     <p className="text-text">{c.label}</p>
                     <p className="text-xs text-muted">
-                      Medido: {c.value ?? "—"}
-                      {c.expected != null && c.expected !== "" && <> · Esperado: {c.expected}</>}
+                      Medido: {shown(c.key, c.value) ?? "—"}
+                      {c.expected != null && c.expected !== "" && (
+                        <> · Esperado: {shown(c.key, c.expected)}</>
+                      )}
                     </p>
                   </div>
                 </li>

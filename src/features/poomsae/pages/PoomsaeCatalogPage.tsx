@@ -18,6 +18,7 @@ import { poomsaeApi } from "../api/poomsaeApi";
 import AttemptsHistory from "../components/AttemptsHistory";
 import PracticeFlow from "../components/PracticeFlow";
 import TechniqueReference from "../components/TechniqueReference";
+import { isScriptProvisional } from "../lib/sequence";
 import { groupByElement } from "../lib/video";
 import type { Poomsae, Technique } from "../types";
 
@@ -104,6 +105,14 @@ export default function PoomsaeCatalogPage() {
                         </div>
                         <div className="flex flex-col items-end gap-1">
                           {p.belt_name && <Badge variant="tonal">{p.belt_name}</Badge>}
+                          {isScriptProvisional(p) && (
+                            <Badge
+                              variant="outline-muted"
+                              title="El maestro aún no ha revisado el guion de movimientos; los resultados son provisionales."
+                            >
+                              Guion provisional
+                            </Badge>
+                          )}
                           {prog?.full_completed && (
                             <Badge variant="highlight" className="gap-1">
                               <Award className="h-3 w-3" aria-hidden="true" />

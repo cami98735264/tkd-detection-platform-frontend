@@ -137,6 +137,19 @@ describe("PoomsaeDetailPage (Addendum C)", () => {
     expect(h.movements).not.toHaveBeenCalled();
   });
 
+  it("shows the 'Guion provisional' badge when the script isn't reviewed", async () => {
+    h.get.mockResolvedValue({ ...detail, script_reviewed: false });
+    renderPage();
+    expect(await screen.findByText("Guion provisional")).toBeInTheDocument();
+  });
+
+  it("hides the provisional badge for reviewed scripts", async () => {
+    h.get.mockResolvedValue({ ...detail, script_reviewed: true });
+    renderPage();
+    await screen.findAllByText("Forma certificada");
+    expect(screen.queryByText("Guion provisional")).not.toBeInTheDocument();
+  });
+
   it("shows the ordered movement checklist of a segment before recording", async () => {
     renderPage();
     const buttons = await screen.findAllByRole("button", { name: /Practicar segmento/ });

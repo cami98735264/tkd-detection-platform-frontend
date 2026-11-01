@@ -12,12 +12,17 @@ const h = vi.hoisted(() => ({
   updatePoomsae: vi.fn(),
   uploadReferenceVideo: vi.fn(),
   removeReferenceVideo: vi.fn(),
+  listAttempts: vi.fn(),
+  reviewScript: vi.fn(),
+  scriptCheck: vi.fn(),
 }));
 vi.mock("../api/poomsaeApi", () => ({ poomsaeApi: h }));
 
 import { MemoryRouter } from "react-router-dom";
 
+import { useAuthStore } from "@/features/auth/store/authStore";
 import { FeedbackProvider } from "@/feedback/FeedbackProvider";
+import type { AuthUser } from "@/types/entities";
 
 import type { PoomsaeDetail, PoomsaeMovement } from "../types";
 import PoomsaeAdminPage from "./PoomsaeAdminPage";
@@ -40,6 +45,8 @@ const detail: PoomsaeDetail = {
   reference_video_url: "/api/v1/poomsae/3/reference-video/",
   reference_video_type: "video/mp4",
   reference_video_size: 5 * 1024 * 1024,
+  script_reviewed: false,
+  script_notes: "",
 };
 
 const movement: PoomsaeMovement = {
@@ -91,6 +98,49 @@ beforeEach(() => {
     { id: 9, code: "ap_chagi", name: "Ap chagi", element: "kick" },
   ]);
   h.movements.mockResolvedValue([movement]);
+  useAuthStore.setState({
+    status: "ready",
+    isAuthenticated: true,
+    user: { id: 1, role: "administrator", full_name: "Maestro" } as AuthUser,
+  });
+  const base = { technique: null, element_scores: null, criteria_results: [], feedback: "" };
+  h.listAttempts.mockResolvedValue({
+    count: 3,
+    next: null,
+    previous: null,
+    results: [
+      {
+        ...base,
+        id: 20,
+        user: 1,
+        mode: "full",
+        segment: null,
+        status: "completed",
+        score: 88,
+        created_at: "2026-10-01T10:00:00Z",
+      },
+      {
+        ...base,
+        id: 21,
+        user: 7,
+        mode: "full",
+        segment: null,
+        status: "completed",
+        score: 50,
+        created_at: "2026-10-02T10:00:00Z",
+      },
+      {
+        ...base,
+        id: 22,
+        user: 1,
+        mode: "technique",
+        segment: null,
+        status: "completed",
+        score: 70,
+        created_at: "2026-10-03T10:00:00Z",
+      },
+    ],
+  });
 });
 
 describe("PoomsaeAdminPage", () => {
@@ -167,6 +217,66 @@ describe("PoomsaeAdminPage", () => {
       expect(h.updateMovement).toHaveBeenCalledWith(41, { turn_deg: -90, kihap: true, stance: 5 }),
     );
     await waitFor(() => expect(save).toBeDisabled());
+  });
+
+  it("marks the script as reviewed with notes", async () => {
+    h.reviewScript.mockResolvedValue({
+      ...detail,
+      script_reviewed: true,
+      script_notes: "Libro Kukkiwon",
+    });
+    renderPage();
+    const toggle = await screen.findByLabelText("Guion revisado por el maestro");
+    expect(toggle).not.toBeChecked();
+    expect(screen.getAllByText("Guion provisional").length).toBeGreaterThan(0);
+    fireEvent.click(toggle);
+    fireEvent.change(screen.getByLabelText("Notas del guion"), {
+      target: { value: " Libro Kukkiwon " },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /Guardar revisión/ }));
+    await waitFor(() =>
+      expect(h.reviewScript).toHaveBeenCalledWith(3, { reviewed: true, notes: "Libro Kukkiwon" }),
+    );
+    expect(await screen.findByText("Revisado")).toBeInTheDocument();
+  });
+
+  it("checks the script against my own attempt and links each mismatch to its row", async () => {
+    h.scriptCheck.mockResolvedValue({
+      attempt: 20,
+      ok: false,
+      mismatches: [
+        {
+          number: 1,
+          name: "Ap seogi · Arae makki",
+          kind: "turn",
+          expected: 90,
+          measured: -90,
+          suggestion: "¿El giro del movimiento 1 es 90° a la derecha?",
+        },
+      ],
+    });
+    renderPage();
+    const select = await screen.findByLabelText("Intento de referencia");
+    await waitFor(() => expect(within(select).getAllByRole("option")).toHaveLength(1));
+    expect(h.listAttempts).toHaveBeenCalledWith({ poomsae: 3, status: "completed", page: 1 });
+    fireEvent.click(screen.getByRole("button", { name: /^Verificar guion$/ }));
+    await waitFor(() => expect(h.scriptCheck).toHaveBeenCalledWith(3, 20));
+    expect(
+      await screen.findByText("¿El giro del movimiento 1 es 90° a la derecha?"),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Guion: 90 · Medido: -90")).toBeInTheDocument();
+    await screen.findByLabelText("Nombre del movimiento 1");
+    fireEvent.click(screen.getByRole("link", { name: "Editar movimiento 1" }));
+    expect(screen.getByLabelText("Nombre del movimiento 1")).toHaveFocus();
+  });
+
+  it("reports a matching script", async () => {
+    h.scriptCheck.mockResolvedValue({ attempt: 20, ok: true, mismatches: [] });
+    renderPage();
+    const select = await screen.findByLabelText("Intento de referencia");
+    await waitFor(() => expect(within(select).getAllByRole("option")).toHaveLength(1));
+    fireEvent.click(screen.getByRole("button", { name: /^Verificar guion$/ }));
+    expect(await screen.findByText(/no se encontraron diferencias/)).toBeInTheDocument();
   });
 
   it("shows an empty state without poomsae", async () => {
