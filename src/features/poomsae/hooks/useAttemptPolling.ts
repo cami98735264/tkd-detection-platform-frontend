@@ -6,8 +6,18 @@ import type { PoomsaeAttempt } from "../types";
 const INTERVAL_MS = 2000;
 const MAX_POLLS = 150; // ~5 minutes
 
+export interface PollingOptions {
+  intervalMs?: number;
+  maxPolls?: number;
+}
+
+/** Full run-throughs: the server allows up to 600 s of analysis (+ queue). */
+export const FULL_POLLING: PollingOptions = { intervalMs: 5000, maxPolls: 180 }; // ~15 min
+
 /** Poll GET /poomsae/attempts/{id}/ until the analysis completes or fails. */
-export function useAttemptPolling(attemptId: number | null) {
+export function useAttemptPolling(attemptId: number | null, options: PollingOptions = {}) {
+  const intervalMs = options.intervalMs ?? INTERVAL_MS;
+  const maxPolls = options.maxPolls ?? MAX_POLLS;
   const [attempt, setAttempt] = useState<PoomsaeAttempt | null>(null);
   const [timedOut, setTimedOut] = useState(false);
 
@@ -30,7 +40,7 @@ export function useAttemptPolling(attemptId: number | null) {
         // Transient errors: keep polling until the cap.
       }
       if (!alive) return;
-      if (polls >= MAX_POLLS) {
+      if (polls >= maxPolls) {
         setTimedOut(true);
         return;
       }
@@ -42,7 +52,7 @@ export function useAttemptPolling(attemptId: number | null) {
       alive = false;
       if (timer) clearTimeout(timer);
     };
-  }, [attemptId]);
+  }, [attemptId, intervalMs, maxPolls]);
 
   const done = attempt?.status === "completed" || attempt?.status === "failed";
   return { attempt, done, timedOut };

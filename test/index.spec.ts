@@ -185,6 +185,11 @@ describe("security headers", () => {
     expect(CONTENT_SECURITY_POLICY).not.toMatch(/frame-src[^;]*\*/);
   });
 
+  it("plays same-origin media only (club reference videos via the /api proxy, blob previews)", () => {
+    expect(CONTENT_SECURITY_POLICY).toContain("media-src 'self' blob:;");
+    expect(CONTENT_SECURITY_POLICY).not.toMatch(/media-src[^;]*(\*|https?:)/);
+  });
+
   it("renders the same headers into the static _headers file", () => {
     const file = renderHeadersFile();
     expect(file.startsWith("# Generated")).toBe(true);

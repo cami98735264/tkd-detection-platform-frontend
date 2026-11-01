@@ -1,6 +1,15 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
-import { ArrowLeft, CheckCircle2, Footprints, ListOrdered, Play, Users } from "lucide-react";
+import {
+  ArrowLeft,
+  Award,
+  CheckCircle2,
+  Footprints,
+  ListOrdered,
+  Play,
+  PlayCircle,
+  Users,
+} from "lucide-react";
 
 import { EmptyState } from "@/components/common/EmptyState";
 import { PageHeader } from "@/components/common/PageHeader";
@@ -15,9 +24,11 @@ import { useApiErrorHandler } from "@/feedback/useApiErrorHandler";
 import { poomsaeApi } from "../api/poomsaeApi";
 import AttemptsHistory from "../components/AttemptsHistory";
 import PoomsaeVideo, { type VideoRange } from "../components/PoomsaeVideo";
+import MovementChecklist from "../components/MovementChecklist";
 import PracticeFlow from "../components/PracticeFlow";
+import { FULL_RECORD_SECONDS, movementsForSegment, normalizeMovements } from "../lib/sequence";
 import { formatSeconds, SEGMENT_PASS_SCORE, segmentBest } from "../lib/video";
-import type { PoomsaeDetail, PoomsaeSegment } from "../types";
+import type { PoomsaeDetail, PoomsaeMovement, PoomsaeSegment } from "../types";
 
 /** One poomsae: reference video, segments with time jumps and practice. */
 export default function PoomsaeDetailPage() {
@@ -34,7 +45,9 @@ export default function PoomsaeDetailPage() {
   const [loading, setLoading] = useState(true);
   const [range, setRange] = useState<VideoRange | null>(null);
   const [practicing, setPracticing] = useState<PoomsaeSegment | null>(null);
+  const [practicingFull, setPracticingFull] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
+  const [fetchedMovements, setFetchedMovements] = useState<PoomsaeMovement[]>([]);
 
   const load = useCallback(() => {
     if (!Number.isFinite(poomsaeId)) return;
@@ -50,6 +63,26 @@ export default function PoomsaeDetailPage() {
     load();
   }, [load, reloadKey]);
 
+  const embeddedMovements = useMemo(() => normalizeMovements(detail?.movements), [detail]);
+  const hasDetail = !!detail?.name;
+  // Older detail payloads don't embed the script: fetch it once.
+  useEffect(() => {
+    if (!hasDetail || embeddedMovements.length > 0 || !Number.isFinite(poomsaeId)) return;
+    let alive = true;
+    poomsaeApi
+      .movements(poomsaeId)
+      .then((m) => {
+        if (alive) setFetchedMovements(m);
+      })
+      .catch(() => {
+        // The checklist is optional: practice still works without it.
+      });
+    return () => {
+      alive = false;
+    };
+  }, [hasDetail, embeddedMovements.length, poomsaeId]);
+  const movements = embeddedMovements.length > 0 ? embeddedMovements : fetchedMovements;
+
   const segments = [...(detail?.segments ?? [])].sort((a, b) => a.order - b.order);
   const jump = (s: PoomsaeSegment) =>
     setRange((prev) => ({
@@ -58,6 +91,8 @@ export default function PoomsaeDetailPage() {
       nonce: (prev?.nonce ?? 0) + 1,
     }));
   const needsAthlete = !isSportsman && athleteId == null;
+  const certified = !!(detail?.certified || detail?.my_progress?.full_completed);
+  const bestFull = detail?.my_progress?.best_full_score ?? null;
   // Stable range for the reference player (re-seeks only when the segment changes).
   const practiceRange = useMemo<VideoRange | null>(
     () =>
@@ -91,12 +126,41 @@ export default function PoomsaeDetailPage() {
             title={detail.name}
             description={detail.description}
           />
+          {certified && (
+            <Badge variant="highlight" className="gap-1">
+              <Award className="h-3.5 w-3.5" aria-hidden="true" />
+              Forma certificada
+            </Badge>
+          )}
 
           {!isSportsman && (
             <AthletePicker className="sm:w-80" value={athleteId} onChange={setAthleteId} />
           )}
 
-          {practicing ? (
+          {practicingFull ? (
+            needsAthlete ? (
+              <Card>
+                <EmptyState icon={Users} title="Selecciona primero un deportista" />
+              </Card>
+            ) : (
+              <PracticeFlow
+                key={`full-${athleteId}`}
+                mode="full"
+                targetId={detail.id}
+                targetName={detail.name}
+                athleteId={isSportsman ? null : athleteId}
+                recordSeconds={FULL_RECORD_SECONDS}
+                reference={
+                  <div className="space-y-3">
+                    <PoomsaeVideo poomsae={detail} segments={segments} />
+                    <MovementChecklist movements={movements} />
+                  </div>
+                }
+                onClose={() => setPracticingFull(false)}
+                onFinished={() => setReloadKey((k) => k + 1)}
+              />
+            )
+          ) : practicing ? (
             needsAthlete ? (
               <Card>
                 <EmptyState icon={Users} title="Selecciona primero un deportista" />
@@ -123,6 +187,7 @@ export default function PoomsaeDetailPage() {
                     {practicing.description && (
                       <p className="text-sm text-text">{practicing.description}</p>
                     )}
+                    <MovementChecklist movements={movementsForSegment(movements, practicing)} />
                   </div>
                 }
                 onClose={() => setPracticing(null)}
@@ -131,7 +196,39 @@ export default function PoomsaeDetailPage() {
             )
           ) : (
             <div className="grid gap-6 lg:grid-cols-[3fr_2fr]">
-              <PoomsaeVideo poomsae={detail} range={range} />
+              <div className="space-y-4">
+                <PoomsaeVideo poomsae={detail} range={range} />
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex flex-wrap items-center justify-between gap-2 text-base">
+                      <span className="flex items-center gap-2">
+                        <PlayCircle className="h-4 w-4 text-primary" />
+                        Forma completa
+                      </span>
+                      {certified ? (
+                        <Badge variant="highlight">Forma certificada</Badge>
+                      ) : bestFull != null ? (
+                        <Badge variant="outline">Mejor: {Math.round(bestFull)}</Badge>
+                      ) : null}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <p className="text-sm text-muted">
+                      Ejecuta el poomsae de principio a fin
+                      {movements.length > 0 ? ` (${movements.length} movimientos)` : ""}. Se evalúan
+                      el orden, los giros, los desplazamientos y cada técnica. Con{" "}
+                      {SEGMENT_PASS_SCORE} puntos o más la forma queda certificada.
+                    </p>
+                    {bestFull != null && certified && (
+                      <p className="text-xs text-muted">Mejor puntaje: {Math.round(bestFull)}</p>
+                    )}
+                    <Button onClick={() => setPracticingFull(true)}>
+                      <Footprints className="h-4 w-4" />
+                      Practicar forma completa
+                    </Button>
+                  </CardContent>
+                </Card>
+              </div>
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-base">

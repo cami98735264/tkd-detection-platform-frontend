@@ -39,6 +39,8 @@ interface RecordingCaptureProps {
   recordSeconds?: number;
   /** Hint shown while recording. */
   recordingHint?: string;
+  /** Show a "Terminar grabación" button so long takes can end early. */
+  allowEarlyStop?: boolean;
 }
 
 const PRECOUNTDOWN_SECS = 3;
@@ -72,6 +74,7 @@ export default function RecordingCapture({
   title: idleTitle = "Grabar patada",
   recordSeconds = DEFAULT_RECORD_SECS,
   recordingHint = "Ejecuta la patada con máxima fuerza y precisión.",
+  allowEarlyStop = false,
 }: RecordingCaptureProps) {
   const RECORD_SECS = recordSeconds;
   const subject = label ?? kickType ?? "";
@@ -104,6 +107,7 @@ export default function RecordingCapture({
     secondsLeft,
     progress,
     start: startTimer,
+    reset: resetTimer,
   } = useRecordingTimer(recordSeconds, () => stopRecording());
 
   // The current <video> element. Tracked in state (rather than a ref) so the
@@ -413,6 +417,18 @@ export default function RecordingCapture({
               </div>
             </div>
             <p className="text-center text-sm text-muted">{recordingHint}</p>
+            {allowEarlyStop && (
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() => {
+                  resetTimer();
+                  stopRecording();
+                }}
+              >
+                Terminar grabación
+              </Button>
+            )}
           </>
         )}
       </CardContent>

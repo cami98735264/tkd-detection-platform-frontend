@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { BookOpen, Dumbbell, Footprints, PlayCircle, Users } from "lucide-react";
+import { Award, BookOpen, Dumbbell, Footprints, PlayCircle, Users } from "lucide-react";
 
 import { EmptyState } from "@/components/common/EmptyState";
 import { PageHeader } from "@/components/common/PageHeader";
@@ -102,7 +102,15 @@ export default function PoomsaeCatalogPage() {
                           <p className="font-display text-lg font-semibold text-text">{p.name}</p>
                           {p.korean_name && <p className="text-xs text-muted">{p.korean_name}</p>}
                         </div>
-                        {p.belt_name && <Badge variant="tonal">{p.belt_name}</Badge>}
+                        <div className="flex flex-col items-end gap-1">
+                          {p.belt_name && <Badge variant="tonal">{p.belt_name}</Badge>}
+                          {prog?.full_completed && (
+                            <Badge variant="highlight" className="gap-1">
+                              <Award className="h-3 w-3" aria-hidden="true" />
+                              Forma certificada
+                            </Badge>
+                          )}
+                        </div>
                       </div>
                       <p className="line-clamp-2 text-sm text-muted">{p.description}</p>
                       <div className="mt-auto space-y-1.5">
@@ -115,6 +123,14 @@ export default function PoomsaeCatalogPage() {
                           )}
                         </div>
                         <ProgressBar percent={pct} label={`Progreso en ${p.name}`} />
+                        <p className="text-xs text-muted">
+                          Forma completa:{" "}
+                          <span className="tabular-nums text-text">
+                            {prog?.best_full_score != null
+                              ? Math.round(prog.best_full_score)
+                              : "sin intentos"}
+                          </span>
+                        </p>
                       </div>
                       <Button asChild variant="outline" size="sm">
                         <Link to={detailLink(p.id)}>

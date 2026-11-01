@@ -26,6 +26,10 @@ export interface PoomsaeProgress {
   segments_completed: number;
   segments_total: number;
   best_score: number | null;
+  /** Best score of a full run-through (Addendum C.3). */
+  best_full_score?: number | null;
+  /** A full attempt scored ≥ 70 ("Forma certificada"). */
+  full_completed?: boolean;
 }
 
 export type VideoSource = "club" | "youtube" | "external";
@@ -47,6 +51,12 @@ export interface Poomsae {
   active?: boolean;
   segments_count: number;
   my_progress?: PoomsaeProgress | null;
+  /** Club-hosted reference video (C.5). */
+  has_reference_video?: boolean;
+  /** Endpoint path of the club-hosted video, or null. */
+  reference_video_url?: string | null;
+  reference_video_type?: string | null;
+  reference_video_size?: number | null;
 }
 
 export interface PoomsaeSegment {
@@ -58,6 +68,8 @@ export interface PoomsaeSegment {
   video_end_s: number | null;
   techniques: Technique[];
   expected_movements?: number | null;
+  /** Numbers of the script movements in this segment (C.4). */
+  movement_numbers?: number[] | null;
   /** Athlete's best completed score on this segment (name varies by serializer). */
   best_score?: number | null;
   my_best_score?: number | null;
@@ -65,9 +77,70 @@ export interface PoomsaeSegment {
 
 export interface PoomsaeDetail extends Poomsae {
   segments: PoomsaeSegment[];
+  /** Movement script summaries (C.4). */
+  movements?: unknown[] | null;
+  completed?: boolean;
+  /** = my_progress.full_completed. */
+  certified?: boolean;
 }
 
-export type AttemptMode = "segment" | "technique";
+export type StepKind = "forward" | "backward" | "in_place" | "side";
+
+/** One row of the Kukkiwon movement script (C.1), normalised. */
+export interface PoomsaeMovement {
+  id: number | null;
+  number: number;
+  name: string;
+  description: string;
+  segment: number | null;
+  stance: number | null;
+  stance_name: string | null;
+  hand: number | null;
+  hand_name: string | null;
+  kick: number | null;
+  kick_name: string | null;
+  turn_deg: number;
+  step: StepKind | string | null;
+  kihap: boolean;
+  hold: boolean;
+}
+
+export interface MovementCheck {
+  expected: number | string | null;
+  measured: number | string | null;
+  passed: boolean;
+}
+
+/** Per expected movement result of a sequence analysis (C.2). */
+export interface MovementResult {
+  number: number;
+  name: string;
+  matched: boolean;
+  time_s: number | null;
+  score: number | null;
+  turn: MovementCheck | null;
+  step: MovementCheck | null;
+  issues: string[];
+}
+
+export interface SequenceSummary {
+  expected_movements: number;
+  detected_movements: number;
+  matched_in_order: number;
+  missing: number[];
+  extra: number;
+  order_ok: boolean;
+}
+
+export interface SegmentResult {
+  segment: number | null;
+  segment_name: string;
+  score: number | null;
+  matched: number | null;
+  expected: number | null;
+}
+
+export type AttemptMode = "segment" | "technique" | "full";
 export type AttemptStatus = "processing" | "completed" | "failed";
 
 export interface CriterionResult {
@@ -80,6 +153,9 @@ export interface CriterionResult {
 
 export interface PoomsaeAttempt {
   id: number;
+  user?: number | null;
+  user_name?: string | null;
+  poomsae?: number | null;
   athlete?: number;
   athlete_name?: string;
   segment: number | null;
@@ -94,6 +170,11 @@ export interface PoomsaeAttempt {
   criteria_results: CriterionResult[] | null;
   feedback: string;
   created_at: string;
+  /** Sequence modes only (C.2); absent on legacy attempts. */
+  movement_results?: unknown;
+  sequence_summary?: unknown;
+  /** Full mode only (C.3). */
+  segment_results?: unknown;
 }
 
 /** One pose sample sent when the browser can't record video (fallback). */
@@ -107,7 +188,58 @@ export interface AttemptUpload {
   mode: AttemptMode;
   segment?: number;
   technique?: number;
+  /** Full mode (C.3). */
+  poomsae?: number;
   athlete?: number | null;
   recording?: Blob | null;
   landmarks?: LandmarkFrame[] | null;
+}
+
+// --- Calibration tools (C.4) -------------------------------------------------
+
+export interface CriterionStats {
+  key: string;
+  label: string;
+  min: number | null;
+  max: number | null;
+  unit: string;
+  n: number;
+  mean: number | null;
+  p10: number | null;
+  p50: number | null;
+  p90: number | null;
+  /** 0–1 (or 0–100 from some serializers; see lib). */
+  pass_rate: number | null;
+}
+
+export interface TechniqueStats {
+  technique: number | null;
+  attempts: number;
+  criteria: CriterionStats[];
+}
+
+export type CalibrationTolerance = "normal" | "strict" | "lenient";
+
+export interface ProposedRange {
+  key: string;
+  label: string;
+  unit: string;
+  current: [number | null, number | null];
+  proposed: [number | null, number | null];
+  samples: number;
+}
+
+export interface CalibrationProposal {
+  proposed: ProposedRange[];
+  applied: boolean;
+}
+
+export interface TechniqueCalibration {
+  id: number;
+  created_at: string | null;
+  created_by_name: string | null;
+  attempt_ids: number[];
+  previous_criteria: TechniqueCriterion[];
+  new_criteria: TechniqueCriterion[];
+  reverted: boolean;
 }

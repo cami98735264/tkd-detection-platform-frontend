@@ -1,8 +1,10 @@
-import { useEffect, useRef } from "react";
-import { VideoOff } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Play, VideoOff } from "lucide-react";
 
-import { embedWithRange, resolveVideo } from "../lib/video";
-import type { Poomsae } from "../types";
+import { Button } from "@/components/ui/button";
+
+import { embedWithRange, formatSeconds, resolveVideo } from "../lib/video";
+import type { Poomsae, PoomsaeSegment } from "../types";
 
 export interface VideoRange {
   start: number | null;
@@ -20,17 +22,53 @@ interface Props {
     | "video_source"
     | "video_credit"
     | "video_license_note"
-  >;
+  > &
+    Partial<Pick<Poomsae, "id" | "has_reference_video" | "reference_video_url">>;
   range?: VideoRange | null;
+  /** When given, jump buttons per segment (video_start_s/end_s) are shown. */
+  segments?: Pick<PoomsaeSegment, "id" | "order" | "name" | "video_start_s" | "video_end_s">[];
 }
 
 /**
  * Reference video: youtube-nocookie iframe (no download), HTML5 <video> for
  * club-hosted files, or a fallback message. A `range` jumps to a segment.
  */
-export default function PoomsaeVideo({ poomsae, range }: Props) {
+export default function PoomsaeVideo({ poomsae, range: externalRange, segments }: Props) {
   const video = resolveVideo(poomsae);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const [localRange, setLocalRange] = useState<VideoRange | null>(null);
+  // The most recent jump wins: a new range from the parent drops our own jump.
+  const [prevExternal, setPrevExternal] = useState(externalRange);
+  if (prevExternal !== externalRange) {
+    setPrevExternal(externalRange);
+    setLocalRange(null);
+  }
+  const range = localRange ?? externalRange ?? null;
+  const jumpable = (segments ?? []).filter((s) => s.video_start_s != null);
+  const jumps = video.kind !== "none" && jumpable.length > 0 && (
+    <div className="mt-2 flex flex-wrap gap-2" aria-label="Saltar a un segmento">
+      {[...jumpable]
+        .sort((a, b) => a.order - b.order)
+        .map((s) => (
+          <Button
+            key={s.id}
+            size="sm"
+            variant="outline"
+            onClick={() =>
+              setLocalRange({
+                start: s.video_start_s,
+                end: s.video_end_s,
+                nonce: (localRange?.nonce ?? 0) + 1,
+              })
+            }
+            aria-label={`Ir al segmento ${s.order}: ${s.name}`}
+          >
+            <Play className="h-3.5 w-3.5" />
+            {s.order}. {formatSeconds(s.video_start_s)}
+          </Button>
+        ))}
+    </div>
+  );
 
   // HTML5 player: seek and stop at the segment end.
   useEffect(() => {
@@ -71,6 +109,7 @@ export default function PoomsaeVideo({ poomsae, range }: Props) {
             allowFullScreen
           />
         </div>
+        {jumps}
         {credit}
       </div>
     );
@@ -89,6 +128,7 @@ export default function PoomsaeVideo({ poomsae, range }: Props) {
           className="aspect-video w-full rounded-lg border border-border bg-black"
           aria-label={`Video de referencia: ${poomsae.name}`}
         />
+        {jumps}
         {credit}
       </div>
     );

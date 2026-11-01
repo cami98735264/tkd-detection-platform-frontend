@@ -1,4 +1,4 @@
-import { CheckCircle2, RefreshCw, XCircle } from "lucide-react";
+import { CheckCircle2, Hand, RefreshCw, XCircle } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -6,8 +6,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ProgressBar } from "@/features/gamification/components/ProgressBar";
 import { cn } from "@/lib/utils";
 
+import { HAND_SHAPE_NOTE, hasSequenceResults } from "../lib/sequence";
 import { elementLabel, SEGMENT_PASS_SCORE } from "../lib/video";
 import type { PoomsaeAttempt } from "../types";
+import SequenceResults from "./SequenceResults";
 
 interface Props {
   attempt: PoomsaeAttempt;
@@ -53,14 +55,25 @@ export default function AttemptResult({ attempt, onRepeat, repeatLabel, onClose 
   const elements = Object.entries(attempt.element_scores ?? {});
   const criteria = attempt.criteria_results ?? [];
   const feedback = (attempt.feedback ?? "").split(/\n+/).filter((l) => l.trim());
+  const isFull = attempt.mode === "full";
+  // Sequence attempts list many per-movement criteria: keep them collapsed.
+  const sequence = hasSequenceResults(attempt);
+  const passedLabel = isFull
+    ? "Forma certificada"
+    : attempt.mode === "technique"
+      ? "Técnica superada"
+      : "Segmento superado";
+  const pendingLabel = isFull
+    ? `Necesitas ${SEGMENT_PASS_SCORE} para certificar la forma`
+    : `Necesitas ${SEGMENT_PASS_SCORE} para superarlo`;
 
   return (
     <Card>
       <CardHeader>
         <CardTitle className="flex flex-wrap items-center justify-between gap-2 text-base">
-          <span>Resultado del intento</span>
-          <Badge variant={passed ? "success" : "warning"}>
-            {passed ? "Segmento superado" : `Necesitas ${SEGMENT_PASS_SCORE} para superarlo`}
+          <span>{isFull ? "Resultado de la forma completa" : "Resultado del intento"}</span>
+          <Badge variant={passed ? (isFull ? "highlight" : "success") : "warning"}>
+            {passed ? passedLabel : pendingLabel}
           </Badge>
         </CardTitle>
       </CardHeader>
@@ -90,9 +103,13 @@ export default function AttemptResult({ attempt, onRepeat, repeatLabel, onClose 
           )}
         </div>
 
+        <SequenceResults attempt={attempt} />
+
         {criteria.length > 0 && (
-          <div>
-            <p className="mb-2 text-sm font-semibold text-text">Criterios evaluados</p>
+          <details open={!sequence}>
+            <summary className="mb-2 cursor-pointer text-sm font-semibold text-text">
+              Criterios evaluados ({criteria.length})
+            </summary>
             <ul className="divide-y divide-divider rounded-md border border-border">
               {criteria.map((c) => (
                 <li key={c.key} className="flex items-start gap-3 px-3 py-2 text-sm">
@@ -117,7 +134,7 @@ export default function AttemptResult({ attempt, onRepeat, repeatLabel, onClose 
                 </li>
               ))}
             </ul>
-          </div>
+          </details>
         )}
 
         {feedback.length > 0 && (
@@ -130,6 +147,11 @@ export default function AttemptResult({ attempt, onRepeat, repeatLabel, onClose 
             </ul>
           </div>
         )}
+
+        <p className="flex items-start gap-2 text-xs text-muted">
+          <Hand className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+          <span>{HAND_SHAPE_NOTE}</span>
+        </p>
 
         {(onRepeat || onClose) && (
           <div className="flex flex-wrap gap-2">

@@ -1,4 +1,5 @@
 import type { Poomsae, PoomsaeSegment, Technique, TechniqueElement } from "../types";
+import { referenceVideoSrc } from "./sequence";
 
 const YT_ID = /^[A-Za-z0-9_-]{11}$/;
 
@@ -63,13 +64,23 @@ export type ResolvedVideo =
 const VIDEO_FILE = /\.(mp4|webm|ogg|ogv|mov)(\?.*)?$/i;
 
 /**
- * How to show a poomsae's reference video: the server's youtube-nocookie
+ * How to show a poomsae's reference video: the club-hosted upload, the server's youtube-nocookie
  * embed (or one derived from a YouTube URL), an HTML5 <video> for club-hosted
  * files (same origin / root-relative), or nothing.
  */
 export function resolveVideo(
-  p: Pick<Poomsae, "video_url" | "video_embed_url" | "video_source">,
+  p: Pick<Poomsae, "video_url" | "video_embed_url" | "video_source"> &
+    Partial<Pick<Poomsae, "id" | "has_reference_video" | "reference_video_url">>,
 ): ResolvedVideo {
+  // Club-hosted upload (C.5) wins: served by the authenticated API endpoint.
+  if (p.has_reference_video && p.id != null) {
+    const src = referenceVideoSrc({
+      id: p.id,
+      has_reference_video: true,
+      reference_video_url: p.reference_video_url ?? null,
+    });
+    if (src) return { kind: "file", src };
+  }
   const embed =
     (p.video_embed_url && toNoCookieEmbed(p.video_embed_url)) || toNoCookieEmbed(p.video_url);
   if (embed) return { kind: "youtube", embedUrl: embed };
@@ -103,8 +114,14 @@ export const ELEMENT_ORDER: TechniqueElement[] = [
   "kick",
 ];
 
+/** Sequence-mode element scores (Addendum C.2). */
+const EXTRA_ELEMENT_LABEL: Record<string, string> = {
+  sequence: "Orden y número de movimientos",
+  direction: "Giros y desplazamientos",
+};
+
 export function elementLabel(key: string): string {
-  return ELEMENT_LABEL[key as TechniqueElement] ?? key;
+  return ELEMENT_LABEL[key as TechniqueElement] ?? EXTRA_ELEMENT_LABEL[key] ?? key;
 }
 
 /** Techniques grouped by element, in the teaching order. Empty groups dropped. */

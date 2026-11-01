@@ -28,9 +28,11 @@ const columns: Column<PoomsaeAttempt>[] = [
     header: "Práctica",
     render: (r) => (
       <span className="text-text">
-        {r.mode === "segment"
-          ? [r.poomsae_name, r.segment_name].filter(Boolean).join(" · ") || "Segmento"
-          : r.technique_name || "Técnica"}
+        {r.mode === "full"
+          ? `${r.poomsae_name || "Poomsae"} · Forma completa`
+          : r.mode === "segment"
+            ? [r.poomsae_name, r.segment_name].filter(Boolean).join(" · ") || "Segmento"
+            : r.technique_name || "Técnica"}
       </span>
     ),
   },
