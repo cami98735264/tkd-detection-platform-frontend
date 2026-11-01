@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
-import { ClipboardCheck, Pencil, Plus, Trash2 } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Award, ClipboardCheck, Pencil, Plus, Trash2 } from "lucide-react";
 import { BarChart2 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -156,15 +157,23 @@ export default function EvaluationsPage() {
       eyebrow="Operación"
       primaryAction={
         isAdminUser ? (
-          <Button
-            onClick={() => {
-              setEditing(null);
-              setModalOpen(true);
-            }}
-          >
-            <Plus className="h-4 w-4" />
-            Nueva evaluación
-          </Button>
+          <>
+            <Button asChild variant="outline">
+              <Link to="/dashboard/ascensos">
+                <Award className="h-4 w-4" />
+                Examen de ascenso
+              </Link>
+            </Button>
+            <Button
+              onClick={() => {
+                setEditing(null);
+                setModalOpen(true);
+              }}
+            >
+              <Plus className="h-4 w-4" />
+              Nueva evaluación
+            </Button>
+          </>
         ) : undefined
       }
       columns={columns}
