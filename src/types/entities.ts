@@ -35,7 +35,15 @@ export interface Athlete {
   user: number | null;
   full_name: string;
   date_of_birth: string | null;
+  /** Age/sport category value (preinfantil…mayores) — Req 3. */
+  category?: string | null;
+  /** Read-only label of `category`. */
+  category_display?: string | null;
+  /** Read-only suggestion from `date_of_birth` (may be null). */
+  suggested_category?: string | null;
+  /** @deprecated Legacy weight-based competition category (read-only, not editable). */
   categoria_competencia: number | null;
+  /** @deprecated Legacy weight-based competition category name. */
   categoria_competencia_name: string | null;
   status: "active" | "inactive";
   belt_actual: number | null;

@@ -10,10 +10,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import AsyncSelectField from "@/components/common/AsyncSelectField";
 import { FormSelect } from "@/components/common/FormSelect";
 
-import { categoriesApi } from "@/features/categories/api/categoriesApi";
+import { useAthleteCategories } from "@/features/athletes/hooks/useAthleteCategories";
+import {
+  categoryAgeRange,
+  categoryLabel,
+  suggestCategory,
+} from "@/features/athletes/lib/athleteCategories";
 import { beltsApi, type Belt } from "@/features/evaluations/api/beltsApi";
 import { usersApi } from "@/features/users/api/usersApi";
-import type { CompetitionCategory } from "@/types/entities";
 
 import {
   STATUS_OPTIONS,
@@ -25,6 +29,7 @@ import {
 export interface AthletePersonalErrors {
   full_name?: string;
   date_of_birth?: string;
+  category?: string;
   sportsman_email?: string;
   sportsman_password?: string;
   sportsman_user_id?: string;
@@ -58,18 +63,29 @@ export default function AthletePersonalDataSection({
   onLinkExistingEmail,
 }: Props) {
   const [belts, setBelts] = useState<Belt[]>([]);
-  const [categories, setCategories] = useState<CompetitionCategory[]>([]);
+  const categories = useAthleteCategories();
 
   useEffect(() => {
     beltsApi
       .list(1)
       .then((res) => setBelts(res.results))
       .catch(() => {});
-    categoriesApi
-      .list(1)
-      .then((res) => setCategories(res.results))
-      .catch(() => {});
   }, []);
+
+  const suggested = suggestCategory(data.date_of_birth, new Date(), categories);
+
+  // Changing the birth date pre-selects the suggested category, unless the
+  // user already picked a different one by hand.
+  const handleBirthDateChange = (value: string) => {
+    const previousSuggestion = suggestCategory(data.date_of_birth, new Date(), categories);
+    const followsSuggestion = !data.category || data.category === previousSuggestion;
+    const next = suggestCategory(value, new Date(), categories);
+    onChange(
+      followsSuggestion && next
+        ? { date_of_birth: value, category: next }
+        : { date_of_birth: value },
+    );
+  };
 
   const loadSportsmanUsers = useCallback((input: string, page: number) => {
     return usersApi
@@ -105,7 +121,7 @@ export default function AthletePersonalDataSection({
             id="date_of_birth"
             type="date"
             value={data.date_of_birth}
-            onChange={(e) => onChange({ date_of_birth: e.target.value })}
+            onChange={(e) => handleBirthDateChange(e.target.value)}
           />
           {age !== null && (
             <p className="text-xs text-muted-foreground">
@@ -142,17 +158,25 @@ export default function AthletePersonalDataSection({
           />
         </div>
         <div className="space-y-1.5">
-          <Label htmlFor="categoria_competencia">Categoría de competencia</Label>
+          <Label htmlFor="category">Categoría *</Label>
           <FormSelect
-            id="categoria_competencia"
-            value={data.categoria_competencia}
-            onValueChange={(v) => onChange({ categoria_competencia: v })}
-            placeholder="Sin categoría"
+            id="category"
+            value={data.category}
+            onValueChange={(v) => onChange({ category: v })}
+            placeholder="Selecciona la categoría"
             options={categories.map((c) => ({
-              value: String(c.id),
-              label: c.nombre,
+              value: c.value,
+              label: `${c.label} (${categoryAgeRange(c)})`,
             }))}
           />
+          {suggested && (
+            <p className="text-xs text-muted-foreground">
+              {data.category === suggested
+                ? "Sugerida por la edad del deportista."
+                : `Sugerida por la edad: ${categoryLabel(suggested, categories)}.`}
+            </p>
+          )}
+          {errors?.category && <p className="text-sm text-error">{errors.category}</p>}
         </div>
       </div>
 

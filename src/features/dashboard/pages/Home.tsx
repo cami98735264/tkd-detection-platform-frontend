@@ -41,6 +41,7 @@ import { useAuthReady } from "@/features/auth/hooks/useAuthReady";
 import { cn } from "@/lib/utils";
 import type { Athlete } from "@/types/entities";
 import type { LucideIcon } from "lucide-react";
+import { athleteCategoryText } from "@/features/athletes/lib/athleteCategories";
 
 interface QuickAction {
   label: string;
@@ -322,8 +323,8 @@ export default function Home() {
                   {athlete.belt_actual_name && (
                     <Badge variant="tonal">{athlete.belt_actual_name}</Badge>
                   )}
-                  {athlete.categoria_competencia_name && (
-                    <Badge variant="outline">{athlete.categoria_competencia_name}</Badge>
+                  {athleteCategoryText(athlete) && (
+                    <Badge variant="highlight">{athleteCategoryText(athlete)}</Badge>
                   )}
                   {athlete.date_of_birth && (
                     <span className="text-muted">

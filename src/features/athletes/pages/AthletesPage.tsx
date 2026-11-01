@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
-import { CalendarDays, Pencil, Plus, ShieldCheck, Trophy, Users } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { CalendarDays, FolderOpen, Pencil, Plus, ShieldCheck, Trophy, Users } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -17,13 +18,14 @@ import type { Column, RowAction } from "@/components/common/DataTable";
 
 import AthleteFormSheet from "@/features/athletes/components/AthleteFormSheet";
 import { athletesApi } from "@/features/athletes/api/athletesApi";
-import { categoriesApi } from "@/features/categories/api/categoriesApi";
+import { useAthleteCategories } from "@/features/athletes/hooks/useAthleteCategories";
+import { athleteCategoryText } from "@/features/athletes/lib/athleteCategories";
 import { parentAthletesApi } from "@/features/parent/api/parentAthletesApi";
 import type { ParentChild } from "@/features/parent/api/parentAthletesApi";
 import { usePermissions } from "@/features/auth/hooks/usePermissions";
 import { useApiErrorHandler } from "@/feedback/useApiErrorHandler";
 import { useFeedback } from "@/feedback/useFeedback";
-import type { Athlete, CompetitionCategory } from "@/types/entities";
+import type { Athlete } from "@/types/entities";
 
 const STATUS_OPTIONS = [
   { value: "all", label: "Todos los estados" },
@@ -60,9 +62,9 @@ const adminColumns: Column<Athlete>[] = [
     render: (r) => formatDate(r.date_of_birth),
   },
   {
-    key: "categoria_competencia_name",
+    key: "category",
     header: "Categoría",
-    render: (r) => r.categoria_competencia_name ?? "—",
+    render: (r) => athleteCategoryText(r) ?? "—",
   },
   {
     key: "belt_actual_name",
@@ -96,9 +98,9 @@ const parentColumns: Column<ParentChild>[] = [
     render: (r) => formatDate(r.athlete.date_of_birth),
   },
   {
-    key: "categoria_competencia",
+    key: "category",
     header: "Categoría",
-    render: (r) => r.athlete.categoria_competencia_name ?? "—",
+    render: (r) => athleteCategoryText(r.athlete) ?? "—",
   },
   {
     key: "belt_actual",
@@ -125,6 +127,7 @@ export default function AthletesPage() {
   const isAdminUser = isAdmin();
   const isParent = hasRole(["parent"]);
   const canCreate = can("create", "athletes");
+  const navigate = useNavigate();
 
   const [data, setData] = useState<Athlete[]>([]);
   const [count, setCount] = useState(0);
@@ -133,20 +136,12 @@ export default function AthletesPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Athlete | null>(null);
   const [statusFilter, setStatusFilter] = useState("all");
-  const [categoryOptions, setCategoryOptions] = useState<CompetitionCategory[]>([]);
+  const categoryOptions = useAthleteCategories();
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [stats, setStats] = useState({ total: 0, active: 0, inactive: 0 });
 
   const [children, setChildren] = useState<ParentChild[]>([]);
   const [childrenLoading, setChildrenLoading] = useState(true);
-
-  // Categories — load once
-  useEffect(() => {
-    categoriesApi
-      .list(1)
-      .then((res) => setCategoryOptions(res.results))
-      .catch(() => {});
-  }, []);
 
   const refreshStats = useCallback(() => {
     if (!isAdminUser) return;
@@ -166,14 +161,11 @@ export default function AthletesPage() {
     if (!isAdminUser) return;
     setLoading(true);
     const status = statusFilter === "all" ? "" : statusFilter;
+    const category = categoryFilter === "all" ? "" : categoryFilter;
     athletesApi
-      .list(page, "", status)
+      .list(page, "", status, false, undefined, category)
       .then((res) => {
-        const results =
-          categoryFilter !== "all"
-            ? res.results.filter((a) => String(a.categoria_competencia) === categoryFilter)
-            : res.results;
-        setData(results);
+        setData(res.results);
         setCount(res.count);
       })
       .catch((err) => handleError(err))
@@ -237,6 +229,13 @@ export default function AthletesPage() {
   const adminActions: RowAction<Athlete>[] = isAdminUser
     ? [
         {
+          id: "detail",
+          label: "Ver ficha y documentos",
+          icon: FolderOpen,
+          variant: "ghost",
+          onClick: (row) => navigate(`/dashboard/deportistas/${row.id}`),
+        },
+        {
           id: "edit",
           label: "Editar",
           icon: Pencil,
@@ -274,7 +273,7 @@ export default function AthletesPage() {
               <StatusBadge status={r.athlete.status} />
             </div>
             <p className="text-xs text-muted">
-              {r.athlete.categoria_competencia_name ?? "Sin categoría"}
+              {athleteCategoryText(r.athlete) ?? "Sin categoría"}
               {r.athlete.belt_actual_name ? ` · ${r.athlete.belt_actual_name}` : ""}
             </p>
             <p className="text-xs text-faint">{r.relationship}</p>
@@ -378,8 +377,8 @@ export default function AthletesPage() {
               <SelectContent>
                 <SelectItem value="all">Todas las categorías</SelectItem>
                 {categoryOptions.map((o) => (
-                  <SelectItem key={o.id} value={String(o.id)}>
-                    {o.nombre}
+                  <SelectItem key={o.value} value={o.value}>
+                    {o.label}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -399,7 +398,7 @@ export default function AthletesPage() {
             <StatusBadge status={r.status} />
           </div>
           <p className="text-xs text-muted">
-            {r.categoria_competencia_name ?? "Sin categoría"}
+            {athleteCategoryText(r) ?? "Sin categoría"}
             {r.belt_actual_name ? ` · ${r.belt_actual_name}` : ""}
           </p>
           <p className="text-xs text-faint">
