@@ -721,3 +721,169 @@ exoneración text verbatim (B.5 §4) with the same signature lines.
 * Admin page "Datos del club" (`/dashboard/club`, admin only, nav under
   Administración): edit ClubProfile fields, upload/replace/remove signature
   image (preview via authenticated blob), toggle include_signature.
+
+
+## Addendum C — Complete Poomsae evaluation (Req 8 full scope), Nov 2026
+
+Goal: go from "phase 1" (techniques scored at their best frame) to a complete
+evaluation: the real movement-by-movement script of each Taegeuk, order and
+count checking, turns/steps direction, a full run-through mode, calibration
+tools for the maestro and club-hosted reference videos. Everything is
+additive; existing endpoints/JSON keep working.
+
+### C.1 Movement script (`PoomsaeMovement`)
+
+New model `PoomsaeMovement(poomsae FK, number int ≥1 (unique per poomsae, Kukkiwon
+numbering), segment FK PoomsaeSegment, stance FK Technique (element "stance", null
+only for "Junbi"/transitions), hand FK Technique null (block/hand_attack),
+kick FK Technique null (kick), turn_deg int (signed facing change from the previous
+movement: +90 = turn left / counter-clockwise seen from above, −90 right, ±180 back,
+0 none), step choice "forward"|"backward"|"in_place"|"side" (displacement of the
+hips relative to the new facing), kihap bool, name str(160) (e.g. "Ap seogi · Arae makki
+(izquierda)"), description text, hold bool default true (the athlete holds the
+final position briefly; false for the first punch of a double punch, kick
+chambers, etc.)`. Ordering: (poomsae, number).
+
+Seed (data migration) the full Kukkiwon scripts of Taegeuk 1–8 (18, 18, 20, 20,
+20, 19, 25, 24 movements — the kick + following technique of a "chagi-jireugi"
+combination are separate rows when Kukkiwon counts them separately) and re-link
+segments: every segment = consecutive movements; `PoomsaeSegment.techniques` is
+kept in sync (= distinct stance/hand/kick techniques of its movements) and
+`expected_movements` = number of its movements. Seed must be idempotent
+(update_or_create by poomsae+number) and must not delete attempts.
+
+New techniques needed by the scripts are added to the catalogue (C.6).
+
+### C.2 Ordered sequence analysis (segment and full modes)
+
+Pipeline for a clip and an ordered list of movements M1..Mn:
+1. Frames as today (video → MediaPipe, or client landmarks). Long clips are
+   sub-sampled to ≤ 10 fps for analysis (keep timestamps `t` in seconds).
+2. Motion energy per frame (mean displacement of key landmarks, torso-normalised,
+   smoothed). "Holds" = local minima / low-energy plateaus separated by motion
+   peaks → candidate key frames with their time.
+3. Monotonic alignment (dynamic programming) of movements to candidate key
+   frames maximising Σ movement score − penalties (skipped movement, extra hold).
+   Each movement's score uses its stance/hand criteria on its key frame and its
+   kick (clip-level measures computed on the window between the previous and
+   the next key frame).
+4. Direction: facing angle per key frame from the shoulder + hip lines
+   (MediaPipe world/x-z coordinates; yaw), turn between consecutive matched
+   movements vs `turn_deg` (tolerance ±35°, sign must match; 180 accepts ±);
+   step: hip-midpoint translation between key frames projected on the facing
+   (forward/backward/in_place/side, torso-normalised thresholds).
+5. Results:
+   * `score` 0–100 = weighted: technique elements (existing element scores
+     computed over matched movements) 60 %, `sequence` 25 % (matched-in-order
+     ratio, missing/extra penalties), `direction` 15 % (turn + step correctness).
+     `element_scores` gains keys `"sequence"` and `"direction"` (labels
+     "Orden y número de movimientos", "Giros y desplazamientos").
+   * New attempt JSON field `movement_results`: list per expected movement
+     `{"number", "name", "matched" bool, "time_s" float|null, "score" 0–100|null,
+     "turn": {"expected", "measured", "passed"}|null, "step": {"expected", "measured",
+     "passed"}|null, "issues": [Spanish strings]}`.
+   * New `sequence_summary`: `{"expected_movements", "detected_movements",
+     "matched_in_order", "missing": [numbers], "extra": int, "order_ok" bool}`.
+   * `criteria_results` stays (aggregated per technique criterion, keys
+     "<number>.<technique_code>.<key>" for sequence modes) so old UI still works.
+   * Feedback (Spanish) mentions missing movements by number and name, wrong
+     turns ("En el movimiento 7 debías girar 90° a la derecha"), then the
+     existing technique tips (top 6 issues).
+   Technique mode (single technique) keeps the current behaviour.
+
+### C.3 Full run-through mode
+
+`PoomsaeAttempt.mode` adds `"full"` (`poomsae` FK on the attempt, new field, null
+for other modes; segment/technique null). `POST /api/v1/poomsae/attempts/` with
+`mode=full&poomsae=<id>` (+ recording or landmarks). Limits:
+`POOMSAE_FULL_MAX_VIDEO_BYTES` (default 90 MB — Cloudflare proxy limit is 100 MB),
+landmark frames ≤ 3000. Result has the C.2 fields plus `segment_results`:
+`[{"segment", "segment_name", "score", "matched", "expected"}]`.
+Poomsae detail/list: `my_progress` gains `best_full_score` and `full_completed`
+(a full attempt with score ≥ 70); detail `completed` stays segment-based;
+new `certified` = full_completed. Celery soft time limit for full analysis: 600 s.
+Attempt filters accept `mode=full` and `poomsae=`.
+
+### C.4 Calibration tools (admin = maestro)
+
+* `GET /api/v1/poomsae/techniques/{id}/stats/` → `{"technique", "attempts": n,
+  "criteria": [{"key", "label", "min", "max", "unit", "n", "mean", "p10", "p50",
+  "p90", "pass_rate"}]}` from completed attempts (technique mode + movements of
+  sequence modes that used this technique; values taken from criteria_results /
+  movement data). Optional `?since=YYYY-MM-DD`.
+* `POST /api/v1/poomsae/techniques/{id}/calibrate/` body
+  `{"attempt_ids": [..] (completed attempts recorded by the maestro, any mode that
+  includes the technique), "tolerance": "normal"|"strict"|"lenient" (default
+  normal), "apply": bool}` → `{"proposed": [{"key", "label", "unit", "current":
+  [min,max], "proposed": [min,max], "samples": n}], "applied": bool}`. Proposed
+  range = [min(sample) − tol, max(sample) + tol] with tol deg 10/6/15, ratio
+  max(0.12, 12 %)/8 %/18 %, count ±0 (clamped to physical limits: angles 0–180).
+  `apply=true` saves `Technique.criteria` and logs `TechniqueCalibration(technique,
+  previous criteria JSON, new criteria JSON, attempt_ids, created_by, created_at)`.
+* `GET /api/v1/poomsae/techniques/{id}/calibrations/` (history) and
+  `POST /api/v1/poomsae/techniques/{id}/calibrations/{cid}/revert/`.
+* `PATCH /api/v1/poomsae/movements/{id}/` (admin) edits a movement (turn_deg,
+  step, kihap, hold, name, description, stance/hand/kick); `GET
+  /api/v1/poomsae/{id}/movements/` (any authenticated, unpaginated, ordered).
+  Poomsae detail also embeds `movements` (summaries) and each segment
+  `movement_numbers`.
+
+### C.5 Club-hosted reference videos
+
+Poomsae gains `reference_video` (private storage name), `reference_video_type`,
+`reference_video_size`. `video_source="club"` + uploaded file → the frontend plays
+it from `GET /api/v1/poomsae/{id}/reference-video/` (any authenticated; HTTP
+Range requests supported → 206 with Content-Range; video/mp4|webm; Cache-Control
+private). Upload: `PATCH /api/v1/poomsae/{id}/` multipart `reference_video`
+(mp4/webm/mov magic-checked, ≤ `POOMSAE_REFERENCE_MAX_BYTES` default 90 MB),
+`remove_reference_video=true`. List/detail add `has_reference_video` and
+`reference_video_url` (the endpoint path or null). Segments' `video_start_s/end_s`
+apply to either source. YouTube embeds keep working (credit/licence fields).
+
+### C.6 Technique catalogue for the full Taegeuk scripts
+
+Add the techniques the scripts need, each with criteria using existing or new
+measures, e.g.: stances `beom_seogi` (tiger: rear knee bent, front foot light,
+short), `dwit_kubi` (exists), `kkoa_seogi`, `hakdari_seogi` (crane: one leg),
+`moa_seogi` (feet together); blocks `sonnal_momtong_makki` (knife-hand middle,
+both arms), `sonnal_arae_makki`, `han_sonnal_momtong_bakkat_makki`,
+`batangson_momtong_an_makki`, `olgul_bakkat_makki`, `arae_hecheo_makki`,
+`gawi_makki`, `kodureo_bakkat_makki`, `santeul_makki`, `oesanteul_makki`,
+`jebipum_mok_chigi`, `kumgang_makki`; hand attacks `olgul_jireugi`,
+`pyeonsonkkeut_sewo_tzireugi`, `me_jumeok_naeryo_chigi`, `dung_jumeok_olgul_ap_chigi`,
+`palkup_dollyo_chigi`, `palkup_pyojeok_chigi`, `yeop_jireugi`, `dangyo_teok_jireugi`,
+`dubeon_jireugi` (exists); kicks `dollyo_chagi`, `ttwieo_ap_chagi`,
+`mureup_chigi` (knee strike), `pyojeok_chagi`; displacements `bal_bakkwo` / step.
+New measures allowed (document them in analysis.py MEASURES + validate):
+`both_wrists_height`, `wrists_distance` (double-arm techniques), `elbow_strike`
+(elbow angle ≤ 60° + elbow height), `knee_lift` (thigh above hip line), `one_leg`
+(one ankle off the floor ratio), `feet_together`, `front_foot_weight` (tiger).
+Limitation (documented, shown in UI as a note): hand shape (fist vs knife hand vs
+fingertips) is NOT measurable with body pose landmarks; techniques that differ
+only by hand shape are scored by arm trajectory/position.
+
+### C.7 Frontend
+
+* Practice by segment: show the ordered movement checklist of the segment (number,
+  name, turn arrow, kihap badge) before recording; after analysis, the
+  `movement_results` timeline (matched ✓ / missing ✗, time, per-movement score,
+  turn/step badges) + `sequence_summary` + the two new element scores. Legacy
+  attempts without `movement_results` render as today.
+* New "Forma completa" mode on the poomsae detail page: record/upload the whole
+  form (warn about 90 MB / duration), progress via polling (processing can take
+  minutes), result with `segment_results` + movement timeline; badge
+  "Forma certificada" when `full_completed`. Catalogue cards show best full score.
+* Reference video: if `has_reference_video`, play `<video controls
+  src="/api/v1/poomsae/{id}/reference-video/">` (same-origin through the edge proxy;
+  add media-src 'self' to CSP if needed) with segment jump buttons using
+  start/end; else the YouTube embed as today.
+* Admin (maestro) pages under the Poomsae area (nav "Administración → Poomsae"):
+  - poomsae admin: upload/replace/remove reference video, edit URL/credit/licence,
+    view/edit the movement script (table, inline edit of turn/step/kihap/hold/
+    techniques);
+  - technique calibration: pick a technique, see `stats` (per criterion range vs
+    p10/p50/p90 and pass rate), select reference attempts (filter by the maestro's
+    own completed attempts), preview `calibrate` proposal (tolerance select), apply,
+    history with revert.
+* Note shown in results: "La forma de la mano (puño, mano de cuchillo, punta de
+  dedos) no se evalúa con la cámara."
