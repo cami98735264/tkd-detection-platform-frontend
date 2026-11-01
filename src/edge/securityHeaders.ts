@@ -25,6 +25,9 @@ export const CSP_DIRECTIVES: ReadonlyArray<readonly [string, string]> = [
   // Recorded kick video is previewed from a blob: URL.
   ["media-src", "'self' blob:"],
   ["worker-src", "'self' blob:"],
+  // Poomsae reference videos: privacy-enhanced YouTube embeds only (no
+  // download, no tracking cookies until playback). Nothing else may be framed.
+  ["frame-src", "https://www.youtube-nocookie.com"],
   ["object-src", "'none'"],
   ["base-uri", "'self'"],
   ["form-action", "'self'"],

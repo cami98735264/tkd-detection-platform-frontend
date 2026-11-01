@@ -180,6 +180,11 @@ describe("security headers", () => {
     expect(CONTENT_SECURITY_POLICY).not.toContain("'unsafe-eval'");
   });
 
+  it("frames only privacy-enhanced YouTube embeds (Poomsae reference videos)", () => {
+    expect(CONTENT_SECURITY_POLICY).toContain("frame-src https://www.youtube-nocookie.com;");
+    expect(CONTENT_SECURITY_POLICY).not.toMatch(/frame-src[^;]*\*/);
+  });
+
   it("renders the same headers into the static _headers file", () => {
     const file = renderHeadersFile();
     expect(file.startsWith("# Generated")).toBe(true);

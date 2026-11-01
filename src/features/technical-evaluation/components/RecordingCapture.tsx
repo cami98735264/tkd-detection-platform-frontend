@@ -12,15 +12,46 @@ import {
   type KickType,
 } from "@/features/technical-evaluation/api/technicalEvaluationApi";
 
+/** What a custom uploader receives once recording stops. */
+export interface CapturedRecording {
+  /** Recorded clip, or null when the browser cannot record video. */
+  recording: Blob | null;
+  /** Pose frames sampled by the live overlay while recording. */
+  landmarks: { t: number; landmarks: { x: number; y: number; z: number; visibility?: number }[] }[];
+}
+
 interface RecordingCaptureProps {
-  kickType: KickType;
+  /** Kick module: what is recorded (also the default upload target). */
+  kickType?: KickType;
   athleteId?: number;
   onComplete: (sessionId: number) => void;
   onError: (msg: string) => void;
+  /**
+   * Custom upload (e.g. Poomsae attempts). Resolves with the created id. When
+   * omitted the clip is sent to the kick technical-evaluation endpoint.
+   */
+  upload?: (captured: CapturedRecording) => Promise<number>;
+  /** Shown as "Técnica seleccionada" (defaults to the kick type). */
+  label?: string;
+  /** Card title in the idle state (default "Grabar patada"). */
+  title?: string;
+  /** Recording length in seconds (default 10). */
+  recordSeconds?: number;
+  /** Hint shown while recording. */
+  recordingHint?: string;
 }
 
 const PRECOUNTDOWN_SECS = 3;
-const RECORD_SECS = 10;
+const DEFAULT_RECORD_SECS = 10;
+/** Keep the landmark fallback payload bounded (~15 fps). */
+const LANDMARK_MIN_INTERVAL_MS = 66;
+
+function pickMimeType(): string {
+  if (typeof MediaRecorder === "undefined") return "video/webm";
+  const supports = (t: string) =>
+    typeof MediaRecorder.isTypeSupported !== "function" || MediaRecorder.isTypeSupported(t);
+  return supports("video/webm") ? "video/webm" : supports("video/mp4") ? "video/mp4" : "video/webm";
+}
 
 function blobToDataUrl(blob: Blob): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -36,9 +67,33 @@ export default function RecordingCapture({
   athleteId,
   onComplete,
   onError,
+  upload,
+  label,
+  title: idleTitle = "Grabar patada",
+  recordSeconds = DEFAULT_RECORD_SECS,
+  recordingHint = "Ejecuta la patada con máxima fuerza y precisión.",
 }: RecordingCaptureProps) {
+  const RECORD_SECS = recordSeconds;
+  const subject = label ?? kickType ?? "";
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
+  const framesRef = useRef<CapturedRecording["landmarks"]>([]);
+  const capturingRef = useRef(false);
+  const startedAtRef = useRef(0);
+
+  const handleFrame = useCallback(
+    (landmarks: { x: number; y: number; z: number; visibility?: number }[], ts: number) => {
+      if (!capturingRef.current) return;
+      const t = Math.round(ts - startedAtRef.current);
+      const last = framesRef.current[framesRef.current.length - 1];
+      if (last && t - last.t < LANDMARK_MIN_INTERVAL_MS) return;
+      framesRef.current.push({
+        t,
+        landmarks: landmarks.map((l) => ({ x: l.x, y: l.y, z: l.z, visibility: l.visibility })),
+      });
+    },
+    [],
+  );
 
   const { stream, error: camError, hasPermission, requestCamera, stopCamera } = useCameraAccess();
 
@@ -49,7 +104,7 @@ export default function RecordingCapture({
     secondsLeft,
     progress,
     start: startTimer,
-  } = useRecordingTimer(RECORD_SECS, () => stopRecording());
+  } = useRecordingTimer(recordSeconds, () => stopRecording());
 
   // The current <video> element. Tracked in state (rather than a ref) so the
   // SkeletonOverlay can react when the element changes.
@@ -71,41 +126,20 @@ export default function RecordingCapture({
   // GPU/WASM resources the moment recording wraps up.
   const overlayEnabled = !!stream;
 
-  const stopRecording = useCallback(() => {
-    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
-      mediaRecorderRef.current.stop();
-    }
-    stopCamera();
-    setPhase("uploading");
-  }, [stopCamera]);
-
-  const startRecording = useCallback(() => {
-    if (!stream) return;
-    chunksRef.current = [];
-
-    // Cap the bitrate so a 10s clip lands around ~1.2 MB instead of the
-    // browser default (often 2.5+ Mbps ≈ 3+ MB, which inflates ~33% more once
-    // base64-encoded for the JSON upload). Smaller payloads are the difference
-    // between an upload completing or stalling out (nginx 408 / client timeout)
-    // on flaky mobile connections. 1 Mbps@720p stays well within MediaPipe's
-    // accuracy needs.
-    const recorder = new MediaRecorder(stream, {
-      mimeType: "video/webm",
-      videoBitsPerSecond: 1_000_000,
-    });
-    mediaRecorderRef.current = recorder;
-
-    recorder.ondataavailable = (e) => {
-      if (e.data.size > 0) chunksRef.current.push(e.data);
-    };
-
-    recorder.onstop = async () => {
-      const blob = new Blob(chunksRef.current, { type: "video/webm" });
-
+  // Upload what was captured (custom uploader or the kick endpoint).
+  const finish = useCallback(
+    async (blob: Blob | null) => {
       try {
-        const base64 = await blobToDataUrl(blob);
-        const session = await technicalEvaluationApi.createSession(kickType, base64, athleteId);
-        onComplete(session.id);
+        let id: number;
+        if (upload) {
+          id = await upload({ recording: blob, landmarks: framesRef.current });
+        } else {
+          if (!blob || !kickType) throw new Error("No se pudo grabar el video.");
+          const base64 = await blobToDataUrl(blob);
+          const session = await technicalEvaluationApi.createSession(kickType, base64, athleteId);
+          id = session.id;
+        }
+        onComplete(id);
       } catch (err) {
         const message =
           err instanceof Error && err.message
@@ -116,12 +150,68 @@ export default function RecordingCapture({
         setCountdown(PRECOUNTDOWN_SECS);
         requestCamera();
       }
+    },
+    [upload, kickType, athleteId, onComplete, onError, requestCamera],
+  );
+
+  const stopRecording = useCallback(() => {
+    capturingRef.current = false;
+    const recorder = mediaRecorderRef.current;
+    if (recorder && recorder.state !== "inactive") {
+      recorder.stop(); // onstop uploads
+    } else if (!recorder) {
+      void finish(null); // landmark-only fallback
+    }
+    stopCamera();
+    setPhase("uploading");
+  }, [stopCamera, finish]);
+
+  const startRecording = useCallback(() => {
+    if (!stream) return;
+    chunksRef.current = [];
+    framesRef.current = [];
+    startedAtRef.current = performance.now();
+    capturingRef.current = true;
+    mediaRecorderRef.current = null;
+
+    if (typeof MediaRecorder === "undefined") {
+      // No video recording in this browser: custom uploaders can still send
+      // the pose frames collected by the overlay.
+      if (!upload) {
+        capturingRef.current = false;
+        onError("Tu navegador no permite grabar video.");
+        return;
+      }
+      setPhase("recording");
+      startTimer();
+      return;
+    }
+
+    // Cap the bitrate so a 10s clip lands around ~1.2 MB instead of the
+    // browser default (often 2.5+ Mbps ≈ 3+ MB, which inflates ~33% more once
+    // base64-encoded for the JSON upload). Smaller payloads are the difference
+    // between an upload completing or stalling out (nginx 408 / client timeout)
+    // on flaky mobile connections. 1 Mbps@720p stays well within MediaPipe's
+    // accuracy needs.
+    const mimeType = pickMimeType();
+    const recorder = new MediaRecorder(stream, {
+      mimeType,
+      videoBitsPerSecond: 1_000_000,
+    });
+    mediaRecorderRef.current = recorder;
+
+    recorder.ondataavailable = (e) => {
+      if (e.data.size > 0) chunksRef.current.push(e.data);
+    };
+
+    recorder.onstop = () => {
+      void finish(new Blob(chunksRef.current, { type: mimeType }));
     };
 
     recorder.start();
     setPhase("recording");
     startTimer();
-  }, [stream, kickType, athleteId, startTimer, onComplete, onError, requestCamera]);
+  }, [stream, upload, startTimer, onError, finish]);
 
   const handleStart = async () => {
     await requestCamera();
@@ -173,10 +263,10 @@ export default function RecordingCapture({
         <CardHeader>
           <CardTitle className="flex items-center gap-2 font-display text-lg font-semibold tracking-tight">
             <Video className="h-5 w-5 text-primary" />
-            Grabar patada
+            {idleTitle}
           </CardTitle>
           <p className="text-sm text-muted">
-            Técnica seleccionada: <span className="font-medium text-text">{kickType}</span>
+            Técnica seleccionada: <span className="font-medium text-text">{subject}</span>
           </p>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -215,12 +305,12 @@ export default function RecordingCapture({
           className="inline-flex h-2 w-2 animate-pulse-soft rounded-full bg-error"
           aria-hidden="true"
         />
-        Grabando · {kickType}
+        Grabando · {subject}
       </>
     ) : (
       <>
         <Video className="h-5 w-5 text-primary" />
-        Grabar patada
+        {idleTitle}
       </>
     );
 
@@ -232,7 +322,7 @@ export default function RecordingCapture({
         </CardTitle>
         {phase === "idle" && (
           <p className="text-sm text-muted">
-            Técnica seleccionada: <span className="font-medium text-text">{kickType}</span>
+            Técnica seleccionada: <span className="font-medium text-text">{subject}</span>
           </p>
         )}
       </CardHeader>
@@ -253,7 +343,7 @@ export default function RecordingCapture({
               playsInline
               className="h-full w-full object-cover"
             />
-            <SkeletonOverlay video={videoEl} enabled={overlayEnabled} />
+            <SkeletonOverlay video={videoEl} enabled={overlayEnabled} onFrame={handleFrame} />
             {phase === "countdown" && (
               <div className="absolute inset-0 flex items-center justify-center bg-black/30">
                 <span className="font-display text-8xl font-semibold tabular-nums text-white drop-shadow-lg">
@@ -282,13 +372,15 @@ export default function RecordingCapture({
             </Button>
             <p className="text-center text-xs text-faint">
               Al iniciar, tendrás {PRECOUNTDOWN_SECS} segundos para colocarte y {RECORD_SECS}{" "}
-              segundos para ejecutar la patada.
+              segundos para ejecutar {upload ? "el movimiento" : "la patada"}.
             </p>
           </>
         )}
 
         {phase === "countdown" && (
-          <p className="text-center text-sm text-muted">Prepárate para ejecutar la patada</p>
+          <p className="text-center text-sm text-muted">
+            Prepárate para ejecutar {upload ? "el movimiento" : "la patada"}
+          </p>
         )}
 
         {phase === "recording" && (
@@ -320,9 +412,7 @@ export default function RecordingCapture({
                 />
               </div>
             </div>
-            <p className="text-center text-sm text-muted">
-              Ejecuta la patada con máxima fuerza y precisión.
-            </p>
+            <p className="text-center text-sm text-muted">{recordingHint}</p>
           </>
         )}
       </CardContent>
