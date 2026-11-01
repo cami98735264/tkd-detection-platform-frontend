@@ -1,4 +1,5 @@
 import {
+  Award,
   BarChart3,
   BookOpen,
   Calendar,
@@ -9,10 +10,14 @@ import {
   Dumbbell,
   FileSpreadsheet,
   FolderOpen,
+  Footprints,
   HelpCircle,
   History,
+  Medal,
   Package,
   Settings,
+  Sparkles,
+  Target,
   Trophy,
   User,
   Users,
@@ -34,6 +39,38 @@ export interface NavGroup {
   heading?: string;
   items: NavItem[];
 }
+
+/** Listado 1 — promotions, gamification and poomsae (one group per role). */
+const progressGroups: Record<RoleName, NavGroup> = {
+  administrator: {
+    heading: "Formación",
+    items: [
+      { to: "/dashboard/ascensos", label: "Ascensos de cinturón", icon: Award },
+      { to: "/dashboard/poomsae", label: "Poomsae", icon: Footprints },
+      { to: "/dashboard/retos", label: "Retos", icon: Target },
+      { to: "/dashboard/clasificacion", label: "Clasificación", icon: Medal },
+      { to: "/dashboard/progreso", label: "Progreso", icon: Sparkles },
+    ],
+  },
+  sportsman: {
+    heading: "Progreso",
+    items: [
+      { to: "/dashboard/progreso", label: "Mi progreso", icon: Sparkles },
+      { to: "/dashboard/clasificacion", label: "Clasificación", icon: Medal },
+      { to: "/dashboard/poomsae", label: "Poomsae", icon: Footprints },
+      { to: "/dashboard/mis-diplomas", label: "Mis diplomas", icon: Award },
+    ],
+  },
+  parent: {
+    heading: "Progreso",
+    items: [
+      { to: "/dashboard/progreso", label: "Progreso de mis hijos", icon: Sparkles },
+      { to: "/dashboard/clasificacion", label: "Clasificación", icon: Medal },
+      { to: "/dashboard/poomsae", label: "Poomsae", icon: Footprints },
+      { to: "/dashboard/mis-diplomas", label: "Diplomas de mis hijos", icon: Award },
+    ],
+  },
+};
 
 const sharedFooter: NavGroup = {
   items: [
@@ -70,11 +107,16 @@ export const navConfig: Record<RoleName, NavGroup[]> = {
         { to: "/dashboard/acudientes", label: "Acudientes", icon: Users },
         { to: "/dashboard/inventario", label: "Inventario", icon: Package, end: true },
         { to: "/dashboard/inventario/tipos", label: "Ítems", icon: Package },
-        { to: "/dashboard/categorias-competencia", label: "Categorías", icon: Trophy },
+        {
+          to: "/dashboard/categorias-competencia",
+          label: "Categorías de competencia",
+          icon: Trophy,
+        },
         { to: "/dashboard/reportes", label: "Reportes", icon: FileSpreadsheet, end: true },
         { to: "/dashboard/reportes/estadisticas", label: "Estadísticas", icon: BarChart3 },
       ],
     },
+    progressGroups.administrator,
     sharedFooter,
   ],
   sportsman: [
@@ -109,6 +151,7 @@ export const navConfig: Record<RoleName, NavGroup[]> = {
         },
       ],
     },
+    progressGroups.sportsman,
     sharedFooter,
   ],
   parent: [
@@ -139,6 +182,7 @@ export const navConfig: Record<RoleName, NavGroup[]> = {
         },
       ],
     },
+    progressGroups.parent,
     sharedFooter,
   ],
 };

@@ -38,6 +38,7 @@ import { userActivityApi, type UserActivity } from "@/features/users/api/userAct
 import { parentAthletesApi } from "@/features/parent/api/parentAthletesApi";
 import { useApiErrorHandler } from "@/feedback/useApiErrorHandler";
 import { useAuthReady } from "@/features/auth/hooks/useAuthReady";
+import GamificationWidget from "@/features/gamification/components/GamificationWidget";
 import { cn } from "@/lib/utils";
 import type { Athlete } from "@/types/entities";
 import type { LucideIcon } from "lucide-react";
@@ -347,6 +348,9 @@ export default function Home() {
             />
           </Card>
         ))}
+
+      {/* Gamification: level + streak (Req 7) */}
+      {isSportsman && <GamificationWidget />}
 
       {stats === null ? (
         <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">

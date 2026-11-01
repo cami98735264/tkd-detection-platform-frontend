@@ -144,7 +144,7 @@ const cases = dashboardRoutes.flatMap((route) => {
 describe("dashboard pages mount", () => {
   it.each(cases)("%s as %s", async (_label, role, route) => {
     signIn(role);
-    const path = `/dashboard/${route.path.replace(":programId", "1").replace(":athleteId", "1")}`;
+    const path = `/dashboard/${route.path.replace(/:\w+/g, "1")}`;
     render(
       <MemoryRouter initialEntries={[path]}>
         <FeedbackProvider>

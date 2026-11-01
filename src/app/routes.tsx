@@ -52,6 +52,18 @@ const TechnicalEvaluationPage = lazyPage(
 const MyTrainingsPage = lazyPage(() => import("@/features/trainings/pages/MyTrainingsPage"));
 const TrainingsPage = lazyPage(() => import("@/features/trainings/pages/TrainingsPage"));
 const UsersPage = lazyPage(() => import("@/features/users/pages/UsersPage"));
+// Listado 1 — Req 6/6.1 (promotions), 7 (gamification), 8 (poomsae).
+const PromotionsAdminPage = lazyPage(
+  () => import("@/features/promotions/pages/PromotionsAdminPage"),
+);
+const MyDiplomasPage = lazyPage(() => import("@/features/promotions/pages/MyDiplomasPage"));
+const ProgressPage = lazyPage(() => import("@/features/gamification/pages/ProgressPage"));
+const LeaderboardPage = lazyPage(() => import("@/features/gamification/pages/LeaderboardPage"));
+const ChallengesAdminPage = lazyPage(
+  () => import("@/features/gamification/pages/ChallengesAdminPage"),
+);
+const PoomsaeCatalogPage = lazyPage(() => import("@/features/poomsae/pages/PoomsaeCatalogPage"));
+const PoomsaeDetailPage = lazyPage(() => import("@/features/poomsae/pages/PoomsaeDetailPage"));
 
 /**
  * Who may open a dashboard route. Module pages take their roles from the
@@ -68,6 +80,7 @@ export interface DashboardRoute {
 }
 
 const ADMIN: RouteGuard = { roles: ["administrator"] };
+const EVERYONE: RouteGuard = { roles: ["sportsman", "parent", "administrator"] };
 
 /** Every page under /dashboard — each one carries a guard (see router tests). */
 export const dashboardRoutes: DashboardRoute[] = [
@@ -162,4 +175,18 @@ export const dashboardRoutes: DashboardRoute[] = [
     element: <ParentDocumentsPage />,
     guard: { roles: ["parent"] },
   },
+  // Belt promotions & diplomas (Req 6 + 6.1).
+  { path: "ascensos", element: <PromotionsAdminPage />, guard: ADMIN },
+  {
+    path: "mis-diplomas",
+    element: <MyDiplomasPage />,
+    guard: { roles: ["sportsman", "parent"] },
+  },
+  // Gamification (Req 7).
+  { path: "progreso", element: <ProgressPage />, guard: EVERYONE },
+  { path: "clasificacion", element: <LeaderboardPage />, guard: EVERYONE },
+  { path: "retos", element: <ChallengesAdminPage />, guard: ADMIN },
+  // Poomsae (Req 8).
+  { path: "poomsae", element: <PoomsaeCatalogPage />, guard: EVERYONE },
+  { path: "poomsae/:id", element: <PoomsaeDetailPage />, guard: EVERYONE },
 ];
