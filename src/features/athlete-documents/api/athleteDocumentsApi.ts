@@ -6,7 +6,13 @@ import { axiosInstance, http } from "@/lib/http";
 import { downloadFile } from "@/lib/download";
 
 export type DocumentType =
-  "medical_certificate" | "sports_insurance" | "liability_waiver" | "other";
+  | "medical_certificate"
+  | "sports_insurance"
+  | "liability_waiver"
+  // Annexes of the official hoja de vida (contract Addendum B.6).
+  | "identity_document"
+  | "eps_certificate"
+  | "other";
 
 export type DocumentStatus = "pending" | "approved" | "rejected";
 
@@ -157,6 +163,13 @@ export const athleteDocumentsApi = {
   /** Athlete CV ("hoja de vida deportiva") PDF. */
   downloadResume: (athleteId: number, athleteName?: string) =>
     downloadFile(`athletes/${athleteId}/resume/`, `hoja-de-vida-${fileSlug(athleteName)}.pdf`),
+
+  /**
+   * Athlete-level "Constancia" PDF (official club model, Addendum B.4). Works
+   * even without enrollments.
+   */
+  downloadConstancia: (athleteId: number, athleteName?: string) =>
+    downloadFile(`athletes/${athleteId}/constancia/`, `constancia-${fileSlug(athleteName)}.pdf`),
 
   certificates: (athleteId: number) =>
     http

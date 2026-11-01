@@ -12,6 +12,7 @@ import { parentAthletesApi, type ParentChild } from "@/features/parent/api/paren
 import { useApiErrorHandler } from "@/feedback/useApiErrorHandler";
 
 import AthleteRecordsView from "../components/AthleteRecordsView";
+import ConstanciaDownloadButton from "../components/ConstanciaDownloadButton";
 import ResumeDownloadButton from "../components/ResumeDownloadButton";
 
 /** Parent: documents, certificates and CV of each linked child. */
@@ -46,10 +47,16 @@ export default function ParentDocumentsPage() {
         description="Carga los documentos requeridos por el club y descarga constancias y hojas de vida deportivas."
         actions={
           child ? (
-            <ResumeDownloadButton
-              athleteId={child.athlete.id}
-              athleteName={child.athlete.full_name}
-            />
+            <>
+              <ConstanciaDownloadButton
+                athleteId={child.athlete.id}
+                athleteName={child.athlete.full_name}
+              />
+              <ResumeDownloadButton
+                athleteId={child.athlete.id}
+                athleteName={child.athlete.full_name}
+              />
+            </>
           ) : undefined
         }
       />

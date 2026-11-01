@@ -19,6 +19,8 @@ export const DOC_TYPE_OPTIONS: { value: DocumentType; label: string }[] = [
   { value: "medical_certificate", label: "Certificado médico" },
   { value: "sports_insurance", label: "Seguro deportivo (afiliación / comprobante)" },
   { value: "liability_waiver", label: "Carta de exoneración de responsabilidad (firmada)" },
+  { value: "identity_document", label: "Documento de identidad (foto legible)" },
+  { value: "eps_certificate", label: "Certificado de afiliación EPS (ADRES)" },
   { value: "other", label: "Otro documento" },
 ];
 
@@ -129,6 +131,8 @@ export const REQUIRED_DOC_TYPES: DocumentType[] = [
   "medical_certificate",
   "sports_insurance",
   "liability_waiver",
+  "identity_document",
+  "eps_certificate",
 ];
 
 /**

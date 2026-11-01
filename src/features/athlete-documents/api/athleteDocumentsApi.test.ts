@@ -120,6 +120,16 @@ describe("athleteDocumentsApi", () => {
       "athletes/3/resume/",
       "hoja-de-vida-ana-gomez.pdf",
     );
+    await athleteDocumentsApi.downloadConstancia(3, "Ana Gómez");
+    expect(h.downloadFile).toHaveBeenLastCalledWith(
+      "athletes/3/constancia/",
+      "constancia-ana-gomez.pdf",
+    );
+    await athleteDocumentsApi.downloadConstancia(4);
+    expect(h.downloadFile).toHaveBeenLastCalledWith(
+      "athletes/4/constancia/",
+      "constancia-deportista.pdf",
+    );
     await athleteDocumentsApi.certificates(3);
     expect(h.get).toHaveBeenLastCalledWith("/athletes/3/certificates/");
     await athleteDocumentsApi.downloadCertificate({

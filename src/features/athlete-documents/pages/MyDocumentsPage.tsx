@@ -10,6 +10,7 @@ import { useApiErrorHandler } from "@/feedback/useApiErrorHandler";
 import type { Athlete } from "@/types/entities";
 
 import AthleteRecordsView from "../components/AthleteRecordsView";
+import ConstanciaDownloadButton from "../components/ConstanciaDownloadButton";
 import ResumeDownloadButton from "../components/ResumeDownloadButton";
 
 /** Sportsman: own documents, enrollment certificates and CV. */
@@ -34,7 +35,10 @@ export default function MyDocumentsPage() {
         description="Carga tu certificado médico, seguro deportivo y carta de exoneración; descarga tus constancias y tu hoja de vida deportiva."
         actions={
           athlete?.id ? (
-            <ResumeDownloadButton athleteId={athlete.id} athleteName={athlete.full_name} />
+            <>
+              <ConstanciaDownloadButton athleteId={athlete.id} athleteName={athlete.full_name} />
+              <ResumeDownloadButton athleteId={athlete.id} athleteName={athlete.full_name} />
+            </>
           ) : undefined
         }
       />

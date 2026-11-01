@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  DOC_TYPE_OPTIONS,
   MAX_DOCUMENT_BYTES,
+  REQUIRED_DOC_TYPES,
   buildUploadPayload,
   deriveChecklist,
   isReviewable,
@@ -132,7 +134,22 @@ describe("deriveChecklist", () => {
       ["medical_certificate", "pending", 2],
       ["sports_insurance", "missing", null],
       ["liability_waiver", "rejected", 3],
+      ["identity_document", "missing", null],
+      ["eps_certificate", "missing", null],
     ]);
+  });
+
+  it("labels the hoja de vida annex types (Addendum B.6)", () => {
+    expect(REQUIRED_DOC_TYPES).toEqual([
+      "medical_certificate",
+      "sports_insurance",
+      "liability_waiver",
+      "identity_document",
+      "eps_certificate",
+    ]);
+    expect(docTypeLabel("identity_document")).toBe("Documento de identidad (foto legible)");
+    expect(docTypeLabel("eps_certificate")).toBe("Certificado de afiliación EPS (ADRES)");
+    expect(DOC_TYPE_OPTIONS.map((o) => o.value)).toContain("eps_certificate");
   });
 
   it("counts legacy enrollment certificates as approved and not reviewable", () => {

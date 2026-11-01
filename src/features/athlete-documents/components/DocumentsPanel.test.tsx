@@ -196,6 +196,13 @@ describe("DocumentsPanel", () => {
     renderPanel();
     const checklist = await screen.findByRole("list", { name: "Lista de chequeo de documentos" });
     expect(within(checklist).getByText("Aprobado")).toBeInTheDocument();
-    expect(within(checklist).getAllByText("Falta")).toHaveLength(2);
+    // Medical certificate approved; insurance, waiver and the two B.6 annexes missing.
+    expect(within(checklist).getAllByText("Falta")).toHaveLength(4);
+    expect(
+      within(checklist).getByText("Documento de identidad (foto legible)"),
+    ).toBeInTheDocument();
+    expect(
+      within(checklist).getByText("Certificado de afiliación EPS (ADRES)"),
+    ).toBeInTheDocument();
   });
 });
