@@ -7,6 +7,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/common/EmptyState";
 import { PageHeader } from "@/components/common/PageHeader";
 import { enrollmentsApi } from "@/features/enrollments/api/enrollmentsApi";
+import { athletesApi } from "@/features/athletes/api/athletesApi";
+import EnrollmentCertificatesPanel from "@/features/athlete-documents/components/EnrollmentCertificatesPanel";
 import { useApiErrorHandler } from "@/feedback/useApiErrorHandler";
 import { formatDateForDisplay } from "@/lib/dateUtils";
 import CertificateDownloadButton from "@/features/enrollments/components/CertificateDownloadButton";
@@ -30,6 +32,14 @@ export default function MyEnrollmentPage() {
   const { handleError } = useApiErrorHandler();
   const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
   const [loading, setLoading] = useState(true);
+  const [athleteId, setAthleteId] = useState<number | null>(null);
+
+  useEffect(() => {
+    athletesApi
+      .getMe()
+      .then((a) => setAthleteId(a?.id ?? null))
+      .catch(() => setAthleteId(null));
+  }, []);
 
   useEffect(() => {
     enrollmentsApi
@@ -116,6 +126,8 @@ export default function MyEnrollmentPage() {
           ))}
         </div>
       )}
+
+      {athleteId !== null && <EnrollmentCertificatesPanel athleteId={athleteId} />}
     </div>
   );
 }

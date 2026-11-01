@@ -266,6 +266,15 @@ export default function AthletesPage() {
         data={children}
         loading={childrenLoading}
         rowKey={(r) => r.athlete.id}
+        rowActions={[
+          {
+            id: "documents",
+            label: "Documentos y constancias",
+            icon: FolderOpen,
+            variant: "ghost",
+            onClick: (row) => navigate(`/dashboard/acudiente/documentos?athlete=${row.athlete.id}`),
+          },
+        ]}
         mobileCard={(r) => (
           <div className="space-y-1">
             <div className="flex items-center justify-between gap-2">

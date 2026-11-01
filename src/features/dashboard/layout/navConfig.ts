@@ -8,6 +8,7 @@ import {
   ClipboardList,
   Dumbbell,
   FileSpreadsheet,
+  FolderOpen,
   HelpCircle,
   History,
   Package,
@@ -87,6 +88,7 @@ export const navConfig: Record<RoleName, NavGroup[]> = {
           icon: ClipboardList,
         },
         { to: "/dashboard/deportista/entrenamientos", label: "Entrenamientos", icon: Dumbbell },
+        { to: "/dashboard/deportista/documentos", label: "Mis documentos", icon: FolderOpen },
       ],
     },
     {
@@ -116,6 +118,7 @@ export const navConfig: Record<RoleName, NavGroup[]> = {
         { to: "/dashboard/deportistas", label: "Deportistas", icon: Users },
         { to: "/dashboard/programas", label: "Programas", icon: BookOpen },
         { to: "/dashboard/inscripcion", label: "Inscripciones", icon: ClipboardList },
+        { to: "/dashboard/acudiente/documentos", label: "Documentos", icon: FolderOpen },
       ],
     },
     {
