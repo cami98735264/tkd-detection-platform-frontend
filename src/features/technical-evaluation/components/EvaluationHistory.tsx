@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import type { Column, RowAction } from "@/components/common/DataTable";
 import { ListPageTemplate } from "@/components/common/ListPageTemplate";
 import EvaluationResultsView from "./EvaluationResults";
+import { MetricTableCell } from "./MetricComparison";
 import {
   technicalEvaluationApi,
   type EvaluationSession,
@@ -47,45 +48,25 @@ const columns: Column<EvaluationSession>[] = [
     key: "angle",
     header: "Ángulo",
     hideOnMobile: true,
-    render: (r) =>
-      r.results ? (
-        <span className="text-muted">{r.results.angle}°</span>
-      ) : (
-        <span className="text-faint">—</span>
-      ),
+    render: (r) => <MetricTableCell results={r.results} metricKey="angle" />,
   },
   {
     key: "height",
     header: "Altura",
     hideOnMobile: true,
-    render: (r) =>
-      r.results ? (
-        <span className="text-muted">{r.results.height} cm</span>
-      ) : (
-        <span className="text-faint">—</span>
-      ),
+    render: (r) => <MetricTableCell results={r.results} metricKey="height" />,
   },
   {
     key: "speed",
     header: "Velocidad",
     hideOnMobile: true,
-    render: (r) =>
-      r.results ? (
-        <span className="text-muted">{r.results.speed} m/s</span>
-      ) : (
-        <span className="text-faint">—</span>
-      ),
+    render: (r) => <MetricTableCell results={r.results} metricKey="speed" />,
   },
   {
     key: "stability",
     header: "Estabilidad",
     hideOnMobile: true,
-    render: (r) =>
-      r.results ? (
-        <span className="text-muted">{r.results.stability}%</span>
-      ) : (
-        <span className="text-faint">—</span>
-      ),
+    render: (r) => <MetricTableCell results={r.results} metricKey="stability" />,
   },
 ];
 

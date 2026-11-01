@@ -21,13 +21,57 @@ export interface AthleteConsent {
 /** Sportsman → own ConsentStatus; parent → one AthleteConsent per linked child. */
 export type ConsentResponse = ConsentStatus | AthleteConsent[];
 
+export type MetricKey = "angle" | "height" | "speed" | "stability";
+
+/** optimal: inside [optimal_min, optimal_max]; close: score ≥ 70; needs_work: else. */
+export type MetricStatus = "optimal" | "close" | "needs_work";
+
+/** Executed vs optimal comparison for one metric (contract addendum, listado 1). */
+export interface MetricDetail {
+  key: MetricKey;
+  label: string;
+  unit: string;
+  value: number;
+  optimal: number;
+  optimal_min: number;
+  optimal_max: number;
+  /** value / optimal, rounded to 2 decimals. */
+  ratio: number;
+  score: number;
+  status: MetricStatus;
+  status_display: string;
+  description: string;
+}
+
+export type RecommendationPriority = "high" | "medium" | "low";
+
+export interface DetailedRecommendation {
+  metric: MetricKey;
+  priority: RecommendationPriority;
+  title: string;
+  detail: string;
+  drills: string[];
+}
+
+export interface OptimalReference {
+  kick_type: string;
+  athlete_height_cm: number | null;
+  height_basis: "athlete" | "estimated";
+  source_note: string;
+}
+
 export interface EvaluationResults {
   angle: number;
   height: number;
   speed: number;
   stability: number;
   overall_score: number;
+  /** Short summary (kept for backward compatibility). */
   recommendations: string;
+  /** Absent on backends that predate the executed-vs-optimal addendum. */
+  metrics?: MetricDetail[];
+  detailed_recommendations?: DetailedRecommendation[];
+  optimal_reference?: OptimalReference | null;
 }
 
 export interface EvaluationSession {
