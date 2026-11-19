@@ -124,3 +124,24 @@ describe("AttendancePage — confirm attendance", () => {
     expect(screen.getAllByText("Ausente").length).toBeGreaterThan(0);
   });
 });
+
+describe("AttendancePage — dates", () => {
+  it("shows the received date-only fecha as dd/mm/aaaa even in America/Bogota", async () => {
+    const originalTz = process.env.TZ;
+    process.env.TZ = "America/Bogota";
+    try {
+      signInAs("administrator");
+      h.list.mockResolvedValue({
+        count: 1,
+        next: null,
+        previous: null,
+        results: [record({ fecha: "2026-10-31" })],
+      });
+      renderPage();
+      expect((await screen.findAllByText(/31\/10\/2026/)).length).toBeGreaterThan(0);
+      expect(screen.queryByText(/30\/10\/2026|10\/30\/2026/)).not.toBeInTheDocument();
+    } finally {
+      process.env.TZ = originalTz;
+    }
+  });
+});

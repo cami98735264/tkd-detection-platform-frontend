@@ -8,6 +8,7 @@ import {
   type AthleteResumeErrors,
   type AthleteResumeState,
 } from "@/features/athletes/lib/athleteResume";
+import { ageFromDateOnly } from "@/lib/dateOnly";
 
 /**
  * Two reusable subforms — `AthletePersonalDataSection` and `ParentAccountSection` —
@@ -126,14 +127,7 @@ export function buildRegistrationPayload(
 }
 
 export function calculateAge(dob: string): number | null {
-  if (!dob) return null;
-  const birth = new Date(dob);
-  if (Number.isNaN(birth.getTime())) return null;
-  const today = new Date();
-  let age = today.getFullYear() - birth.getFullYear();
-  const m = today.getMonth() - birth.getMonth();
-  if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age -= 1;
-  return age;
+  return ageFromDateOnly(dob);
 }
 
 export const RELATIONSHIP_OPTIONS = [

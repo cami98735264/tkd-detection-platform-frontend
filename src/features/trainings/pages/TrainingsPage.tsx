@@ -10,11 +10,7 @@ import { trainingsApi, type Training } from "@/features/trainings/api/trainingsA
 import { useApiErrorHandler } from "@/feedback/useApiErrorHandler";
 import { useFeedback } from "@/feedback/useFeedback";
 import { useAuthStore } from "@/features/auth/store/authStore";
-
-function formatDate(value: string): string {
-  const d = new Date(value);
-  return Number.isNaN(d.getTime()) ? "—" : d.toLocaleDateString();
-}
+import { formatDateOnly } from "@/lib/dateOnly";
 
 const columns: Column<Training>[] = [
   {
@@ -33,7 +29,7 @@ const columns: Column<Training>[] = [
     hideOnMobile: true,
     render: (r) => <span className="text-muted line-clamp-1">{r.descripcion || "—"}</span>,
   },
-  { key: "fecha", header: "Fecha", render: (r) => formatDate(r.fecha) },
+  { key: "fecha", header: "Fecha", render: (r) => formatDateOnly(r.fecha) },
   { key: "time", header: "Hora", hideOnMobile: true },
   {
     key: "numero_atletas",
@@ -169,7 +165,7 @@ export default function TrainingsPage() {
             <Badge variant="outline-muted">{r.nombre}</Badge>
           </div>
           <p className="text-xs text-muted">
-            {formatDate(r.fecha)} · {r.time}
+            {formatDateOnly(r.fecha)} · {r.time}
           </p>
           {r.descripcion && <p className="text-xs text-faint line-clamp-2">{r.descripcion}</p>}
           <p className="inline-flex items-center gap-1 text-xs text-faint tabular-nums">

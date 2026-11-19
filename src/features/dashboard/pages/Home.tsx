@@ -43,6 +43,7 @@ import { cn } from "@/lib/utils";
 import type { Athlete } from "@/types/entities";
 import type { LucideIcon } from "lucide-react";
 import { athleteCategoryText } from "@/features/athletes/lib/athleteCategories";
+import { formatDateOnly } from "@/lib/dateOnly";
 
 interface QuickAction {
   label: string;
@@ -329,7 +330,7 @@ export default function Home() {
                   )}
                   {athlete.date_of_birth && (
                     <span className="text-muted">
-                      Nacido el {new Date(athlete.date_of_birth).toLocaleDateString()}
+                      Nacido el {formatDateOnly(athlete.date_of_birth)}
                     </span>
                   )}
                 </div>

@@ -26,6 +26,7 @@ import { usePermissions } from "@/features/auth/hooks/usePermissions";
 import { useApiErrorHandler } from "@/feedback/useApiErrorHandler";
 import { useFeedback } from "@/feedback/useFeedback";
 import type { Athlete } from "@/types/entities";
+import { formatDateOnly } from "@/lib/dateOnly";
 
 const STATUS_OPTIONS = [
   { value: "all", label: "Todos los estados" },
@@ -59,7 +60,7 @@ const adminColumns: Column<Athlete>[] = [
     key: "date_of_birth",
     header: "Fecha nac.",
     hideOnMobile: true,
-    render: (r) => formatDate(r.date_of_birth),
+    render: (r) => formatDateOnly(r.date_of_birth),
   },
   {
     key: "category",
@@ -95,7 +96,7 @@ const parentColumns: Column<ParentChild>[] = [
     key: "date_of_birth",
     header: "Fecha nac.",
     hideOnMobile: true,
-    render: (r) => formatDate(r.athlete.date_of_birth),
+    render: (r) => formatDateOnly(r.athlete.date_of_birth),
   },
   {
     key: "category",
@@ -411,7 +412,7 @@ export default function AthletesPage() {
             {r.belt_actual_name ? ` · ${r.belt_actual_name}` : ""}
           </p>
           <p className="text-xs text-faint">
-            {formatDate(r.date_of_birth)} · ID #{r.id}
+            {formatDateOnly(r.date_of_birth)} · ID #{r.id}
           </p>
         </div>
       )}

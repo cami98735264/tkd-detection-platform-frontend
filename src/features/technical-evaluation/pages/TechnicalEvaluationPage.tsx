@@ -26,6 +26,7 @@ import { useFeedback } from "@/feedback/useFeedback";
 import { useAuthStore } from "@/features/auth/store/authStore";
 import { athletesApi } from "@/features/athletes/api/athletesApi";
 import type { Athlete } from "@/types/entities";
+import { ageFromDateOnly } from "@/lib/dateOnly";
 
 type Step = "choose" | "consent" | "history" | "kick" | "record" | "results";
 
@@ -84,13 +85,7 @@ export default function TechnicalEvaluationPage() {
     }
   }, [isSportsman, isParent]);
 
-  const isAdult = myAthlete?.date_of_birth
-    ? (() => {
-        const dob = new Date(myAthlete.date_of_birth);
-        const age = Math.floor((Date.now() - dob.getTime()) / (365.25 * 24 * 60 * 60 * 1000));
-        return age >= 18;
-      })()
-    : false;
+  const isAdult = (ageFromDateOnly(myAthlete?.date_of_birth) ?? 0) >= 18;
 
   // Auto-advance once athlete and consent are loaded
   useEffect(() => {

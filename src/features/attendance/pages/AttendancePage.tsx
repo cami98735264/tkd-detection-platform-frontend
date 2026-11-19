@@ -15,6 +15,7 @@ import { usePermissions } from "@/features/auth/hooks/usePermissions";
 import { ApiError } from "@/types/api";
 import { useApiErrorHandler } from "@/feedback/useApiErrorHandler";
 import { useFeedback } from "@/feedback/useFeedback";
+import { formatDateOnly } from "@/lib/dateOnly";
 
 type ViewMode = "weekly" | "monthly" | "yearly";
 
@@ -45,7 +46,7 @@ const columns: Column<AttendanceRecord>[] = [
   {
     key: "fecha",
     header: "Fecha",
-    render: (r) => new Date(r.fecha).toLocaleDateString(),
+    render: (r) => formatDateOnly(r.fecha),
   },
   { key: "hora", header: "Hora", hideOnMobile: true },
   {
@@ -181,7 +182,7 @@ export default function AttendancePage() {
           </div>
           <p className="text-xs text-muted">{r.athlete_name}</p>
           <p className="text-xs text-faint">
-            {new Date(r.fecha).toLocaleDateString()} · {r.hora}
+            {formatDateOnly(r.fecha)} · {r.hora}
           </p>
         </div>
       )}

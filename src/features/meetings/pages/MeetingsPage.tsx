@@ -11,6 +11,7 @@ import { meetingsApi, type Meeting } from "@/features/meetings/api/meetingsApi";
 import { useAuthStore } from "@/features/auth/store/authStore";
 import { useApiErrorHandler } from "@/feedback/useApiErrorHandler";
 import { useFeedback } from "@/feedback/useFeedback";
+import { formatDateOnly } from "@/lib/dateOnly";
 
 function ConfirmationBadge({ confirmed }: { confirmed: boolean }) {
   return confirmed ? (
@@ -18,11 +19,6 @@ function ConfirmationBadge({ confirmed }: { confirmed: boolean }) {
   ) : (
     <Badge variant="outline-muted">Sin confirmar</Badge>
   );
-}
-
-function formatDate(value: string): string {
-  const d = new Date(value);
-  return Number.isNaN(d.getTime()) ? "—" : d.toLocaleDateString();
 }
 
 const baseColumns: Column<Meeting>[] = [
@@ -37,7 +33,7 @@ const baseColumns: Column<Meeting>[] = [
     hideOnMobile: true,
     render: (r) => <span className="text-muted line-clamp-1">{r.description || "—"}</span>,
   },
-  { key: "date", header: "Fecha", render: (r) => formatDate(r.date) },
+  { key: "date", header: "Fecha", render: (r) => formatDateOnly(r.date) },
   { key: "time", header: "Hora", hideOnMobile: true },
 ];
 
@@ -227,7 +223,7 @@ export default function MeetingsPage() {
               {!canWrite && <ConfirmationBadge confirmed={r.is_confirmed ?? false} />}
             </div>
             <p className="text-xs text-muted">
-              {formatDate(r.date)} · {r.time}
+              {formatDateOnly(r.date)} · {r.time}
             </p>
             {r.description && <p className="text-xs text-faint line-clamp-2">{r.description}</p>}
           </div>

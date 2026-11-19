@@ -23,6 +23,7 @@ import {
 import type { Athlete } from "@/types/entities";
 
 import { BLOOD_TYPES, type AthleteMode, type EnrollmentExtras } from "./model";
+import { formatDateOnly } from "@/lib/dateOnly";
 
 export interface Step1Props {
   isEdit: boolean;
@@ -108,9 +109,7 @@ export default function Step1Personal({
                     </div>
                     <div>
                       <span className="text-muted-foreground">Fecha Nac.:</span>{" "}
-                      {linkedAthlete.date_of_birth
-                        ? new Date(linkedAthlete.date_of_birth).toLocaleDateString()
-                        : "—"}
+                      {formatDateOnly(linkedAthlete.date_of_birth)}
                     </div>
                   </div>
                   {age !== null && (
