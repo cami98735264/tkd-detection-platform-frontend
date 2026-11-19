@@ -128,7 +128,7 @@ export default function AttendancePage() {
         // only if it did not (e.g. no FeedbackProvider subscription).
         if (!err.notified) {
           showToast({
-            title: "No podés confirmar esta asistencia",
+            title: "No puedes confirmar esta asistencia",
             description: err.userMessage,
             variant: "warning",
           });

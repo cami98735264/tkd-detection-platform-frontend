@@ -17,6 +17,8 @@ import { useAuthStore } from "@/features/auth/store/authStore";
 import { axiosInstance, http } from "@/lib/http";
 import {
   NETWORK_ERROR_MESSAGE,
+  SESSION_EXPIRED_MESSAGE,
+  TIMEOUT_ERROR_MESSAGE,
   normalizeHttpError,
   onHttpError,
   type HttpErrorEvent,
@@ -178,6 +180,51 @@ describe("global HTTP error notifications", () => {
     setAdapter(() => ({ status: 401 }));
     await http.get("/auth/me/").catch(() => undefined);
     expect(events).toHaveLength(0);
+  });
+});
+
+describe("user-facing messages (Colombian Spanish, no voseo)", () => {
+  const VOSEO = /\b(Esperá|Intentá|intentá|Revisá|ingresá|tenés|podés|querés)\b/;
+
+  it("tells the user how long to wait on a 429 with Retry-After", async () => {
+    setAdapter(() => ({ status: 429, data: {}, headers: { "retry-after": "7" } }));
+    await http.get("/x/").catch(() => undefined);
+    expect(events[0].message).toBe("Espera 7 s antes de intentar de nuevo.");
+  });
+
+  it("asks the user to wait a moment on a 429 without Retry-After", async () => {
+    setAdapter(() => ({ status: 429, data: {} }));
+    await http.get("/x/").catch(() => undefined);
+    expect(events[0].message).toBe("Espera un momento antes de intentar de nuevo.");
+  });
+
+  it("uses tú forms for server, network, timeout and session messages", async () => {
+    setAdapter(() => ({ status: 500, data: {} }));
+    await http.get("/x/").catch(() => undefined);
+    expect(events[0].message).toBe(
+      "Ocurrió un error inesperado. Intenta de nuevo en unos minutos.",
+    );
+    expect(NETWORK_ERROR_MESSAGE).toBe(
+      "No se pudo conectar con el servidor. Revisa tu conexión e intenta de nuevo.",
+    );
+    expect(TIMEOUT_ERROR_MESSAGE).toBe(
+      "El servidor tardó demasiado en responder. Intenta de nuevo.",
+    );
+    expect(SESSION_EXPIRED_MESSAGE).toBe("Sesión expirada. Por favor ingresa de nuevo.");
+    for (const text of [
+      events[0].message,
+      NETWORK_ERROR_MESSAGE,
+      TIMEOUT_ERROR_MESSAGE,
+      SESSION_EXPIRED_MESSAGE,
+    ]) {
+      expect(text).not.toMatch(VOSEO);
+    }
+  });
+
+  it("falls back to a tú-form permission message on a bare 403", async () => {
+    setAdapter(() => ({ status: 403, data: { detail: "permission denied" } }));
+    await http.get("/x/").catch(() => undefined);
+    expect(events[0].message).toBe("No tienes permisos para realizar esta acción");
   });
 });
 

@@ -79,12 +79,12 @@ function translateErrorMessage(message: string): string {
   if (msg.includes("invalid token") || msg.includes("token invalid")) return "Token inválido";
   if (msg.includes("expired token") || msg.includes("token expired")) return "El token ha expirado";
   if (msg.includes("session expired") || msg.includes("sesión expirada"))
-    return "Sesión expirada. Por favor ingresá de nuevo.";
+    return "Sesión expirada. Por favor ingresa de nuevo.";
 
   // Authorization / permissions
   if (msg.includes("unauthorized") || msg.includes("not authorized")) return "No autorizado";
   if (msg.includes("forbidden") || msg.includes("permission denied"))
-    return "No tenés permisos para realizar esta acción";
+    return "No tienes permisos para realizar esta acción";
   if (msg.includes("access denied")) return "Acceso denegado";
 
   // Resource states
@@ -123,8 +123,8 @@ function translateErrorMessage(message: string): string {
   if (msg.includes("service unavailable") || msg.includes("unavailable"))
     return "Servicio no disponible";
   if (msg.includes("too many requests") || msg.includes("rate limit"))
-    return "Demasiadas solicitudes. Intentá más tarde.";
-  if (msg.includes("rate_limit")) return "Demasiadas solicitudes. Intentá más tarde.";
+    return "Demasiadas solicitudes. Intenta más tarde.";
+  if (msg.includes("rate_limit")) return "Demasiadas solicitudes. Intenta más tarde.";
 
   // Generic fallback for "Invalid ..." without specific match
   if (msg.includes("invalid")) {

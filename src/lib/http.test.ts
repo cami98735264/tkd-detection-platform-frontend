@@ -80,7 +80,7 @@ describe("http 401 refresh (contract §0/§7 note 7)", () => {
 
     await expect(http.get("/protected")).rejects.toMatchObject({
       status: 401,
-      body: { detail: "Sesión expirada. Por favor ingresá de nuevo." },
+      body: { detail: "Sesión expirada. Por favor ingresa de nuevo." },
     });
     expect(clearSession).toHaveBeenCalledTimes(1);
   });

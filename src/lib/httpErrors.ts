@@ -39,9 +39,9 @@ const TITLES: Record<HttpErrorKind, string> = {
 };
 
 export const NETWORK_ERROR_MESSAGE =
-  "No se pudo conectar con el servidor. Revisá tu conexión e intentá de nuevo.";
-export const TIMEOUT_ERROR_MESSAGE = "El servidor tardó demasiado en responder. Intentá de nuevo.";
-export const SESSION_EXPIRED_MESSAGE = "Sesión expirada. Por favor ingresá de nuevo.";
+  "No se pudo conectar con el servidor. Revisa tu conexión e intenta de nuevo.";
+export const TIMEOUT_ERROR_MESSAGE = "El servidor tardó demasiado en responder. Intenta de nuevo.";
+export const SESSION_EXPIRED_MESSAGE = "Sesión expirada. Por favor ingresa de nuevo.";
 
 /**
  * Turn any axios failure into an ApiError with a usable Spanish message.
@@ -88,13 +88,13 @@ export function classifyHttpError(error: ApiError): HttpErrorKind | null {
 function messageFor(kind: HttpErrorKind, error: ApiError): string {
   switch (kind) {
     case "server":
-      return "Ocurrió un error inesperado. Intentá de nuevo en unos minutos.";
+      return "Ocurrió un error inesperado. Intenta de nuevo en unos minutos.";
     case "throttled":
       return error.retryAfter
-        ? `Esperá ${error.retryAfter} s antes de intentar de nuevo.`
-        : "Esperá un momento antes de intentar de nuevo.";
+        ? `Espera ${error.retryAfter} s antes de intentar de nuevo.`
+        : "Espera un momento antes de intentar de nuevo.";
     case "forbidden":
-      return error.userMessage || "No tenés permisos para realizar esta acción.";
+      return error.userMessage || "No tienes permisos para realizar esta acción.";
     default:
       return error.userMessage;
   }

@@ -98,3 +98,14 @@ describe("ApiError.hasFieldCode", () => {
     expect(new ApiError(500, { detail: "boom" }).hasFieldCode("email", "email_in_use")).toBe(false);
   });
 });
+
+describe("translated messages use Colombian Spanish (tú), not voseo", () => {
+  it.each([
+    ["too many requests", "Demasiadas solicitudes. Intenta más tarde."],
+    ["rate_limit exceeded", "Demasiadas solicitudes. Intenta más tarde."],
+    ["Session expired", "Sesión expirada. Por favor ingresa de nuevo."],
+    ["Permission denied", "No tienes permisos para realizar esta acción"],
+  ])("translates %s", (detail, expected) => {
+    expect(new ApiError(400, { detail }).userMessage).toBe(expected);
+  });
+});
