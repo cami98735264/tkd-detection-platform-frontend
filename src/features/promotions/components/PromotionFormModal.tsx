@@ -13,6 +13,7 @@ import { useFeedback } from "@/feedback/useFeedback";
 import { promotionsApi } from "../api/promotionsApi";
 import type { BeltOption, BeltPromotion } from "../types";
 import { BeltSelect } from "./BeltSelect";
+import { toDateOnly } from "@/lib/dateOnly";
 
 interface Props {
   open: boolean;
@@ -54,7 +55,7 @@ export default function PromotionFormModal({
     setAthleteId(defaultAthleteId ?? athleteOptions?.[0]?.id ?? null);
     setFromBelt(null);
     setToBelt(null);
-    setDate(new Date().toISOString().slice(0, 10));
+    setDate(toDateOnly(new Date()));
     setNotes("");
     setFile(null);
   }, [open, defaultAthleteId, athleteOptions]);

@@ -9,6 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { toDateOnly } from "@/lib/dateOnly";
 
 type ViewMode = "weekly" | "monthly" | "yearly";
 
@@ -59,8 +60,8 @@ export default function AttendanceFilters({
         break;
     }
 
-    onStartDateChange(start.toISOString().split("T")[0]);
-    onEndDateChange(end.toISOString().split("T")[0]);
+    onStartDateChange(toDateOnly(start));
+    onEndDateChange(toDateOnly(end));
     onViewModeChange(mode);
   };
 

@@ -10,6 +10,7 @@ import { useApiErrorHandler } from "@/feedback/useApiErrorHandler";
 import { useFeedback } from "@/feedback/useFeedback";
 
 import { gamificationApi } from "../api/gamificationApi";
+import { toDateOnly } from "@/lib/dateOnly";
 
 const ACTIVITIES = [
   "Poomsae",
@@ -21,7 +22,7 @@ const ACTIVITIES = [
   "Otra",
 ];
 
-const iso = (d: Date) => d.toISOString().slice(0, 10);
+const iso = (d: Date) => toDateOnly(d);
 
 interface Props {
   /** Required for parents/admins; omitted for the sportsman's own log. */

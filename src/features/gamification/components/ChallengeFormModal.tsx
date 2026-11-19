@@ -19,6 +19,7 @@ import type {
   ChallengeMetric,
   ChallengePayload,
 } from "../types";
+import { toDateOnly } from "@/lib/dateOnly";
 
 /** TechEvalSession kick types (see technicalEvaluationApi.KickType). */
 const KICK_TYPES = [
@@ -33,7 +34,7 @@ const KICK_TYPES = [
 const KICK_METRICS: ChallengeMetric[] = ["sessions", "min_score"];
 const ALL_METRICS = Object.keys(METRIC_LABEL) as ChallengeMetric[];
 
-const iso = (d: Date) => d.toISOString().slice(0, 10);
+const iso = (d: Date) => toDateOnly(d);
 
 function blank(): ChallengePayload {
   const start = new Date();

@@ -47,3 +47,15 @@ export function ageFromDateOnly(
   if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age -= 1;
   return age;
 }
+
+/**
+ * Local calendar date of `date` as "YYYY-MM-DD" (the inverse of parseDateOnly).
+ * Use it instead of `date.toISOString().slice(0, 10)`, which converts to UTC: in
+ * Colombia (UTC-5) "today" turns into tomorrow after 7 p. m., and in UTC+ zones
+ * the first day of a month becomes the last day of the previous one.
+ */
+export function toDateOnly(date: Date = new Date()): string {
+  const mm = String(date.getMonth() + 1).padStart(2, "0");
+  const dd = String(date.getDate()).padStart(2, "0");
+  return `${date.getFullYear()}-${mm}-${dd}`;
+}

@@ -43,7 +43,7 @@ import { cn } from "@/lib/utils";
 import type { Athlete } from "@/types/entities";
 import type { LucideIcon } from "lucide-react";
 import { athleteCategoryText } from "@/features/athletes/lib/athleteCategories";
-import { formatDateOnly } from "@/lib/dateOnly";
+import { formatDateOnly, toDateOnly } from "@/lib/dateOnly";
 
 interface QuickAction {
   label: string;
@@ -54,12 +54,12 @@ interface QuickAction {
 
 function startOfMonthIso(): string {
   const d = new Date();
-  return new Date(d.getFullYear(), d.getMonth(), 1).toISOString().split("T")[0];
+  return toDateOnly(new Date(d.getFullYear(), d.getMonth(), 1));
 }
 
 function endOfMonthIso(): string {
   const d = new Date();
-  return new Date(d.getFullYear(), d.getMonth() + 1, 0).toISOString().split("T")[0];
+  return toDateOnly(new Date(d.getFullYear(), d.getMonth() + 1, 0));
 }
 
 export default function Home() {

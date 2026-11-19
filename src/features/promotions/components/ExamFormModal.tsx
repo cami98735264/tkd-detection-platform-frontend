@@ -23,6 +23,7 @@ import type {
   TechnicalScore,
 } from "../types";
 import { BeltSelect } from "./BeltSelect";
+import { toDateOnly } from "@/lib/dateOnly";
 
 interface Props {
   open: boolean;
@@ -35,7 +36,7 @@ interface Props {
   onSaved: (exam: PromotionExam) => void;
 }
 
-const today = () => new Date().toISOString().slice(0, 10);
+const today = () => toDateOnly(new Date());
 
 /**
  * Create / edit a belt promotion exam: technical criteria with weights, the

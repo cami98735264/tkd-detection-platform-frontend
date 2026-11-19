@@ -15,7 +15,7 @@ import { usePermissions } from "@/features/auth/hooks/usePermissions";
 import { ApiError } from "@/types/api";
 import { useApiErrorHandler } from "@/feedback/useApiErrorHandler";
 import { useFeedback } from "@/feedback/useFeedback";
-import { formatDateOnly } from "@/lib/dateOnly";
+import { formatDateOnly, toDateOnly } from "@/lib/dateOnly";
 
 type ViewMode = "weekly" | "monthly" | "yearly";
 
@@ -75,12 +75,12 @@ export default function AttendancePage() {
   const [startDate, setStartDate] = useState(() => {
     const now = new Date();
     const start = new Date(now.getFullYear(), now.getMonth(), 1);
-    return start.toISOString().split("T")[0];
+    return toDateOnly(start);
   });
   const [endDate, setEndDate] = useState(() => {
     const now = new Date();
     const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-    return end.toISOString().split("T")[0];
+    return toDateOnly(end);
   });
 
   const fetchData = useCallback(
